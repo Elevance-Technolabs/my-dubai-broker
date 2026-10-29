@@ -1,606 +1,188 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="https://www.cloudflare.com/favicon.ico" />
-    <title>Not Found</title>
-    <style>
-      body {
-        font-family: system-ui;
-        font-weight: 300;
-        font-size: 1.25rem;
-        color: #36393a;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      main {
-        max-width: 1200px;
-        margin-top: 120px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-      }
-      #text {
-        max-width: 60%;
-        margin-left: 1rem;
-        margin-right: 1rem;
-      }
-      main > section > div {
-        margin-bottom: 3.25rem;
-      }
-      svg {
-        margin-left: 2rem;
-      }
-      @keyframes eye-1 {
-        0% {
-          transform: translateX(0);
-        }
-        10%,
-        50% {
-          transform: translateX(-5px);
-        }
-        60% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(0px);
-        }
-      }
-      @keyframes eye-2 {
-        0% {
-          transform: translateX(0);
-        }
-        10%,
-        50% {
-          transform: translateX(5px);
-        }
-        60% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(0px);
-        }
-      }
-      svg > .eye-1 {
-        animation: eye-1 3s infinite;
-      }
-      svg > .eye-2 {
-        animation: eye-2 3s 0.6s infinite;
-      }
-      h1 {
-        font-size: 3.75rem;
-        font-weight: 400;
-        margin-bottom: 0.5rem;
-      }
-      h3 {
-        font-size: 2rem;
-        font-weight: 400;
-        color: #92979b;
-        margin: 0;
-      }
-      a {
-        color: #0055dc;
-      }
-      p {
-        margin: 0;
-      }
-      #error-title {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-      }
-      #footer-title {
-        font-weight: 700;
-        margin-bottom: 0.75rem;
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <section id="text">
-        <div>
-          <h1>Error 404</h1>
-          <h3>Object not found</h3>
-        </div>
+# My Dubai Broker (MDB)
 
-        <div>
-          <p>
-            This object does not exist or is not publicly accessible at this
-            URL. Check the URL of the object that you're looking for or contact
-            the owner to enable Public access.
-          </p>
-        </div>
+A multi-category luxury asset marketplace and broker back-office: real estate, cars, yachts, private aviation (jets/helicopters), and collectibles. Brokerages/dealers ("companies") onboard, get verified by platform admins, and their agents create listings that go through an approval workflow before going live to the public.
 
-        <div>
-          <p id="footer-title">Is this your bucket?</p>
-          <p>
-            Learn how to enable
-            <a
-              href="https://developers.cloudflare.com/r2/data-access/public-buckets/"
-              >Public Access</a
-            >
-          </p>
-        </div>
-      </section>
+This is a two-repo pnpm workspace:
 
-      <section>
-        <svg
-          width="414"
-          height="212"
-          viewBox="0 0 414 212"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <ellipse cx="208.5" cy="166.5" rx="174.5" ry="45.5" fill="#E2F5FA" />
-          <path
-            d="M205.516 80.2674H139.419L148.186 141.237H197.788L205.516 80.2674Z"
-            fill="#C5EBF5"
-          />
-          <path
-            d="M205.516 80.2674H139.419L148.186 141.237H197.788L205.516 80.2674Z"
-            stroke="#6ECCE5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M205.516 80.2674H139.419L148.186 141.237H197.788L205.516 80.2674Z"
-            stroke="#6ECCE5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <rect
-            x="137"
-            y="75"
-            width="70.9351"
-            height="9.39611"
-            rx="2.40792"
-            fill="#C5EBF5"
-            stroke="#6ECCE5"
-            stroke-width="2"
-          />
-          <path
-            d="M124.566 13.277C121.053 13.277 118.204 10.4288 118.204 6.91534C118.204 3.40191 121.053 0.553711 124.566 0.553711C128.08 0.553711 130.928 3.40191 130.928 6.91534C130.928 10.4288 128.08 13.277 124.566 13.277Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M122.692 10.2347H126.402V24.0345H122.692V10.2347Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M85.6775 57.6815H163.733V127.819H85.6775V57.6815Z"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M183.719 96.4263H179.429C179.429 96.4263 178.132 78.2631 163.565 71.5752V65.4338C169.87 67.9703 182.283 75.5798 183.719 96.4263Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M193.146 105.43L188.253 106.931C188.253 106.931 186.752 98.3591 181.394 99.6477C176.035 100.936 177.96 108.22 177.96 108.22H173.678C173.678 108.22 170.889 95.9857 180.537 94.0691C190.186 92.1524 193.146 105.43 193.146 105.43Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M65.5132 96.4345H69.795C69.795 96.4345 71.0999 78.2712 85.6583 71.5752V65.4338C79.3537 67.9377 66.916 75.5472 65.5132 96.4345Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M56.0777 105.406L60.9712 106.906C60.9712 106.906 62.472 98.3345 67.8304 99.6149C73.1888 100.895 71.2559 108.195 71.2559 108.195H75.5459C75.5459 108.195 78.3353 95.9611 68.6868 94.0445C59.0384 92.1278 56.0777 105.406 56.0777 105.406Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M136.176 111.953C136.176 113.281 136.704 114.555 137.643 115.494C138.582 116.433 139.856 116.961 141.184 116.961C141.842 116.962 142.494 116.833 143.103 116.582C143.711 116.331 144.264 115.962 144.73 115.497C145.196 115.032 145.565 114.48 145.818 113.872C146.07 113.264 146.2 112.612 146.2 111.953C146.2 111.295 146.07 110.642 145.818 110.034C145.566 109.425 145.196 108.872 144.73 108.407C144.265 107.941 143.712 107.571 143.103 107.319C142.495 107.067 141.842 106.937 141.184 106.937C139.855 106.94 138.581 107.469 137.642 108.409C136.703 109.35 136.176 110.624 136.176 111.953V111.953Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M119.701 111.953C119.701 112.612 119.831 113.264 120.083 113.872C120.335 114.48 120.705 115.032 121.171 115.497C121.637 115.962 122.19 116.331 122.798 116.582C123.407 116.833 124.059 116.962 124.717 116.961C126.045 116.961 127.319 116.433 128.258 115.494C129.197 114.555 129.725 113.281 129.725 111.953C129.725 110.624 129.198 109.35 128.259 108.409C127.32 107.469 126.046 106.94 124.717 106.937C124.058 106.937 123.406 107.067 122.798 107.319C122.189 107.571 121.636 107.941 121.17 108.407C120.704 108.872 120.335 109.425 120.083 110.034C119.831 110.642 119.701 111.295 119.701 111.953V111.953Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M103.384 111.953C103.384 112.612 103.513 113.264 103.766 113.872C104.018 114.48 104.387 115.032 104.853 115.497C105.319 115.962 105.872 116.331 106.481 116.582C107.089 116.833 107.741 116.962 108.399 116.961C109.728 116.961 111.001 116.433 111.94 115.494C112.88 114.555 113.407 113.281 113.407 111.953C113.407 110.624 112.88 109.35 111.941 108.409C111.002 107.469 109.728 106.94 108.399 106.937C107.069 106.937 105.793 107.466 104.853 108.407C103.912 109.347 103.384 110.623 103.384 111.953V111.953Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M163.419 57.6273H85.5901C85.5901 57.6273 86.8707 20.01 124.5 20.01C162.13 20.01 163.419 57.6273 163.419 57.6273Z"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M153.931 60.0436H159.587V126.787H153.931V60.0436Z"
-            fill="white"
-          />
-          <path
-            d="M159.528 55.6816H153.703L149.151 32.3329C149.151 32.3329 158.005 44.3703 159.528 55.6816Z"
-            fill="white"
-          />
-          <path
-            d="M139.792 48.9516C134.995 48.9516 131.106 45.0627 131.106 40.2656C131.106 35.4684 134.995 31.5795 139.792 31.5795C144.589 31.5795 148.478 35.4684 148.478 40.2656C148.478 45.0627 144.589 48.9516 139.792 48.9516Z"
-            fill="white"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-miterlimit="10"
-          />
-          <path
-            d="M108.821 48.9516C104.024 48.9516 100.135 45.0627 100.135 40.2655C100.135 35.4684 104.024 31.5795 108.821 31.5795C113.618 31.5795 117.507 35.4684 117.507 40.2655C117.507 45.0627 113.618 48.9516 108.821 48.9516Z"
-            fill="white"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-miterlimit="10"
-          />
-          <path
-            class="eye-1"
-            d="M138.373 40.3055C138.373 41.4216 138.817 42.4921 139.606 43.2813C140.395 44.0706 141.466 44.5139 142.582 44.5139C143.697 44.5118 144.765 44.0674 145.552 43.2784C146.34 42.4894 146.782 41.4202 146.782 40.3055C146.78 39.1921 146.337 38.125 145.549 37.3378C144.762 36.5506 143.695 36.1073 142.582 36.1052C141.467 36.1052 140.398 36.5474 139.609 37.3349C138.82 38.1224 138.375 39.1907 138.373 40.3055V40.3055Z"
-            fill="#6ECCE5"
-          />
-          <path
-            class="eye-1"
-            d="M107.271 40.3055C107.271 41.4202 107.714 42.4894 108.501 43.2784C109.289 44.0674 110.357 44.5118 111.472 44.5139C112.588 44.5139 113.658 44.0706 114.447 43.2813C115.237 42.4921 115.68 41.4216 115.68 40.3055C115.678 39.1907 115.234 38.1224 114.445 37.3349C113.656 36.5474 112.586 36.1052 111.472 36.1052C110.358 36.1073 109.291 36.5506 108.504 37.3378C107.717 38.125 107.274 39.1921 107.271 40.3055V40.3055Z"
-            fill="#6ECCE5"
-          />
-          <path
-            d="M84.8918 127.581H164.967C173.345 127.581 180.137 134.371 180.137 142.747C180.137 151.123 173.345 157.913 164.967 157.913H84.8918C76.5136 157.913 69.7218 151.123 69.7218 142.747C69.7218 134.371 76.5136 127.581 84.8918 127.581Z"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M152.026 142.831C151.99 145.395 152.973 147.869 154.76 149.709C156.547 151.549 158.992 152.603 161.556 152.641C164.12 152.603 166.565 151.549 168.352 149.709C170.139 147.869 171.122 145.395 171.086 142.831C171.122 140.266 170.139 137.792 168.352 135.953C166.565 134.113 164.12 133.058 161.556 133.02C158.992 133.058 156.547 134.113 154.76 135.953C152.973 137.792 151.99 140.266 152.026 142.831Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M137.081 152.641C131.818 152.641 127.552 148.249 127.552 142.831C127.552 137.412 131.818 133.02 137.081 133.02C142.344 133.02 146.611 137.412 146.611 142.831C146.611 148.249 142.344 152.641 137.081 152.641Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M103.074 142.831C103.038 145.395 104.021 147.869 105.808 149.709C107.595 151.549 110.039 152.603 112.604 152.641C115.168 152.603 117.613 151.549 119.4 149.709C121.187 147.869 122.17 145.395 122.134 142.831C122.17 140.266 121.187 137.792 119.4 135.953C117.613 134.113 115.168 133.058 112.604 133.02C110.039 133.058 107.595 134.113 105.808 135.953C104.021 137.792 103.038 140.266 103.074 142.831Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M78.598 142.831C78.5614 145.395 79.5447 147.869 81.3317 149.709C83.1186 151.549 85.5631 152.603 88.1276 152.641C90.692 152.603 93.1364 151.549 94.9234 149.709C96.7103 147.869 97.6936 145.395 97.6571 142.831C97.6936 140.266 96.7103 137.792 94.9234 135.953C93.1364 134.113 90.692 133.058 88.1276 133.02C85.5631 133.058 83.1186 134.113 81.3317 135.953C79.5447 137.792 78.5614 140.266 78.598 142.831Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <path
-            d="M103.252 71.1929H146.765V95.2437H103.252V71.1929Z"
-            fill="#6ECCE5"
-          />
-          <path
-            d="M137.087 75.635H142.177V79.7379H137.087V75.635Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M129.852 75.635H134.934V79.7379H129.852V75.635Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M137.087 87.0141H142.177V91.1089H137.087V87.0141Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M129.852 87.0141H134.934V91.1089H129.852V87.0141Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M137.087 81.1718H142.177V85.2666H137.087V81.1718Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M129.852 81.1718H134.934V85.2666H129.852V81.1718Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M108.366 75.635H127.238V91.1078H108.366V75.635Z"
-            fill="white"
-          />
-          <path
-            d="M119.345 49.2718C120.041 48.5443 120.865 47.9697 121.768 47.5786C122.671 47.1875 123.637 46.9869 124.612 46.9869C125.587 46.9869 126.553 47.1875 127.456 47.5786C128.359 47.9697 129.183 48.5443 129.879 49.2718"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M274.751 12.7232C271.238 12.7232 268.39 9.87505 268.39 6.36162C268.39 2.8482 271.238 0 274.751 0C278.265 0 281.113 2.8482 281.113 6.36162C281.113 9.87505 278.265 12.7232 274.751 12.7232Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M272.877 9.68185H276.588V23.4817H272.877V9.68185Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M235.863 57.1286H313.919V127.266H235.863V57.1286Z"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M333.248 57.7026H328.958C328.958 57.7026 327.662 75.8658 313.095 82.5537V88.6951C319.4 86.1586 331.813 78.5491 333.248 57.7026Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M342.676 48.6986L337.782 47.1979C337.782 47.1979 336.282 55.7698 330.923 54.4812C325.565 53.1925 327.49 45.9093 327.49 45.9093H323.208C323.208 45.9093 320.419 58.1432 330.067 60.0598C339.715 61.9765 342.676 48.6986 342.676 48.6986Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M215.043 57.6946H219.325C219.325 57.6946 220.63 75.8578 235.188 82.5538V88.6953C228.884 86.1914 216.446 78.5819 215.043 57.6946Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M205.608 48.7232L210.501 47.2226C210.501 47.2226 212.002 55.7944 217.36 54.514C222.719 53.2335 220.786 45.9339 220.786 45.9339H225.076C225.076 45.9339 227.865 58.1678 218.217 60.0844C208.568 62.0011 205.608 48.7232 205.608 48.7232Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M286.361 111.401C286.361 112.729 286.889 114.003 287.828 114.942C288.767 115.881 290.041 116.409 291.369 116.409C292.028 116.41 292.68 116.281 293.288 116.03C293.897 115.779 294.45 115.41 294.915 114.945C295.381 114.48 295.751 113.927 296.003 113.319C296.255 112.711 296.385 112.059 296.385 111.401C296.385 110.742 296.255 110.09 296.003 109.482C295.751 108.873 295.382 108.32 294.916 107.854C294.45 107.389 293.897 107.019 293.289 106.767C292.68 106.515 292.028 106.385 291.369 106.385C290.04 106.387 288.767 106.917 287.828 107.857C286.889 108.798 286.361 110.072 286.361 111.401V111.401Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M269.887 111.401C269.887 112.059 270.017 112.711 270.269 113.319C270.521 113.927 270.891 114.48 271.357 114.945C271.823 115.41 272.376 115.779 272.984 116.03C273.593 116.281 274.245 116.41 274.903 116.409C276.231 116.409 277.505 115.881 278.444 114.942C279.383 114.003 279.911 112.729 279.911 111.401C279.911 110.072 279.383 108.798 278.445 107.857C277.506 106.917 276.232 106.387 274.903 106.385C274.244 106.385 273.592 106.515 272.984 106.767C272.375 107.019 271.822 107.389 271.356 107.854C270.89 108.32 270.521 108.873 270.269 109.482C270.017 110.09 269.887 110.742 269.887 111.401V111.401Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M253.569 111.401C253.569 112.059 253.699 112.711 253.951 113.319C254.204 113.927 254.573 114.48 255.039 114.945C255.505 115.41 256.058 115.779 256.666 116.03C257.275 116.281 257.927 116.41 258.585 116.409C259.914 116.409 261.187 115.881 262.126 114.942C263.066 114.003 263.593 112.729 263.593 111.401C263.593 110.072 263.066 108.798 262.127 107.857C261.188 106.917 259.914 106.387 258.585 106.385C257.255 106.385 255.979 106.914 255.039 107.854C254.098 108.795 253.569 110.071 253.569 111.401V111.401Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M313.604 57.0745H235.775C235.775 57.0745 237.056 19.4572 274.686 19.4572C312.315 19.4572 313.604 57.0745 313.604 57.0745Z"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M304.116 59.4908H309.773V126.234H304.116V59.4908Z"
-            fill="white"
-          />
-          <path
-            d="M309.713 55.1288H303.889L299.336 31.7801C299.336 31.7801 308.19 43.8175 309.713 55.1288Z"
-            fill="white"
-          />
-          <path
-            d="M259.006 48.4013C263.804 48.4013 267.692 44.5124 267.692 39.7152C267.692 34.918 263.804 31.0292 259.006 31.0292C254.209 31.0292 250.32 34.918 250.32 39.7152C250.32 44.5124 254.209 48.4013 259.006 48.4013Z"
-            fill="white"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-miterlimit="10"
-          />
-          <path
-            d="M289.977 48.4013C294.774 48.4013 298.663 44.5124 298.663 39.7152C298.663 34.918 294.774 31.0292 289.977 31.0292C285.18 31.0292 281.291 34.918 281.291 39.7152C281.291 44.5124 285.18 48.4013 289.977 48.4013Z"
-            fill="white"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-miterlimit="10"
-          />
-          <path
-            class="eye-2"
-            d="M260.425 39.7552C260.425 40.8713 259.981 41.9418 259.192 42.731C258.403 43.5202 257.333 43.9636 256.216 43.9636C255.102 43.9615 254.033 43.5171 253.246 42.7281C252.458 41.9391 252.016 40.8699 252.016 39.7552C252.018 38.6418 252.461 37.5747 253.249 36.7875C254.036 36.0002 255.103 35.557 256.216 35.5549C257.331 35.5549 258.4 35.9971 259.189 36.7846C259.978 37.5721 260.423 38.6404 260.425 39.7552V39.7552Z"
-            fill="#6ECCE5"
-          />
-          <path
-            class="eye-2"
-            d="M291.527 39.7552C291.527 40.8699 291.085 41.9391 290.297 42.7281C289.51 43.5171 288.441 43.9615 287.327 43.9636C286.21 43.9636 285.14 43.5202 284.351 42.731C283.562 41.9418 283.118 40.8713 283.118 39.7552C283.12 38.6404 283.565 37.5721 284.354 36.7846C285.143 35.9971 286.212 35.5549 287.327 35.5549C288.44 35.557 289.507 36.0002 290.294 36.7875C291.082 37.5747 291.525 38.6418 291.527 39.7552V39.7552Z"
-            fill="#6ECCE5"
-          />
-          <path
-            d="M235.077 127.028H315.152C323.53 127.028 330.322 133.818 330.322 142.194C330.322 150.57 323.53 157.36 315.152 157.36H235.077C226.699 157.36 219.907 150.57 219.907 142.194C219.907 133.818 226.699 127.028 235.077 127.028Z"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M302.212 142.278C302.175 144.843 303.159 147.317 304.946 149.157C306.733 150.996 309.177 152.051 311.741 152.089C314.306 152.051 316.75 150.996 318.537 149.157C320.324 147.317 321.308 144.843 321.271 142.278C321.308 139.714 320.324 137.24 318.537 135.4C316.75 133.561 314.306 132.506 311.741 132.468C309.177 132.506 306.733 133.561 304.946 135.4C303.159 137.24 302.175 139.714 302.212 142.278Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M287.267 152.089C282.004 152.089 277.737 147.697 277.737 142.278C277.737 136.86 282.004 132.468 287.267 132.468C292.53 132.468 296.796 136.86 296.796 142.278C296.796 147.697 292.53 152.089 287.267 152.089Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M253.26 142.278C253.223 144.843 254.207 147.317 255.994 149.157C257.781 150.996 260.225 152.051 262.789 152.089C265.354 152.051 267.798 150.996 269.585 149.157C271.372 147.317 272.356 144.843 272.319 142.278C272.356 139.714 271.372 137.24 269.585 135.4C267.798 133.561 265.354 132.506 262.789 132.468C260.225 132.506 257.781 133.561 255.994 135.4C254.207 137.24 253.223 139.714 253.26 142.278Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <g style="mix-blend-mode: multiply">
-            <path
-              d="M228.783 142.278C228.747 144.843 229.73 147.317 231.517 149.157C233.304 150.996 235.749 152.051 238.313 152.089C240.877 152.051 243.322 150.996 245.109 149.157C246.896 147.317 247.879 144.843 247.843 142.278C247.879 139.714 246.896 137.24 245.109 135.4C243.322 133.561 240.877 132.506 238.313 132.468C235.749 132.506 233.304 133.561 231.517 135.4C229.73 137.24 228.747 139.714 228.783 142.278Z"
-              fill="#C5EBF5"
-            />
-          </g>
-          <path
-            d="M253.437 70.6394H296.951V94.6902H253.437V70.6394Z"
-            fill="#6ECCE5"
-          />
-          <path
-            d="M287.272 75.0814H292.363V79.1842H287.272V75.0814Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M280.037 75.0814H285.119V79.1842H280.037V75.0814Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M287.272 86.4604H292.363V90.5552H287.272V86.4604Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M280.037 86.4604H285.119V90.5552H280.037V86.4604Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M287.272 80.6182H292.363V84.713H287.272V80.6182Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M280.037 80.6182H285.119V84.713H280.037V80.6182Z"
-            fill="#0055DC"
-          />
-          <path
-            d="M258.552 75.0814H277.424V90.5542H258.552V75.0814Z"
-            fill="white"
-          />
-          <path
-            d="M269.53 48.7169C270.226 47.9894 271.05 47.4149 271.953 47.0237C272.856 46.6326 273.822 46.432 274.797 46.432C275.772 46.432 276.738 46.6326 277.641 47.0237C278.545 47.4149 279.368 47.9894 280.064 48.7169"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M409.67 76.5789H343.573L352.34 137.548H401.942L409.67 76.5789Z"
-            fill="#C5EBF5"
-          />
-          <path
-            d="M409.67 76.5789H343.573L352.34 137.548H401.942L409.67 76.5789Z"
-            stroke="#6ECCE5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M409.67 76.5789H343.573L352.34 137.548H401.942L409.67 76.5789Z"
-            stroke="#6ECCE5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <rect
-            x="341.154"
-            y="71.3115"
-            width="70.9351"
-            height="9.39611"
-            rx="2.40792"
-            fill="#C5EBF5"
-            stroke="#6ECCE5"
-            stroke-width="2"
-          />
-          <path
-            d="M409.671 93.3885H343.573L352.34 154.358H401.942L409.671 93.3885Z"
-            fill="#C5EBF5"
-          />
-          <path
-            d="M409.671 93.3885H343.573L352.34 154.358H401.942L409.671 93.3885Z"
-            stroke="#6ECCE5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M409.671 93.3885H343.573L352.34 154.358H401.942L409.671 93.3885Z"
-            stroke="#6ECCE5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <rect
-            x="341.154"
-            y="88.1211"
-            width="70.9351"
-            height="9.39611"
-            rx="2.40792"
-            fill="#C5EBF5"
-            stroke="#6ECCE5"
-            stroke-width="2"
-          />
-          <path
-            d="M295.581 108.36H360.026L351.478 167.805H303.116L295.581 108.36Z"
-            fill="#C5EBF5"
-          />
-          <path
-            d="M295.581 108.36H360.026L351.478 167.805H303.116L295.581 108.36Z"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M295.581 108.36H360.026L351.478 167.805H303.116L295.581 108.36Z"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <rect
-            x="-1"
-            y="1"
-            width="69.1117"
-            height="9.1112"
-            rx="2.40792"
-            transform="matrix(-1 0 0 1 361.359 102.25)"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M342.555 136.334H382.924L377.569 173.57H347.275L342.555 136.334Z"
-            fill="#C5EBF5"
-          />
-          <path
-            d="M342.555 136.334H382.924L377.569 173.57H347.275L342.555 136.334Z"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M342.555 136.334H382.924L377.569 173.57H347.275L342.555 136.334Z"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <rect
-            x="-1"
-            y="1"
-            width="42.5446"
-            height="4.96009"
-            rx="2.40792"
-            transform="matrix(-1 0 0 1 383.012 132.506)"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-          <path
-            d="M17.328 102.337L6.64737 166.613L67.3531 167.939L75.3682 119.704L17.328 102.337Z"
-            fill="#C5EBF5"
-          />
-          <path
-            d="M17.328 102.337L6.64737 166.613L67.3531 167.939L75.3682 119.704L17.328 102.337Z"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M17.328 102.337L6.64737 166.613L67.3531 167.939L75.3682 119.704L17.328 102.337Z"
-            stroke="#0055DC"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <rect
-            x="1.15039"
-            y="168.103"
-            width="69.8978"
-            height="9.23404"
-            rx="2.40792"
-            transform="rotate(-80.5655 1.15039 168.103)"
-            fill="#C5EBF5"
-            stroke="#0055DC"
-            stroke-width="2"
-          />
-        </svg>
-      </section>
-    </main>
-  </body>
-</html>
+```
+MDB/
+├── mydubai-broker-backend/    Express + TypeScript + Prisma + PostgreSQL API
+├── mydubai-broker-frontend/   Next.js (App Router) + TypeScript frontend
+├── CODEMAP.md                 File-level index: what each file does, where to pick up a given task
+├── PENDING.md                 Gap analysis: plan vs. current code, prioritized — READ THIS before starting new work
+└── README.md                  This file
+```
+
+Each subfolder is its own git repository with its own remote. The root `package.json` only wires up `pnpm dev` (runs both in parallel) and `pnpm db:generate`.
+
+**If you're an AI agent picking up work here**: read [PENDING.md](./PENDING.md) first — it's a file-path-referenced audit of what's implemented, partial, or missing against the product plan, kept up to date as work lands. **Current focus: the admin/company dashboards, until they're streamlined** — see the callout at the top of `PENDING.md`. Then use [CODEMAP.md](./CODEMAP.md) to find the exact files involved in whatever you're picking up — it has a "Where to pick up X" table cross-referenced to that same focus area.
+
+---
+
+## Quick start
+
+```bash
+pnpm install                      # from repo root, installs both packages
+cp mydubai-broker-backend/.env.example mydubai-broker-backend/.env
+cp mydubai-broker-frontend/.env.example mydubai-broker-frontend/.env
+# fill in .env values — see "Environment variables" below
+pnpm --filter mydubai-broker-backend exec prisma generate
+pnpm --filter mydubai-broker-backend exec prisma db push   # or migrate, once migrations exist
+pnpm dev                          # runs backend + frontend together
+```
+
+Backend defaults to whatever `PORT` is set to in its `.env`; frontend (Next.js) defaults to `:3000` and expects the backend at `NEXT_PUBLIC_API_URL` (see frontend `.env.example`, default `http://localhost:3001/api`).
+
+### Environment variables
+
+**Backend** (`mydubai-broker-backend/.env`, validated at boot by `src/lib/env.ts` — the app fails fast if required vars are missing):
+- `PORT`, `NODE_ENV`, `DATABASE_URL` (PostgreSQL)
+- `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` — auth session signing (see [Auth](#auth))
+- `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` — Cloudflare R2 for photo/document storage (see [Uploads](#uploads--media))
+- `CORS_ORIGINS` — comma-separated origins allowed to call the API
+- `FRONTEND_URL` (optional, defaults to `http://localhost:3000`) — used to build links inside outgoing emails
+- `EMAIL_FROM` (optional, has a placeholder default) — unused until a real email provider is wired in, see [Email](#email)
+- `EMAIL_VERIFICATION` (optional, defaults `false`) — whether better-auth requires a verified email before sign-in works. Leave it `false` unless you also build a verify-email UI (see [Auth](#auth)) — there isn't one yet.
+- Google OAuth is currently commented out in `src/lib/auth.ts`/`auth-client.ts` — not required yet. `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` were removed from `.env.example` since nothing reads them; re-add if OAuth is ever wired back up.
+
+**Frontend** (`mydubai-broker-frontend/.env`):
+- `NEXT_PUBLIC_BETTER_AUTH_URL` — must match the backend's auth URL
+- `NEXT_PUBLIC_API_URL` — backend API base URL
+
+No real email provider is configured yet — outgoing email goes through a placeholder that only logs, see [Email](#email).
+
+---
+
+## Architecture
+
+### The core data model
+
+Everything revolves around one `Listing` table plus a category-specific "details" sub-table, not five separate listing tables. This is deliberate — see `prisma/schema.prisma` in the backend for the source of truth, but the shape is:
+
+```
+Listing (category, assetType, offeringType, pricing, location, media, status...)
+  ├─ RealEstateListing    (1:1, when category = REAL_ESTATE)
+  ├─ CarListing           (1:1, when category = CARS)
+  ├─ YachtListing         (1:1, when category = YACHTS)
+  ├─ PrivateAviationListing (1:1, when category = PRIVATE_AVIATION — covers both jets AND helicopters)
+  └─ CollectibleListing   (1:1, when category = COLLECTIBLES)
+```
+
+Three-layer classification, **all stored on the base `Listing` row**:
+- `category` — one of `REAL_ESTATE | CARS | YACHTS | PRIVATE_AVIATION | COLLECTIBLES`
+- `assetType` — narrower type within a category, e.g. `VILLA`, `SEDAN`, `MOTOR_YACHT`, `JET`, `HELICOPTER`, `WATCH`. **Jets and helicopters are asset types under `PRIVATE_AVIATION`, not separate categories** — this trips people up, it used to be modeled as separate `JETS`/`HELICOPTERS` categories in an earlier version. The frontend's `src/types/enums.ts` `CompanyCategory` was realigned to match (`PRIVATE_AVIATION`, not `JETS_HELICOPTERS`); its `ListingStatus`/`PropertyListingType` constants are still stale, see `PENDING.md`.
+- `offeringType` — the commercial purpose: `SALE | LONG_TERM_RENT | SHORT_TERM_RENT | OFF_PLAN | CHARTER | PRICE_ON_REQUEST`
+
+Status is **dual-track and deliberately kept separate** — don't collapse these into one status field:
+- `approvalStatus`: `DRAFT → SUBMITTED → PENDING_REVIEW → CHANGES_REQUIRED / APPROVED / REJECTED` — controlled by platform reviewers
+- `publicationStatus`: `UNPUBLISHED → SCHEDULED → LIVE → PAUSED → EXPIRED → ARCHIVED` — controlled by the company/system (a listing is auto-published to `LIVE` when approved, but can independently be `PAUSED` without losing approval)
+
+Pricing is flexible per offering type — `salePrice`, `annualRent`, `monthlyRent`, `dailyRate`, `charterRate` are all optional fields on one row; which ones are populated depends on `offeringType`. Currency is per-listing (`Currency` enum), never hardcoded.
+
+### Two listing APIs (this matters)
+
+The backend has **two** ways to create/manage listings right now, and this is the single most important thing for an agent to understand before touching listing code:
+
+1. **Unified `/listings` API** (`mydubai-broker-backend/src/modules/listings/`) — the current, intended architecture, and as of 2026-09-27 **the only one the frontend actually calls**. One `POST /listings` endpoint takes `{ category, assetType, offeringType, ...core fields, details: {...category-specific fields} }` and creates the base `Listing` plus the right sub-table row in one transaction (`listings.service.ts` `createListing`/`attachCategoryDetails`). `PUT /listings/:id` does the same for edits. This is where new work should go.
+2. **Legacy per-category endpoints** (`/cars`, `/real-estate`, `/yachts`) — older, pre-refactor REST modules that talk to the same Prisma tables directly with their own request/response shapes. Still mounted and functional on the backend, but **no longer called by any frontend code** — `car.service.ts`/`realEstate.service.ts`/`yacht.service.ts` were migrated to the unified API on 2026-09-27, the same way `jet.service.ts`/`helicopter.service.ts` were migrated earlier (whose backend routes, `/jets` and `/helicopters`, were taken a step further and fully deprecated — they now return `410 Gone`). `/cars`, `/real-estate`, `/yachts` are candidates for the same full deprecation now that nothing depends on them, but that's a deliberate follow-up decision, not done yet (kept live as a rollback safety net immediately after the migration).
+
+**Offering types & pricing**: a listing has one active price field matching its `offeringType` (`salePrice`, `annualRent`, `monthlyRent`, `dailyRate`, `charterRate`); `updateListing` clears the others whenever a price is supplied. Only **jets and helicopters** expose a charter option in the UI (SALE or CHARTER, priced per hour → `charterRate` or per day → `dailyRate`). Frontend display goes through `resolveListingPrice` (`lib/utils/listingCompleteness.ts`) / `Listing.priceSuffix` (`adaptListing.ts`) for the "/ hr", "/ day" suffixes.
+
+**Public pages show real data only**: `/category/[type]`, `/all-listings/[type]`, `/details/[id]`, `/search` and the home carousel read approved+live listings from `GET /listings/public` (category filter only, no text search). Don't reintroduce hardcoded sample listings — `src/data/category-data.ts` is for editorial content only.
+
+Each category service's `toListingPayload()` mapper (frontend) has a comment where the old per-category form fields don't map cleanly onto the unified schema — most notably real estate's `status` field, which is really a leftover offering-type-ish value (`SALE/RENT/OFF_PLAN/NEW/PRE_OWNED`) that only partially covers the backend's real `OfferingType` enum; see `realEstate.service.ts` and `PENDING.md` Priority 3.
+
+### Roles & permissions
+
+Seven roles (`prisma/schema.prisma` `UserRole` enum): `super_admin, platform_reviewer, company_owner, company_manager, agent, listing_coordinator, viewer`.
+
+Backend enforcement lives in `src/middleware/permissions.ts` — a `Capability` string union (e.g. `"listings.create_draft"`, `"admin.approve_companies"`) mapped per role in `ROLE_CAPABILITIES`. `requireCapability(capability)` middleware checks this via `userHasCapability(userId, role, capability)`, which layers a **per-user override** on top of the role default: it reads `User.permissions Json?` (e.g. `{ "listings.submit_to_platform": true }`) and, if that capability has an explicit `true`/`false` there, that wins outright; otherwise it falls back to the role default. This always re-reads from the DB (not session data), so a permission change or a deactivation takes effect on the very next request. This is the pattern to follow for any new route that needs role gating — don't invent a new authorization mechanism, and don't bypass `userHasCapability` by checking `role` directly if per-user overrides should apply.
+
+The frontend's `src/types/enums.ts` `UserRole` matches the full 7-role set, along with grouping arrays `COMPANY_ROLES`/`COMPANY_MANAGEMENT_ROLES`/`PLATFORM_STAFF_ROLES` used by `Sidebar.tsx` and the route-level layout guards (`dashboard/layout.tsx` etc.) instead of hardcoded role strings. What's still open: the sidebar/dashboard don't yet render different *content* per company role (agent vs. viewer see the same generic dashboard today, just gated the same way) — see `PENDING.md`.
+
+**Team creation**: owners/managers invite teammates by email + role — this is the *only* way agents/managers/coordinators/viewers join a company now. Backend: `src/modules/invitations/` (`POST /invitations` to send, `GET /invitations/token/:token` + `POST /invitations/token/:token/accept` for the invited person, no account required until they accept, no email/OTP verification required either — see Auth below). Frontend: `/dashboard/team` (send/list/revoke, owner+manager only) and the public `/invite/[token]` acceptance page. The invite form can set `permissions: { "listings.submit_to_platform": true }` on send (a checkbox, shown only when inviting an `AGENT`) — the one per-user override the plan specifically calls for. (There used to be a separate public self-registration path for agents that created accounts with no company attached — removed in the 2026-09-27 auth cleanup rather than reconciled with the invite flow, see `PENDING.md`.)
+
+**Deactivation**: `companies.service.ts` `deactivateUser`/`reactivateUser` (routes under `/companies/me/users/:userId/...`, `team.deactivate_users` capability — owner-only per the existing matrix, not manager) call better-auth's `auth.api.banUser`/`unbanUser`, which revokes access immediately. Deactivating reassigns that user's still-open leads (`stage NOT IN (WON, LOST)`) to the company owner; **listings are deliberately left alone** — the plan is explicit that the company owns business records and the user account only controls access, so a deactivated agent's listings keep their original `creatorId`. Frontend: the "Active Members" section on `/dashboard/team` (owner-only).
+
+**Agent profile vs. login account**: the plan calls these out as separate records, and the schema already modeled it (`AgentProfile`, 1:1 with `User`) — but nothing referenced it until now. `src/modules/profile/` (`GET/PATCH /profile/me`) does get/upsert on the caller's own profile: display name, bio, photo, phone/WhatsApp/email each with a public-visibility toggle, languages. Frontend: `/dashboard/profile`. Not done: per-category credentials (`specialities`/`credentials Json?` fields exist on the model, no UI collects them yet), and public-facing pages still read the raw `User` record instead of `AgentProfile`.
+
+### Auth
+
+[better-auth](https://better-auth.com) (`mydubai-broker-backend/src/lib/auth.ts`), with a Prisma adapter — and, as of a 2026-09-27 cleanup pass, **the only auth code in the backend**. `requireAuth` middleware (`src/middleware/auth.middleware.ts`) populates `req.user`/`req.session` from the better-auth session; that's the entire file now. There used to be a custom `src/modules/auth/` wrapping better-auth's routes (`/auth/register`, `/auth/login`, etc.) plus separate company/agent registration controllers — all deleted after tracing every call site and confirming the frontend never called any of them (it talks to better-auth's client directly, or to `/companies/onboarding` / `/invitations` for account creation). Don't recreate a wrapper around better-auth's routes; call `authClient` (frontend) or `auth.api` (backend) directly, matching every real path in the codebase.
+
+**Cross-site sessions (bearer token)**: in production the frontend and backend are on different sites, so the session cookie can't be relied on. better-auth's `bearer()` plugin is enabled; the frontend stores the `set-auth-token` header from sign-in in localStorage (`src/lib/auth-token.ts`) and sends `Authorization: Bearer` on every request — better-auth calls via `fetchOptions` in `auth-client.ts`, everything else via `core/api.ts`. Always sign out through the exported `signOut` (it clears the token). Any new code that calls the backend must go through `apiRequest` or it won't be authenticated in production.
+
+**Two ways to create an account**: company onboarding (`/companies/onboarding`, creates the owner) or accepting an invitation (`/invitations/token/:token/accept`). Both call `auth.api.signUpEmail` server-side and then explicitly set `role`/`companyId` — there's no client-side self-registration for any role. (There used to be a third, self-service "Become a Partner" agent registration path; it created accounts with no company attached — a dead end in this company-scoped system — and was removed rather than fixed, since the invite flow already covers this properly.)
+
+**Password reset** works end-to-end: better-auth's native `sendResetPassword` (configured in `auth.ts`) routes through the placeholder email service (see "Email" below), with `requestPasswordReset`/`resetPassword` client actions and `/forgot-password`/`/reset-password` pages on the frontend.
+
+Email verification (and OTP) is genuinely not implemented — `sendVerificationEmail` in `auth.ts` sends through the placeholder email service now (not a bare `console.log` anymore), but `requireEmailVerification` defaults `false` and nothing in the app requires it. This is by design: the invitation flow doesn't require email/OTP verification to accept an invite. If that flag is ever flipped on, note there's currently no frontend UI for the verify-email step.
+
+**If you're seeding a fresh database**, note the super-admin/platform-reviewer accounts are hashed with `hashPassword` from `src/lib/password.ts` (`prisma/seed.ts`) — the same custom scrypt (`r=8`) hasher `auth.ts` verifies with. Any hash made another way (better-auth's default `r=16`, bcrypt) will silently fail to log in. If a seeded login fails, check this first — and check the backend is running from the `main` branch: the stale `prod` branch still uses better-auth's default hasher and can't verify any password in a `main` database (see `PENDING.md` 2026-10-29).
+
+### Email
+
+`src/lib/email.ts` — a placeholder `sendEmail()` / `emailTemplates` module. **It does not deliver anything**; it logs a formatted message to the console (clearly marked `[email:placeholder]`) instead of calling a real provider. It exists so every call site already goes through one interface shaped like Resend's SDK (`{ to, subject, html }`), so wiring in the real thing later — the plan specifies Resend — is a one-file change (the docstring at the top of `email.ts` shows exactly what to replace). Currently sent through this path: invitation emails, company status-change emails, listing status-change emails, and new-lead-received emails — i.e., everywhere the app already creates an in-app `Notification`, it now also calls `sendEmail` alongside it. `FRONTEND_URL` and `EMAIL_FROM` env vars exist for this (both optional, dev defaults) but are unused until a real provider needs them.
+
+### Uploads & media
+
+Cloudflare R2 (S3-compatible), via presigned URLs — the client asks the backend for a presigned PUT URL (`POST /uploads/presign`), uploads the file directly to R2, then references the returned `uploadId` when creating/updating a listing (`photoUploadIds: string[]`). Backend helpers: `src/modules/uploads/uploads.service.ts` — `withAttachedUploads` (create flow) and `withMergedListingPhotos` (update flow, merges kept existing photos with newly uploaded ones). Frontend: `src/services/upload.service.ts` — `UploadService.sendWithPhotos(endpoint, method, data)` is the standard way any listing form submits (uploads photos first, then sends the JSON body with `photoUploadIds` attached).
+
+### Company onboarding
+
+Multi-step conceptually (`CompanyOnboardingStep` enum: `SELECT_CATEGORIES → UPLOAD_DOCUMENTS → COMPANY_PROFILE → SUBMITTED → COMPLETED`), but the backend implementation (`companies.service.ts` `updateOnboarding`) is still one monolithic call at the very end — account, company, and documents are all created atomically together, not saved incrementally per step. It sets `CompanyStatus.SUBMITTED` on completion and records the transition in `StatusHistory`.
+
+**Where uploaded files are stored**: images (`companyLogo`, `coverImage`, `listingLogo`) are columns on `Company` (`<field>Url`). The 10 verification documents (trade/RERA licence, Emirates ID, passport, dealer licences, AOC, …) are **`CompanyDocument` rows**, `documentType` = snake_case field name (`emirates_id`, `aoc_operator_document`, …) — there are no `emiratesIdUrl`-style columns on `Company` (writing one throws `Unknown argument`). On read, `companies.mapper.ts` `mapCompanyMedia` flattens the latest document per type back into `<camelType>Url` and presigns it, so API consumers (e.g. `AdminCompaniesView.tsx`) still read `company.tradeLicenseUrl` etc. Any endpoint returning a company must include `documents` and go through `mapCompanyMedia`.
+
+**Account creation isn't in the company transaction**: `auth.api.signUpEmail` commits the user on its own, then `createOnboardedCompany` runs the company/document/status-history transaction. If that throws, `updateOnboarding` deletes the new user so no company-less account is left behind. Keep that compensating delete if you restructure this flow.
+
+Progress persistence and a completion indicator are handled **client-side** instead (`OnboardingWizard.tsx`): the JSON-safe, non-sensitive form fields (not file selections, not the password) autosave to `localStorage` on every change, restore on return with a "Welcome back" banner, and a live completion percentage renders as a progress bar. This is a deliberate simplification of what the plan's diagram implies (server-side incremental save would require deciding when the account actually gets created, since right now that only happens at the very end) — see `PENDING.md` for the reasoning and what a "real" server-side version would need.
+
+**Not implemented**: per-document review (approve/reject/request-changes on an individual document with a reason, and routing a resubmission to the exact field) — only whole-company-level decisions exist today. Document expiry tracking (`DocumentStatus` enum, expiry dates) also isn't automated — no background job infrastructure exists in this codebase to run that check on a schedule.
+
+### Admin review queues
+
+`mydubai-broker-backend/src/modules/admin/` — company approval queue and listing approval queue, both with filters/pagination. Both now enforce a reason on reject/changes-required and support all three decisions (Approve / Request Changes / Reject) as distinct actions, and both create an in-app `Notification` + send an email (via the placeholder service, see "Email" above) to the affected owner/agent. Frontend: `AdminCompaniesView.tsx` / `AdminListingsView.tsx`.
+
+### Leads / Enquiries
+
+`mydubai-broker-backend/src/modules/leads/` (mounted at `/leads`) — an intentionally minimal first pass, not the full CRM the plan describes. `POST /leads` is public (rate-limited, no auth) and is what the site's enquiry forms call; it auto-assigns the new lead to the listing's `creatorId` (the "primary agent"), flags likely duplicates (same listing + matching email/phone) without blocking them, and notifies the assignee. Stage transitions (`NEW → CONTACTED → QUALIFIED → APPOINTMENT → NEGOTIATION → WON/LOST`) and contact logging (`CALL`/`WHATSAPP`/`EMAIL`/`NOTE`) each write a `LeadActivity`, and the first CALL/WHATSAPP/EMAIL activity auto-advances a `NEW` lead to `CONTACTED` and stamps `firstRespondedAt` for future SLA reporting. Frontend: `src/services/lead.service.ts`, `/dashboard/leads` (list + quick actions), and `InquiryForm.tsx`/`AgentSidebar.tsx` on the public listing page.
+
+**Not built yet, on purpose** (see `PENDING.md` for the full list): SLA-based escalation to a manager (needs a background job — none exist in this codebase yet), a lead detail/activity-timeline page, `FollowUp` scheduling, manual reassignment UI (the backend endpoint exists, nothing calls it), and export. Treat this as the foundation the rest of the CRM gets built on, not the finished feature.
+
+---
+
+## Conventions & gotchas (read before editing)
+
+Things that aren't obvious from the code and cost real time to rediscover:
+
+- **Zod v4 is installed**, not v3. `z.record()` requires two arguments (`z.record(z.string(), z.any())`), not one — this differs from v3 and from a lot of example code you might generate from training data.
+- **Express 5 + `noUncheckedIndexedAccess: true`** (backend `tsconfig.json`) types `req.params.id` as `string | string[] | undefined`, not plain `string`. The established pattern in this codebase is `const id = req.params.id as string;` (a plain `:id` route segment is never actually an array at runtime) — follow it rather than fighting the type system per-callsite.
+- **`tsc --noEmit` from the backend root is your compile-check**, not `tsx` — the dev script (`tsx --watch`) transpiles without type-checking, so type errors can sit unnoticed through normal dev usage. Run `pnpm --filter mydubai-broker-backend exec tsc --noEmit` (or `npm run build`) before considering backend work done.
+- **Backend `tsc --noEmit` is clean — zero errors, not "zero except one pre-existing issue."** An earlier version of this README noted a persistent `TS2742` "inferred type cannot be named" warning on `src/lib/auth.ts`; it turned out to be caused by a dead, do-nothing `hooks.before` block in the `betterAuth()` config, and disappeared on its own once that (and other dead auth code) was removed during the 2026-09-27 auth cleanup (see `PENDING.md`). If a similar-looking inference error reappears after touching `auth.ts`, look at what changed in the `betterAuth()` config object itself before assuming it's unrelated/pre-existing — it very much can be caused by something in there.
+- **TypeScript only reports the first excess/invalid property per object literal** (`TS2353`) — if you see one Prisma `.create({ data: {...} })` field error, fix it, re-run `tsc`, and check for more in the same object before assuming it's clean. This is how the schema-migration bugs (see git log) stayed hidden — one bad field masked three others behind it.
+- **`AssetType`, `CompanyCategory`, `OfferingType`, `ApprovalStatus`, `PublicationStatus` are the source of truth** — always check `prisma/schema.prisma` directly for current enum values rather than trusting a frontend constant or a comment; several frontend constants in `src/types/enums.ts` are stale (see `PENDING.md`).
+- **Raw enum values must never reach the UI directly** (explicit product requirement) — the backend's `listings.mapper.ts` has label maps (`CATEGORY_LABELS`, `OFFERING_LABELS`, etc.) that convert `REAL_ESTATE` → `"Real Estate"` etc. Use/extend this pattern rather than displaying `listing.category` raw.
+- **Category-specific detail fields are validated by the caller, not by Prisma's types** — `attachCategoryDetails`/`upsertCategoryDetails` in `listings.service.ts` accept a loosely-typed `Record<string, any>` and cast on the way into Prisma, because the whole point of the unified API is that each category's field set is dynamic/configurable (plan Section 10). If you're adding a new category-specific field, it likely just needs to flow through `details` — you probably don't need to touch `listings.service.ts` itself.
+- **Products module was deleted** — an earlier scaffold had a generic `Product`/`ProductListing` demo unrelated to the real business (leftover from initial project bootstrap). It's gone from both the schema and `src/modules`. If you see a stale reference to it, it's dead code to remove, not something to resurrect.
+
+---
+
+## Known gaps
+
+Don't take this README's description of a feature as confirmation it's fully built — **`PENDING.md` is the authoritative, current gap list** and is meant to be kept up to date as work lands; this README describes architecture and intent, not completion status. Roles/permissions and onboarding (plan Sections 3-4) are now mostly covered, with specific documented exceptions (OTP verification, per-document review, document expiry automation, role-specific dashboard content). Quality scoring, visibility/ranking, and performance analytics still have complete data models but zero service/UI code. Email exists as a placeholder (logs, doesn't deliver) rather than being fully missing. Notifications have no frontend UI (bell icon / center) despite the backend creating real `Notification` rows. See `PENDING.md` for specifics and priority order.
+
+---
+
+## Working conventions for this repo
+
+- Backend and frontend are separate git repos — commit to the one you actually changed, don't assume a single commit spans both.
+- Backend deploys (Render) need Build Command `pnpm install --frozen-lockfile && pnpm run build` — `build` runs `prisma generate` because `generated/prisma` is gitignored. Required env vars are listed in `PENDING.md` 2026-10-29.
+- **Two lockfiles per package**: local dev resolves from the root workspace `pnpm-lock.yaml` (not in git); Render/Vercel install from each repo's own `pnpm-lock.yaml`. After any dependency change, regenerate the repo lockfile so it matches (see `PENDING.md` 2026-10-29) — otherwise production silently runs different library versions than you tested.
+- Frontend deploys (Vercel) need `NEXT_PUBLIC_API_URL=https://<backend>/api` (**must end in `/api`**) and `NEXT_PUBLIC_BETTER_AUTH_URL=https://<backend>` (no `/api`), then a redeploy (`NEXT_PUBLIC_*` is baked in at build time). If `NEXT_PUBLIC_API_URL` is missing or lacks `/api`, the public pages' listing requests 404 and the pages silently show "No listings available" instead of an error.
+- **R2 bucket CORS** (Cloudflare dashboard → R2 → `mdb-assets` → Settings → CORS Policy) must list every frontend origin (localhost + the Vercel domain, and any custom/preview domains) with `PUT`/`GET`/`HEAD` and header `content-type`. Browsers upload straight to R2 with the presigned URL, so a missing origin shows up as a CORS error + `403` right after `/uploads/presign` succeeds — it's not a signing problem. The app's R2 key can't read/change bucket CORS; it's dashboard-only.
+- Work on `main` in both repos. The backend `prod` branch is stale and incompatible with the current DB (see `PENDING.md` 2026-10-29).
+- Keep `README.md`, `CODEMAP.md`, `PENDING.md` (and `mydubai-broker-backend/docs/*`) updated **in the same change** as the code — not as a later cleanup.
+- Run `tsc --noEmit` (backend) and check the frontend build before calling work done — see [Conventions & gotchas](#conventions--gotchas).
+- Prefer extending the unified `/listings` API over the legacy per-category endpoints for any new listing-related backend work.
+- Update `PENDING.md`'s status tags when you finish something tracked there — don't leave it stale.
