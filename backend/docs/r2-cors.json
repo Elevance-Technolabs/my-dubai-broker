@@ -1,0 +1,12 @@
+[
+	{
+		"AllowedOrigins": [
+			"http://localhost:3000",
+			"https://your-nextjs-domain.com"
+		],
+		"AllowedMethods": ["PUT"],
+		"AllowedHeaders": ["Content-Type"],
+		"ExposeHeaders": ["ETag"],
+		"MaxAgeSeconds": 3600
+	}
+]

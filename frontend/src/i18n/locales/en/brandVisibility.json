@@ -1,0 +1,99 @@
+{
+    "hero": {
+        "title": "Brand & Visibility Solutions",
+        "subtitle": "Maximize Your Reach & Influence"
+    },
+    "intro": {
+        "title": "The Premier Marketplace for Ultra-High-Net-Worth Individuals",
+        "description": "My Dubai Broker is more than just a marketplace; it is a luxury ecosystem for Ultra-Luxury items. We provide a platform for selected brands and service providers to connect with an elite audience through our bespoke advertising and visibility solutions. We curate every listing and partner with the brands to ensure they are presented in a premium environment to an audience highly profiled, with verified sources of wealth and high buying power."
+    },
+    "stats": [
+        {
+            "value": "$30M+",
+            "label": "Average Net Worth"
+        },
+        {
+            "value": "60%",
+            "label": "International Buyers"
+        },
+        {
+            "value": "45+",
+            "label": "Countries Represented"
+        },
+        {
+            "value": "High",
+            "label": "Propensity for Multi-Asset Ownership"
+        }
+    ],
+    "statsNote": "Our members are global citizens, investors, and collectors who value rarity, provenance, and seamless acquisition experiences. They are actively seeking investment opportunities in Dubai and beyond.",
+    "categoriesHeader": "Categories of Interest",
+    "categories": [
+        {
+            "id": "real-estate",
+            "title": "Real Estate"
+        },
+        {
+            "id": "supercars",
+            "title": "Supercars"
+        },
+        {
+            "id": "yachts",
+            "title": "Yachts"
+        },
+        {
+            "id": "private-jets",
+            "title": "Private Jets"
+        },
+        {
+            "id": "collectibles",
+            "title": "Collectibles"
+        }
+    ],
+    "portfolioHeader": "Advertising Portfolio",
+    "portfolioSub": "Bespoke opportunities to position your brand.",
+    "portfolio": [
+        {
+            "id": "display",
+            "title": "Display Advertising",
+            "description": "Premium distinct banner placements across high-traffic category pages. Designed to ensure brand visibility without disrupting the user experience."
+        },
+        {
+            "id": "featured",
+            "title": "Featured Listings",
+            "description": "Prioritized placement in search results and category homepages. Verified Seller badges and enhanced listing layouts to drive higher engagement."
+        },
+        {
+            "id": "newsletter",
+            "title": "Newsletter Sponsorship",
+            "description": "Direct access to our subscriber base of verified investors and buyers. Feature your brand in our weekly \"The View\" market intelligence digest."
+        },
+        {
+            "id": "social",
+            "title": "Social Amplification",
+            "description": "Leverage our social media ecosystem. Dedicated posts, stories, and reels showcasing your brand to our growing community of luxury enthusiasts."
+        },
+        {
+            "id": "bespoke",
+            "title": "Bespoke Content",
+            "description": "Collaborate with our editorial team to create immersive articles, interviews, or thought leadership pieces featured in \"The View\" journal."
+        },
+        {
+            "id": "strategic",
+            "title": "Strategic Partnerships",
+            "description": "Long-term collaboration opportunities including event sponsorships, co-branded reports, and exclusive member-only offers."
+        }
+    ],
+    "storytelling": {
+        "title": "Curated Storytelling",
+        "description": "Luxury is about more than just the asset; it is about the story, the craftsmanship, and the heritage. At My Dubai Broker, we don't just list products; we tell their stories.",
+        "subDescription": "Through our editorial arm, we offer brands the chance to articulate their values and connect with clients on an intellectual and emotional level. From \"Designer Spotlights\" to \"Market Insights,\" our content drives authority and trust."
+    },
+    "storytellingCTA": "Explore The View",
+    "ctaSection": {
+        "title": "Ready to Elevate Your Brand?",
+        "description": "Partner with the platform that is redefining luxury commerce in Dubai. Contact our dedicated partnership team to discuss a tailored solution for your business.",
+        "button": "REQUEST MEDIA KIT",
+        "email": "Email: partner@mydubaibroker.com",
+        "location": "Location: Dubai, United Arab Emirates"
+    }
+}

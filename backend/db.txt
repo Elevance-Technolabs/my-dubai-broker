@@ -1,0 +1,556 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // change if needed
+  url      = env("DATABASE_URL")
+}
+
+
+/// ------------------------------------------------------
+/// ROLES
+/// ------------------------------------------------------
+model Role {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  level     Int
+  createdAt DateTime
+  updatedAt DateTime
+
+  users     User[]
+}
+
+
+/// ------------------------------------------------------
+/// USERS
+/// ------------------------------------------------------
+model User {
+  id                String                 @id @default(cuid())
+  name              String
+  email             String                 @unique
+  password          String
+  phone             String
+  isVerifiedSeller  Boolean
+  createdAt         DateTime
+  updatedAt         DateTime
+  deletedAt         DateTime?
+
+  roleId            String
+  role              Role                   @relation(fields: [roleId], references: [id])
+
+  listings          Listing[]
+  verifiedListings  Listing[]              @relation("ListingVerification", references: [id])
+  sellerVerification SellerVerification?
+  sellerVerificationLogs SellerVerificationLog[]
+  listingVerificationLogs ListingVerificationLog[]
+  communicationLogs      CommunicationLog[] @relation("CommunicationUser")
+  sentCommunications     CommunicationLog[] @relation("CommunicationSender")
+  journalArticles        JournalArticle[]
+  favorites              Favorite[]
+  inquiriesAsBuyer       Inquiry[]           @relation("Buyer")
+  inquiriesAsSeller      Inquiry[]           @relation("Seller")
+  inquiryMessages        InquiryMessage[]
+  reportsMade            Report[]            @relation("Reporter")
+  reportsReceived        Report[]            @relation("Owner")
+  assets                 Asset[]
+}
+
+
+/// ------------------------------------------------------
+/// LOCATIONS
+/// ------------------------------------------------------
+model Location {
+  id         String   @id @default(cuid())
+  country    String
+  state      String
+  city       String
+  address1   String
+  address2   String
+  postalCode String
+  lat        Decimal
+  lng        Decimal
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  listings   Listing[]
+}
+
+
+/// ------------------------------------------------------
+/// CATEGORIES
+/// ------------------------------------------------------
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime
+  updatedAt DateTime
+
+  listings  Listing[]
+  brands    Brand[]
+}
+
+
+/// ------------------------------------------------------
+/// BRANDS
+/// ------------------------------------------------------
+model Brand {
+  id         String    @id @default(cuid())
+  name       String
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id])
+
+  carListings        CarListing[]
+  watchListings      WatchListing[]
+  motorcycleListings MotorcycleListing[]
+
+  @@unique([categoryId, name])
+}
+
+
+/// ------------------------------------------------------
+/// TAGS
+/// ------------------------------------------------------
+model Tag {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  slug   String   @unique
+
+  listingTags ListingTag[]
+  journalArticleTags JournalArticleTag[]
+}
+
+
+/// ------------------------------------------------------
+/// LISTINGS
+/// ------------------------------------------------------
+model Listing {
+  id             String     @id @default(cuid())
+  title          String
+  slug           String      @unique
+  description    String
+  price          Decimal
+  currency       String
+  condition      String
+  status         String
+  attributes     Json
+  featuredAt     DateTime?
+  publishedAt    DateTime?
+  expiresAt      DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime
+  updatedAt      DateTime
+
+  userId         String
+  user           User       @relation(fields: [userId], references: [id])
+
+  categoryId     String
+  category       Category   @relation(fields: [categoryId], references: [id])
+
+  locationId     String?
+  location       Location?  @relation(fields: [locationId], references: [id])
+
+  verifiedBy     String?
+  verifiedByUser User?      @relation("ListingVerification", fields: [verifiedBy], references: [id])
+
+  images         ListingImage[]
+  tags           ListingTag[]
+  carListing     CarListing?
+  watchListing   WatchListing?
+  realEstateListing RealEstateListing?
+  yachtListing      YachtListing?
+  jetListing        JetListing?
+  motorcycleListing MotorcycleListing?
+  verificationLogs ListingVerificationLog[]
+  communications CommunicationLog[] @relation("CommunicationListing")
+  favorites      Favorite[]
+  inquiries      Inquiry[]
+}
+
+
+/// ------------------------------------------------------
+/// LISTING IMAGES
+/// ------------------------------------------------------
+model ListingImage {
+  id        String   @id @default(cuid())
+  url       String
+  position  Int
+  alt       String
+  createdAt DateTime
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// LISTING TAGS (M2M)
+/// ------------------------------------------------------
+model ListingTag {
+  listingId String
+  tagId     String
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([listingId, tagId])
+}
+
+
+/// ------------------------------------------------------
+/// CAR LISTINGS
+/// ------------------------------------------------------
+model CarListing {
+  listingId   String @id
+  brandId     String
+  model       String
+  year        Int
+  mileage     Int
+  fuelType    String
+  transmission String
+  bodyType    String
+  drivetrain  String
+  color       String
+  doors       Int
+  owners      Int
+  extra       Json
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  brand   Brand   @relation(fields: [brandId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// WATCH LISTINGS
+/// ------------------------------------------------------
+model WatchListing {
+  listingId      String @id
+  brandId        String
+  model          String
+  referenceNo    String
+  movement       String
+  caseMaterial   String
+  caseSizeMm     Decimal
+  dialColor      String
+  waterResistance String
+  strapMaterial  String
+  extra          Json
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  brand   Brand   @relation(fields: [brandId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// REAL ESTATE LISTINGS
+/// ------------------------------------------------------
+model RealEstateListing {
+  listingId    String  @id
+  propertyType String
+  bedrooms     Int
+  bathrooms    Int
+  areaSqft     Decimal
+  lotSizeSqft  Decimal
+  yearBuilt    Int
+  parkingSpaces Int
+  hoaFees      Decimal
+  extra        Json
+
+  listing Listing @relation(fields: [listingId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// YACHT LISTINGS
+/// ------------------------------------------------------
+model YachtListing {
+  listingId   String @id
+  lengthFt    Decimal
+  hullMaterial String
+  engineHours Int
+  cabins      Int
+  buildYear   Int
+  extra       Json
+
+  listing Listing @relation(fields: [listingId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// JET LISTINGS
+/// ------------------------------------------------------
+model JetListing {
+  listingId String @id
+  manufacturer String
+  model        String
+  year         Int
+  hours        Int
+  seats        Int
+  rangeNm      Int
+  extra        Json
+
+  listing Listing @relation(fields: [listingId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// MOTORCYCLE LISTINGS
+/// ------------------------------------------------------
+model MotorcycleListing {
+  listingId String @id
+  brandId   String
+  model     String
+  year      Int
+  engineCc  Int
+  type      String
+  extra     Json
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  brand   Brand   @relation(fields: [brandId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// SELLER VERIFICATIONS
+/// ------------------------------------------------------
+model SellerVerification {
+  id          String   @id @default(cuid())
+  status      String
+  documents   Json
+  verifiedAt  DateTime?
+  appealCount Int
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+
+  reviewedBy  String?
+  reviewer    User?    @relation(fields: [reviewedBy], references: [id])
+
+  logs        SellerVerificationLog[]
+}
+
+
+/// ------------------------------------------------------
+/// SELLER VERIFICATION LOGS
+/// ------------------------------------------------------
+model SellerVerificationLog {
+  id                   String   @id @default(cuid())
+  action               String
+  notes                String
+  metadata             Json
+  createdAt            DateTime
+
+  sellerVerificationId String
+  verification         SellerVerification @relation(fields: [sellerVerificationId], references: [id])
+
+  actorId              String
+  actor                User @relation(fields: [actorId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// LISTING VERIFICATION LOGS
+/// ------------------------------------------------------
+model ListingVerificationLog {
+  id        String   @id @default(cuid())
+  action    String
+  notes     String
+  metadata  Json
+  createdAt DateTime
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+
+  actorId   String
+  actor     User    @relation(fields: [actorId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// COMMUNICATION LOGS
+/// ------------------------------------------------------
+model CommunicationLog {
+  id        String   @id @default(cuid())
+  type      String
+  channel   String
+  subject   String
+  message   String
+  metadata  Json
+  sentAt    DateTime?
+  status    String
+
+  userId              String?
+  user                User? @relation("CommunicationUser", fields: [userId], references: [id])
+
+  relatedListingId    String?
+  relatedListing      Listing? @relation("CommunicationListing", fields: [relatedListingId], references: [id])
+
+  relatedVerificationId String?
+  relatedVerification   SellerVerification? @relation(fields: [relatedVerificationId], references: [id])
+
+  sentBy              String?
+  sender              User? @relation("CommunicationSender", fields: [sentBy], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// JOURNAL CATEGORIES
+/// ------------------------------------------------------
+model JournalCategory {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+
+  articles JournalArticle[]
+}
+
+
+/// ------------------------------------------------------
+/// JOURNAL ARTICLES
+/// ------------------------------------------------------
+model JournalArticle {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  coverImage  String
+  status      String
+  publishedAt DateTime?
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  authorId    String
+  author      User   @relation(fields: [authorId], references: [id])
+
+  categoryId  String
+  category    JournalCategory @relation(fields: [categoryId], references: [id])
+
+  tags        JournalArticleTag[]
+}
+
+
+/// ------------------------------------------------------
+/// JOURNAL ARTICLE TAGS (M2M)
+/// ------------------------------------------------------
+model JournalArticleTag {
+  articleId String
+  tagId     String
+
+  article   JournalArticle @relation(fields: [articleId], references: [id])
+  tag       Tag            @relation(fields: [tagId], references: [id])
+
+  @@id([articleId, tagId])
+}
+
+
+/// ------------------------------------------------------
+/// FAVORITES
+/// ------------------------------------------------------
+model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id])
+
+  @@unique([userId, listingId])
+}
+
+
+/// ------------------------------------------------------
+/// INQUIRIES
+/// ------------------------------------------------------
+model Inquiry {
+  id        String   @id @default(cuid())
+  subject   String
+  status    String
+  createdAt DateTime
+  updatedAt DateTime
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+
+  buyerId   String
+  buyer     User    @relation("Buyer", fields: [buyerId], references: [id])
+
+  sellerId  String
+  seller    User    @relation("Seller", fields: [sellerId], references: [id])
+
+  messages  InquiryMessage[]
+}
+
+
+/// ------------------------------------------------------
+/// INQUIRY MESSAGES
+/// ------------------------------------------------------
+model InquiryMessage {
+  id        String   @id @default(cuid())
+  content   String
+  sentAt    DateTime
+
+  inquiryId String
+  inquiry   Inquiry @relation(fields: [inquiryId], references: [id])
+
+  senderId  String
+  sender    User    @relation(fields: [senderId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// REPORTS
+/// ------------------------------------------------------
+model Report {
+  id        String @id @default(cuid())
+  targetType String
+  targetId   String
+  reason     String
+  status     String
+  metadata   Json
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  reporterId String
+  reporter   User @relation("Reporter", fields: [reporterId], references: [id])
+
+  ownerId    String
+  owner      User @relation("Owner", fields: [ownerId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// ASSETS
+/// ------------------------------------------------------
+model Asset {
+  id          String @id @default(cuid())
+  purpose     String
+  url         String
+  metadata    Json
+  createdAt   DateTime
+
+  ownerUserId String
+  owner       User @relation(fields: [ownerUserId], references: [id])
+}
+
+
+/// ------------------------------------------------------
+/// OUTBOX EVENTS
+/// ------------------------------------------------------
+model OutboxEvent {
+  id        String   @id @default(cuid())
+  topic     String
+  payload   Json
+  status    String
+  attempts  Int
+  createdAt DateTime
+  updatedAt DateTime
+}

@@ -1,0 +1,61 @@
+{
+  "profileLabel": "DEVELOPER PROFILE",
+  "contactButton": "CONTACT DEVELOPER",
+  "sections": {
+    "listedDevelopments": "Listed Developments"
+  },
+  "stats": {
+    "yearsExperience": {
+      "value": "15+",
+      "label": "Years Experience"
+    },
+    "projectsCompleted": {
+      "value": "42",
+      "label": "Projects Completed"
+    },
+    "awardsWon": {
+      "value": "12",
+      "label": "Awards Won"
+    }
+  },
+  "developers": {
+    "mdb-developers": {
+      "name": "MDB Developers",
+      "bio": "Creating iconic landmarks and premium residences across the UAE, MDB Developers is synonymous with luxury, innovation, and timeless design.",
+      "developments": [
+        {
+          "id": 1,
+          "title": "Modern Dubai Marina Apartment",
+          "developer": "MDB Developers",
+          "price": "28,500,000",
+          "image": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1600&auto=format&fit=crop",
+          "count": "1/3"
+        },
+        {
+          "id": 2,
+          "title": "Elegant Downtown Loft - Imported Color shades",
+          "developer": "MDB Developers",
+          "price": "12,300,000",
+          "image": "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?q=80&w=1600&auto=format&fit=crop",
+          "count": "1/3"
+        },
+        {
+          "id": 3,
+          "title": "Stunning Jumeirah Beach House",
+          "developer": "MDB Developers",
+          "price": "75,000,000",
+          "image": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1600&auto=format&fit=crop",
+          "count": "1/3"
+        },
+        {
+          "id": 4,
+          "title": "Palm Jumeirah Signature Villa",
+          "developer": "MDB Developers",
+          "price": "50,000,000",
+          "image": "https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1170&auto=format&fit=crop",
+          "count": "1/3"
+        }
+      ]
+    }
+  }
+}

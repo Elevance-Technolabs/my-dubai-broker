@@ -1,0 +1,56 @@
+{
+  "title": "إعداد حساب الشركة",
+  "steps": {
+    "step1": {
+      "title": "اختر فئات الإدراج",
+      "description": "اختر الفئات التي تنوي إدراجها في My Dubai Broker.",
+      "categories": {
+        "realEstate": "العقارات",
+        "cars": "السيارات",
+        "yachts": "اليخوت",
+        "jets": "الطائرات الخاصة / المروحيات"
+      }
+    },
+    "step2": {
+      "title": "التحقق من العمل",
+      "description": "يرجى تحميل المستندات المطلوبة للفئات المختارة.",
+      "fields": {
+        "tradeLicense": "الرخصة التجارية",
+        "reraLicense": "رخصة ريرا (RERA)",
+        "brn": "رقم تسجيل البروكر (BRN)",
+        "carDealerLicense": "رخصة لتجارة السيارات",
+        "showroomRegistration": "تسجيل المعرض",
+        "marineTradeLicense": "الرخصة التجارية البحرية",
+        "boatDealerCertificate": "شهادة تاجر القوارب",
+        "aviationDealerLicense": "رخصة تاجر طيران",
+        "aocDocument": "مستند AOC/المشغل",
+        "ownerId": "الهوية الإماراتية للمالك/المدير أو جواز السفر"
+      }
+    },
+    "step3": {
+      "title": "إعداد ملف تعريف الشركة",
+      "description": "أكمل ملفك الشخصي للبدء في إدراج أصولك.",
+      "fields": {
+        "companyName": "اسم الشركة",
+        "description": "الوصف",
+        "address": "العنوان",
+        "emails": "رسائل البريد الإلكتروني للتواصل",
+        "phones": "أرقام الهواتف",
+        "website": "رابط الموقع الإلكتروني",
+        "social": "روابط وسائل التواصل الاجتماعي",
+        "logo": "شعار الشركة",
+        "cover": "صورة الغلاف",
+        "listingLogo": "شعار الإدراج",
+        "languages": "اللغات المتحدث بها",
+        "ownerEmail": "بريد حساب المسؤول",
+        "password": "كلمة مرور الحساب"
+      }
+    }
+  },
+  "buttons": {
+    "next": "الخطوة التالية",
+    "back": "الرجوع",
+    "complete": "إكمال الإعداد",
+    "upload": "تحميل المستند"
+  }
+}

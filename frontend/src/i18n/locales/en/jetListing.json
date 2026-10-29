@@ -1,0 +1,59 @@
+{
+  "form": {
+    "heading": {
+      "bold": "List Your",
+      "light": "Jet"
+    },
+    "sections": {
+      "general": "General Information",
+      "details": "Technical Specifications",
+      "narrative": "Narrative",
+      "maintenance": "Maintenance & Avionics",
+      "contact": "Contact Information",
+      "media": "Media"
+    },
+    "fields": {
+      "category": "Asset Category",
+      "title": "Listing Title",
+      "description": "Description",
+      "price": "Price",
+      "currency": "Currency",
+      "offeringType": "Offering",
+      "offeringSale": "For sale",
+      "offeringCharter": "For charter",
+      "rateBasis": "Rate basis",
+      "rateHour": "Per hour",
+      "rateDay": "Per day",
+      "charterRate": "Charter rate",
+      "manufacturer": "Manufacturer",
+      "model": "Model",
+      "year": "Year of Manufacture",
+      "totalHours": "Total Hours",
+      "passengerCapacity": "Passenger Capacity",
+      "range": "Range (nm)",
+      "interiorDetails": "Interior Details",
+      "avionics": "Avionics Suite",
+      "maintenanceHistory": "Maintenance History",
+      "licenseNumber": "Tail Number / Registration",
+      "primaryEmail": "Email Address",
+      "primaryPhone": "Phone Number",
+      "qualityNarrative": "Quality Narrative",
+      "internalReferenceCode": "Internal Ref Code",
+      "photoUrls": "Photo URLs",
+      "videoUrl": "Video URL"
+    },
+    "placeholders": {
+      "title": "e.g. 2019 Gulfstream G650ER for Sale",
+      "description": "Describe the features and condition of the jet...",
+      "price": "45000000",
+      "manufacturer": "Gulfstream, Bombardier, etc.",
+      "model": "G650ER, Global 7500, etc.",
+      "year": "2019",
+      "totalHours": "1200",
+      "email": "sales@jets.com",
+      "phone": "+15550199"
+    },
+    "submit": "Publish Jet Listing",
+    "submitting": "Publishing..."
+  }
+}

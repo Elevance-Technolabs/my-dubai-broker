@@ -1,0 +1,48 @@
+{
+  "hero": {
+    "title": "Sitemap",
+    "subtitle": "Navigate through our exclusive offerings."
+  },
+  "sections": {
+    "mainOfferings": "Main Offerings",
+    "mediaInsights": "Media & Insights",
+    "company": "Company",
+    "supportLegal": "Support & Legal",
+    "userAccount": "User Account"
+  },
+  "links": {
+    "home": "Home",
+    "realEstate": "Real Estate",
+    "villas": "Villas",
+    "apartments": "Apartments",
+    "penthouses": "Penthouses",
+    "offPlan": "Off-Plan",
+    "cars": "Cars",
+    "supercars": "Supercars",
+    "luxury": "Luxury",
+    "classic": "Classic",
+    "yachts": "Yachts",
+    "superYachts": "Super Yachts",
+    "charters": "Charters",
+    "builders": "Builders",
+    "jets": "Jets",
+    "heavyJets": "Heavy Jets",
+    "midSize": "Mid-Size",
+    "services": "Services",
+    "blog": "The View (Blog)",
+    "search": "Search",
+    "testimonials": "Testimonials",
+    "about": "About Us",
+    "contact": "Contact Us",
+    "careers": "Careers",
+    "press": "Press",
+    "faq": "Help & FAQ",
+    "support": "Support Center",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "cookies": "Cookie Policy",
+    "login": "Login",
+    "register": "Register",
+    "wishlist": "My Wishlist"
+  }
+}

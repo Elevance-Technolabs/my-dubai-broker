@@ -1,0 +1,48 @@
+{
+  "hero": {
+    "title": "خريطة الموقع",
+    "subtitle": "تصفح عروضنا الحصرية."
+  },
+  "sections": {
+    "mainOfferings": "العروض الرئيسية",
+    "mediaInsights": "الإعلام والرؤى",
+    "company": "الشركة",
+    "supportLegal": "الدعم والقانونية",
+    "userAccount": "حساب المستخدم"
+  },
+  "links": {
+    "home": "الرئيسية",
+    "realEstate": "عقارات",
+    "villas": "فلل",
+    "apartments": "شقق",
+    "penthouses": "بنثهاوس",
+    "offPlan": "قيد الإنشاء",
+    "cars": "سيارات",
+    "supercars": "سيارات خارقة",
+    "luxury": "سيارات فاخرة",
+    "classic": "سيارات كلاسيكية",
+    "yachts": "يخوت",
+    "superYachts": "يخوت فاخرة",
+    "charters": "تأجير",
+    "builders": "شركات البناء",
+    "jets": "طائرات خاصة",
+    "heavyJets": "طائرات ثقيلة",
+    "midSize": "طائرات متوسطة",
+    "services": "خدمات",
+    "blog": "المدونة",
+    "search": "بحث",
+    "testimonials": "آراء العملاء",
+    "about": "من نحن",
+    "contact": "اتصل بنا",
+    "careers": "وظائف",
+    "press": "صحافة",
+    "faq": "الأسئلة الشائعة",
+    "support": "مركز الدعم",
+    "privacy": "سياسة الخصوصية",
+    "terms": "الشروط والأحكام",
+    "cookies": "سياسة ملفات الارتباط",
+    "login": "تسجيل الدخول",
+    "register": "تسجيل",
+    "wishlist": "قائمة رغباتي"
+  }
+}

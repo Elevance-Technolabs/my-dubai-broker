@@ -1,0 +1,174 @@
+{
+  "hero": {
+    "title": "Help & FAQ",
+    "subtitle": "How can we help you today?",
+    "searchPlaceholder": "Search for answers, articles, and services"
+  },
+  "categories": [
+    {
+      "id": "general",
+      "title": "General",
+      "description": "Basic info about My Dubai Broker"
+    },
+    {
+      "id": "businesses",
+      "title": "For Businesses",
+      "description": "Developers, agents, and private collectors"
+    },
+    {
+      "id": "buyers",
+      "title": "For Buyers",
+      "description": "Find your next purchase with confidence"
+    }
+  ],
+  "sections": [
+    {
+      "id": "general",
+      "title": "General",
+      "questions": [
+        {
+          "question": "What is My Dubai Broker?",
+          "answer": "My Dubai Broker is a premium marketplace for high-end assets including real estate, cars, yachts, and jets in Dubai."
+        },
+        {
+          "question": "How does My Dubai Broker work?",
+          "answer": "We provide a verified platform connecting serious buyers with professional sellers for exclusive luxury assets."
+        },
+        {
+          "question": "How are assets verified?",
+          "answer": "Every asset listed is checked for authenticity and ownership documentation by our curation team."
+        }
+      ]
+    },
+    {
+      "id": "businesses",
+      "title": "For Businesses",
+      "subsections": [
+        {
+          "title": "GETTING STARTED",
+          "questions": [
+            {
+              "question": "How do I register as a seller or business?",
+              "answer": "You can register through our business portal by providing necessary commercial license and documentation."
+            }
+          ]
+        },
+        {
+          "title": "LISTING STANDARDS",
+          "questions": [
+            {
+              "question": "What are the photo requirements?",
+              "answer": "We require high-resolution (HD) photos that meet our luxury aesthetic standards."
+            }
+          ]
+        },
+        {
+          "title": "LISTINGS MANAGEMENT",
+          "questions": [
+            {
+              "question": "How can I edit my listings?",
+              "answer": "You can manage and edit your listings through your dedicated business dashboard."
+            }
+          ]
+        },
+        {
+          "title": "BRANDING & VISIBILITY",
+          "questions": [
+            {
+              "question": "Can I feature my brand logo?",
+              "answer": "Yes, verified businesses can display their logo on their profile and listing pages."
+            }
+          ]
+        },
+        {
+          "title": "LEADS",
+          "questions": [
+            {
+              "question": "How do I receive inquiries?",
+              "answer": "Inquiries are sent directly to your dashboard and registered email address."
+            }
+          ]
+        },
+        {
+          "title": "BILLING",
+          "questions": [
+            {
+              "question": "What payment methods are accepted?",
+              "answer": "We accept major credit cards, bank transfers, and local payment methods in Dubai."
+            }
+          ]
+        },
+        {
+          "title": "ANALYTICS",
+          "questions": [
+            {
+              "question": "What data can I see about my listings?",
+              "answer": "You can track views, clicks, and lead performance for each of your listed assets."
+            }
+          ]
+        },
+        {
+          "title": "SECURITY & SUPPORT",
+          "questions": [
+            {
+              "question": "How is my account secured?",
+              "answer": "We use 256-bit encryption and multi-factor authentication for all business accounts."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buyers",
+      "title": "For Buyers",
+      "subsections": [
+        {
+          "title": "GETTING STARTED",
+          "questions": [
+            {
+              "question": "How do I register as a buyer?",
+              "answer": "Registration is free and allows you to save favorites and receive notifications for matching assets."
+            }
+          ]
+        },
+        {
+          "title": "SEARCHING & SAVING",
+          "questions": [
+            {
+              "question": "How do I save a search?",
+              "answer": "Click the heart icon on any search results page to save the criteria for later."
+            }
+          ]
+        },
+        {
+          "title": "CONTACTING SELLERS",
+          "questions": [
+            {
+              "question": "What is the best way to contact a seller?",
+              "answer": "Use the secure inquiry form on the listing page to connect with the verified seller or broker."
+            }
+          ]
+        },
+        {
+          "title": "NOTIFICATIONS",
+          "questions": [
+            {
+              "question": "How can I manage my alerts?",
+              "answer": "You can toggle notification preferences within your account settings."
+            }
+          ]
+        },
+        {
+          "title": "BUYING WITH CONFIDENCE",
+          "questions": [
+            {
+              "question": "What does 'Verified' mean?",
+              "answer": "'Verified' means we have confirmed the identity of the seller and the basic legitimacy of the asset."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "viewAll": "View All Topics"
+}

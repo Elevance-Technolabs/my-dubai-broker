@@ -1,0 +1,55 @@
+{
+  "form": {
+    "heading": {
+      "bold": "List Your",
+      "light": "Yacht"
+    },
+    "sections": {
+      "general": "General Information",
+      "details": "Yacht Details",
+      "narrative": "Narrative",
+      "contact": "Contact Information",
+      "media": "Media"
+    },
+    "fields": {
+      "category": "Asset Category",
+      "title": "Listing Title",
+      "description": "Description",
+      "price": "Price",
+      "currency": "Currency",
+      "make": "Make / Builder",
+      "model": "Model",
+      "year": "Year Built",
+      "type": "Yacht Type",
+      "length": "Length (ft)",
+      "beam": "Beam (ft)",
+      "draft": "Draft (ft)",
+      "hullMaterial": "Hull Material",
+      "cabins": "Number of Cabins",
+      "engineHours": "Engine Hours",
+      "crewInfo": "Crew Information",
+      "navigation": "Navigation Systems",
+      "licenseNumber": "License Number",
+      "primaryEmail": "Email Address",
+      "primaryPhone": "Phone Number",
+      "qualityNarrative": "Quality Narrative",
+      "internalReferenceCode": "Internal Ref Code",
+      "photoUrls": "Photo URLs",
+      "videoUrl": "Video URL"
+    },
+    "placeholders": {
+      "title": "e.g. 2022 Sunseeker 74 Sport Yacht",
+      "description": "Describe the features and condition of the yacht...",
+      "price": "12500000",
+      "make": "Sunseeker",
+      "type": "Motor Yacht",
+      "year": "2022",
+      "length": "74.5",
+      "beam": "17.8",
+      "email": "broker@mydubaibroker.com",
+      "phone": "+971501234567"
+    },
+    "submit": "Publish Yacht Listing",
+    "submitting": "Publishing..."
+  }
+}

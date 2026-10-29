@@ -1,0 +1,47 @@
+{
+  "hero": {
+    "title": "Client Stories",
+    "subtitle": "Experiences from our distinguished clientele."
+  },
+  "main": {
+    "title": "Trusted by the World's Elite"
+  },
+  "testimonials": [
+    {
+      "quote": "The level of service provided by My Dubai Broker was exceptional. They understood exactly what I was looking for in a Palm Jumeirah villa and delivered options that were off-market and perfectly matched my taste.",
+      "name": "James Sterling",
+      "role": "INTERNATIONAL INVESTOR",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&h=256&auto=format&fit=crop"
+    },
+    {
+      "quote": "Sourcing a specific vintage Ferrari is no easy task, but the team's network is evidently vast. The transaction was seamless, transparent, and handled with the utmost discretion.",
+      "name": "Sarah Jenkins",
+      "role": "AUTOMOTIVE COLLECTOR",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&h=256&auto=format&fit=crop"
+    },
+    {
+      "quote": "Our yacht charter for the Formula 1 weekend was flawlessly executed. The crew, the catering, and the vessel itself exceeded our expectations. A truly five-star experience.",
+      "name": "Michael Ross",
+      "role": "CEO, TECH VENTURES",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=256&h=256&auto=format&fit=crop"
+    },
+    {
+      "quote": "Professionalism at its finest. From the initial consultation for a private jet charter to the final landing, every detail was managed perfectly. I highly recommend their aviation services.",
+      "name": "Elena K.",
+      "role": "FASHION DESIGNER",
+      "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=256&h=256&auto=format&fit=crop"
+    },
+    {
+      "quote": "My Dubai Broker helped me diversify my investment portfolio into Dubai real estate. Their market insights are data-driven and incredibly valuable for making informed decisions.",
+      "name": "David Chen",
+      "role": "PROPERTY DEVELOPER",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&h=256&auto=format&fit=crop"
+    },
+    {
+      "quote": "Buying a home remotely can be stressful, but the video tours and detailed reports provided gave me complete confidence. The property is even better in person.",
+      "name": "Sophie Mueller",
+      "role": "EXPAT",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=256&h=256&auto=format&fit=crop"
+    }
+  ]
+}

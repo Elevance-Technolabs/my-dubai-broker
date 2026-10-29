@@ -1,0 +1,56 @@
+{
+  "title": "Company Onboarding",
+  "steps": {
+    "step1": {
+      "title": "Select Listing Categories",
+      "description": "Choose the categories you intend to list on My Dubai Broker.",
+      "categories": {
+        "realEstate": "Real Estate",
+        "cars": "Cars",
+        "yachts": "Yachts",
+        "jets": "Private Jets / Helicopters"
+      }
+    },
+    "step2": {
+      "title": "Business Verification",
+      "description": "Please upload the required documents for the selected categories.",
+      "fields": {
+        "tradeLicense": "Trade License",
+        "reraLicense": "RERA License",
+        "brn": "BRN (Broker Registration Number)",
+        "carDealerLicense": "Car Dealer License",
+        "showroomRegistration": "Showroom Registration",
+        "marineTradeLicense": "Marine Trade License",
+        "boatDealerCertificate": "Boat Dealer Certificate",
+        "aviationDealerLicense": "Aviation Dealer License",
+        "aocDocument": "AOC/Operator Document",
+        "ownerId": "Owner/Manager Emirates ID or Passport"
+      }
+    },
+    "step3": {
+      "title": "Company Profile Setup",
+      "description": "Complete your profile to start listing your assets.",
+      "fields": {
+        "companyName": "Company Name",
+        "description": "Description",
+        "address": "Address",
+        "emails": "Contact Emails",
+        "phones": "Phone Numbers",
+        "website": "Website URL",
+        "social": "Social Media Links",
+        "logo": "Company Logo",
+        "cover": "Cover Image",
+        "listingLogo": "Listing Logo",
+        "languages": "Languages Spoken",
+        "ownerEmail": "Account Email",
+        "password": "Account Password"
+      }
+    }
+  },
+  "buttons": {
+    "next": "Next Step",
+    "back": "Back",
+    "complete": "Complete Setup",
+    "upload": "Upload Document"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "hero": {
+    "title": "The View",
+    "subtitle": "Insights, trends and stories from the world of luxury"
+  },
+  "latestArticles": {
+    "bold": "Latest",
+    "light": "Articles"
+  },
+  "readArticle": "Read Article",
+  "articles": [
+    {
+      "id": 1,
+      "category": "Market Analysis",
+      "title": "Dubai Property Market Report 2025",
+      "excerpt": "As the lavish energy of the property market performance, emerging hotspots, and investment opportunities, defining new themes expected.",
+      "image": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1600&auto=format&fit=crop"
+    },
+    {
+      "id": 2,
+      "category": "Interior Design",
+      "title": "Luxury Interior Trends",
+      "excerpt": "From minimalism to maximalism, discover the design trends shaping the most exclusive homes in Dubai this season.",
+      "image": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1600&auto=format&fit=crop"
+    },
+    {
+      "id": 3,
+      "category": "Investment",
+      "title": "Why Off-Plan?",
+      "excerpt": "Understanding the benefits and risks of investing in off-plan properties in prime locations versus ready-to-move-in luxury homes.",
+      "image": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=1600&auto=format&fit=crop"
+    },
+    {
+      "id": 4,
+      "category": "Aviation",
+      "title": "The Future of Private Flight",
+      "excerpt": "Exploring the next generation of business jets and how sustainable aviation fuel is changing the industry.",
+      "image": "https://images.unsplash.com/photo-1474302770737-173ee21bab63?q=80&w=2108&auto=format&fit=crop"
+    },
+    {
+      "id": 5,
+      "category": "Yachting",
+      "title": "Superyacht Charter Guide",
+      "excerpt": "Everything you need to know about creating an unforgettable experience for your next Mediterranean summer vacation.",
+      "image": "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?q=80&w=1600&auto=format&fit=crop"
+    },
+    {
+      "id": 6,
+      "category": "Lifestyle",
+      "title": "Dubai's Hidden Gems",
+      "excerpt": "A curated list of the most exclusive dining and leisure spots in Dubai that fly under the radar.",
+      "image": "https://images.unsplash.com/photo-1512132411229-c30391241dd8?q=80&w=1600&auto=format&fit=crop"
+    }
+  ]
+}

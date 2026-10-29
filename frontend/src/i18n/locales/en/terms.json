@@ -1,0 +1,243 @@
+{
+  "hero": {
+    "title": "Terms of Use",
+    "subtitle": "Our Rules and Guidelines for Users"
+  },
+  "info": {
+    "lastUpdated": "January 12, 2026",
+    "effectiveLocation": "Dubai, United Arab Emirates"
+  },
+  "sections": [
+    {
+      "id": "acceptance",
+      "number": "1",
+      "title": "Acceptance of Terms",
+      "content": [
+        "These Terms of Use (\"Terms\") apply to all users of My Dubai Broker, including sellers, brokers, dealers, developers, and visitors (\"Users\").",
+        "By accessing or using the platform (the \"Service\"), you agree to comply with and be legally bound by these Terms, as well as any other policies referenced herein (e.g., Privacy Policy, Listing Verification Policy).",
+        "If you do not agree with these Terms, you must immediately discontinue using the platform.",
+        "My Dubai Broker (\"MDB\", \"we\", or \"our\") reserves the right to enforce these Terms and to remove or suspend any user, listing, or account that violates them."
+      ]
+    },
+    {
+      "id": "modification",
+      "number": "2",
+      "title": "Modification of Terms",
+      "content": [
+        "MDB reserves the right to amend, update, or modify these Terms at any time without prior notice.",
+        "Any such changes will take effect immediately upon posting on the website.",
+        "It is your responsibility to review these Terms periodically. Continued use of the platform after changes constitutes acceptance of the revised Terms."
+      ]
+    },
+    {
+      "id": "roles",
+      "number": "3",
+      "title": "User Roles & Responsibilities",
+      "subsections": [
+        {
+          "id": "sellers",
+          "number": "3.1",
+          "title": "Sellers, Brokers & Dealers",
+          "description": "Sellers, including real estate agencies, car dealers, yacht brokers, and other verified vendors, use MDB to list verified assets for sale or rent.",
+          "responsibilities": {
+            "title": "They are responsible for:",
+            "list": [
+              "Ensuring all details (price, specifications, images, and descriptions) are accurate and updated.",
+              "Responding to inquiries and handling viewings or transactions independently.",
+              "Complying with all UAE laws, licensing requirements, and category-specific regulations.",
+              "Listing only genuine, verified, and authorized assets."
+            ]
+          },
+          "qualifications": {
+            "title": "To qualify as a professional seller or business account:",
+            "list": [
+              "Must be a registered company or licensed brokerage/dealership in the UAE (or their operating country).",
+              "Must maintain an active trade license or equivalent proof of registration.",
+              "Must provide official identification (Emirates ID, Passport) and all required ownership or authorization documents.",
+              "Must use official company logo, verified contact details, and professional media assets.",
+              "For Real Estate Sellers, a valid RERA or DLD license is mandatory.",
+              "For Vehicle, Yacht, Jet, or Helicopter Dealers, trade or import/export licenses must be verifiable."
+            ]
+          },
+          "privateOwnersNote": "Private owners may list assets only under the \"Listed by Owner\" category, subject to mandatory ID verification and proof of ownership."
+        },
+        {
+          "id": "visitors",
+          "number": "3.2",
+          "title": "Visitors & Buyers",
+          "description": "Visitors may browse listings and contact verified sellers via the platform.",
+          "responsibilities": {
+            "title": "They are responsible for:",
+            "list": [
+              "Conducting due diligence before making financial commitments.",
+              "Communicating only through MDB's secure inquiry channels.",
+              "Understanding that MDB does not act as a broker, agent, or intermediary in any transaction."
+            ]
+          },
+          "accuracyNote": "MDB does not guarantee the accuracy of listings beyond initial verification and moderation checks."
+        }
+      ]
+    },
+    {
+      "id": "listing-policy",
+      "number": "4",
+      "title": "Listing Policy & Content Guidelines",
+      "description": "To ensure trust and quality, MDB enforces strict content and verification rules. All listings must meet the following standards:",
+      "subsections": [
+        {
+          "id": "price-eligibility",
+          "number": "4.1",
+          "title": "Price & Category Eligibility",
+          "minimumPriceThresholds": {
+            "Real Estate": "AED 20,000,000 and above (Ultra-Luxury villas, penthouses, mansions, branded residences, and exclusive plots only).",
+            "Cars": "AED 500,000 and above (Supercars, hypercars, and collectible exotics).",
+            "Yachts": "AED 1,000,000 and above (Luxury, super, and mega yachts).",
+            "Jets & Aircrafts": "AED 5,000,000 and above (Private and corporate jets).",
+            "Helicopters": "AED 3,000,000 and above (Personal and executive helicopters)."
+          },
+          "eligibleCategories": [
+            "Real Estate — Villas, Penthouses, Mansions, Branded Residences, Exclusive Plots",
+            "Cars — Supercars, Exotics, Collectors",
+            "Yachts — Luxury & Mega Yachts",
+            "Jets — Private Jets & Aircrafts",
+            "Helicopters — Personal & Corporate"
+          ],
+          "prohibitedListings": [
+            "Commercial or industrial properties",
+            "Residential units below AED 20 million",
+            "Unverified land or plots without title deed",
+            "Unregistered or unlicensed vehicles, yachts, jets, or helicopters",
+            "Replica, modified, or misrepresented assets"
+          ]
+        },
+        {
+          "id": "image-media-standards",
+          "number": "4.2",
+          "title": "Image & Media Standards",
+          "list": [
+            "Minimum 2 high-resolution photos (800x600 px or higher) per listing.",
+            "Media must accurately represent the asset (no AI-generated or stock images).",
+            "No excessive branding, watermarks, filters, or unrelated visuals.",
+            "Watermarks may cover up to 20% of the image area.",
+            "Videos, 3D tours, and VR experiences are encouraged for enhanced presentation."
+          ]
+        },
+        {
+          "id": "verification-accuracy",
+          "number": "4.3",
+          "title": "Listing Verification & Accuracy",
+          "list": [
+            "All listings must pass MDB's Verification Check before going live.",
+            "Sellers must update listings at least once every 60 days to maintain visibility.",
+            "Sold or unavailable assets must be removed immediately.",
+            "Duplicate listings or fake ownership claims will result in instant removal and potential account suspension."
+          ]
+        },
+        {
+          "id": "intellectual-property",
+          "number": "4.4",
+          "title": "Intellectual Property Rights",
+          "description": "By uploading content, sellers grant MDB a non-exclusive, worldwide, royalty-free license to use, publish, display, promote, and distribute listing materials in connection with:",
+          "usageContexts": [
+            "Platform display",
+            "Marketing and editorial content",
+            "Social media and third-party syndication"
+          ],
+          "sellerWarrants": {
+            "title": "Sellers represent and warrant that:",
+            "list": [
+              "They own or have the right to use all uploaded content.",
+              "No content infringes third-party rights.",
+              "They grant MDB permission to adapt, translate, or enhance content for presentation or SEO purposes."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "platform-data",
+      "number": "5",
+      "title": "Platform Data & Aggregated Listings",
+      "description": "MDB may aggregate or display listings from:",
+      "list": [
+        "Direct user submissions.",
+        "Integrated partner CRMs or developer feeds.",
+        "Publicly available verified listings from reputable sources."
+      ],
+      "subsections": [
+        {
+          "id": "aggregated-data",
+          "number": "5.1",
+          "title": "Aggregated or Public Data",
+          "content": "MDB acts as a search and discovery platform and does not claim ownership over third-party content. Ownership of such content remains with the original source."
+        },
+        {
+          "id": "takedown-requests",
+          "number": "5.2",
+          "title": "Takedown Requests",
+          "content": "If an agency or individual wishes to remove aggregated or unauthorized listings, they may email support@mydubaibroker.com or submit a formal request through the Listing Takedown Form on the platform."
+        }
+      ]
+    },
+    {
+      "id": "privacy-protection",
+      "number": "6",
+      "title": "Privacy & Data Protection",
+      "compliance": "MDB complies with UAE Personal Data Protection Law (PDPL) and GDPR standards for international users.",
+      "subsections": [
+        {
+          "id": "data-use",
+          "number": "6.1",
+          "title": "Data Use",
+          "content": "MDB collects user information (e.g., name, email, phone number) for communication, verification, and service improvement. Data may be used for analytics, marketing, and lead management."
+        },
+        {
+          "id": "user-rights",
+          "number": "6.2",
+          "title": "User Rights",
+          "content": "Users can request data deletion, correction, or export by contacting privacy@mydubaibroker.com. Opt-out options for marketing communications are available in every email."
+        },
+        {
+          "id": "security",
+          "number": "6.3",
+          "title": "Security",
+          "content": "MDB uses secure encryption and access control to protect user data from unauthorized access."
+        }
+      ]
+    },
+    {
+      "id": "liability-disclaimer",
+      "number": "7",
+      "title": "Disclaimers & Limitation of Liability",
+      "list": [
+        "MDB provides the platform \"as is\" and does not act as an intermediary in transactions.",
+        "MDB does not guarantee the accuracy, completeness, or legality of listings.",
+        "All communications and transactions occur directly between users.",
+        "MDB shall not be held liable for any loss, fraud, or misrepresentation caused by a seller or buyer.",
+        "MDB may suspend or terminate accounts violating platform rules or UAE law."
+      ]
+    },
+    {
+      "id": "governing-law",
+      "number": "8",
+      "title": "Governing Law & Dispute Resolution",
+      "content": [
+        "These Terms are governed by the laws of the United Arab Emirates.",
+        "Any dispute shall be subject to the exclusive jurisdiction of the courts of Dubai, UAE.",
+        "Users outside the UAE agree that all disputes will be handled under UAE law."
+      ]
+    },
+    {
+      "id": "contact",
+      "number": "9",
+      "title": "Contact Information",
+      "description": "For questions or support:",
+      "details": {
+        "email": "support@mydubaibroker.com",
+        "location": "Dubai, United Arab Emirates",
+        "website": "www.mydubaibroker.com"
+      },
+      "slogan": "My Dubai Broker — \"Only What Deserves to Be Seen.\""
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "form": {
+    "heading": {
+      "bold": "List Your",
+      "light": "Helicopter"
+    },
+    "sections": {
+      "general": "General Information",
+      "details": "Technical Specifications",
+      "narrative": "Narrative",
+      "maintenance": "Maintenance & Avionics",
+      "contact": "Contact Information",
+      "media": "Media"
+    },
+    "fields": {
+      "category": "Asset Category",
+      "title": "Listing Title",
+      "description": "Description",
+      "price": "Price",
+      "currency": "Currency",
+      "offeringType": "Offering",
+      "offeringSale": "For sale",
+      "offeringCharter": "For charter",
+      "rateBasis": "Rate basis",
+      "rateHour": "Per hour",
+      "rateDay": "Per day",
+      "charterRate": "Charter rate",
+      "manufacturer": "Manufacturer",
+      "model": "Model",
+      "year": "Year of Manufacture",
+      "rotorHours": "Rotor Hours",
+      "seating": "Seating Capacity",
+      "engineModel": "Engine Model",
+      "interiorDetails": "Interior Details",
+      "avionics": "Avionics Suite",
+      "maintenance": "Maintenance History",
+      "licenseNumber": "Registration Number",
+      "primaryEmail": "Email Address",
+      "primaryPhone": "Phone Number",
+      "qualityNarrative": "Quality Narrative",
+      "internalReferenceCode": "Internal Ref Code",
+      "photoUrls": "Photo URLs",
+      "videoUrl": "Video URL"
+    },
+    "placeholders": {
+      "title": "e.g. 2020 Airbus ACH130 Aston Martin Edition",
+      "description": "Describe the features and condition of the helicopter...",
+      "price": "3200000",
+      "manufacturer": "Airbus, Bell, Leonardo, etc.",
+      "model": "ACH130, 429, AW139, etc.",
+      "year": "2020",
+      "rotorHours": "250",
+      "email": "sales@heli-broker.com",
+      "phone": "+971501234567"
+    },
+    "submit": "Publish Helicopter Listing",
+    "submitting": "Publishing..."
+  }
+}

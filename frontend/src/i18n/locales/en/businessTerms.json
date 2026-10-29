@@ -1,0 +1,135 @@
+{
+    "hero": {
+        "title": "Business Terms",
+        "subtitle": "Terms and Conditions for Professional Partners"
+    },
+    "info": {
+        "lastUpdated": "February 2026",
+        "effectiveLocation": "Dubai, United Arab Emirates"
+    },
+    "sections": [
+        {
+            "id": "introduction",
+            "number": "1",
+            "title": "Introduction & Applicability",
+            "content": [
+                "These Business & Commercial Terms (\"Terms\") govern the contractual relationship between My Dubai Broker FZ-LLC, a company organized under the laws of the United Arab Emirates (\"Company\", \"We\", \"Us\"), and the entity or individual subscribing to our commercial services (\"Client\", \"You\").",
+                "These Terms apply to all Agents, Agencies, Developers, Dealers, Companies, and other professional entities using our platform to list assets, access leads, or utilize marketing services."
+            ]
+        },
+        {
+            "id": "definitions",
+            "number": "2",
+            "title": "Definitions",
+            "list": [
+                "\"Services\": The digital listing, marketing, and lead generation services provided by the Company.",
+                "\"Platform\": The website (www.mydubaibroker.com), its subdomains, and associated mobile applications.",
+                "\"Order Form\": The document (digital or physical) specifying the Services subscribed to, the fees, and the duration.",
+                "\"Leads\": Contact details of potential buyers who have inquired about a Client's listing.",
+                "\"Content\": All text, images, videos, and documentation provided by the Client for listing purposes."
+            ]
+        },
+        {
+            "id": "agreement",
+            "number": "3",
+            "title": "Agreement Formation",
+            "content": [
+                "The Agreement between You and Us consists of (i) these Terms, (ii) the applicable Order Form, and (iii) our Privacy Policy. By signing an Order Form or by using our Business Services, you agree to be bound by these documents.",
+                "In the event of a conflict, the Order Form prevails over these Terms."
+            ]
+        },
+        {
+            "id": "term",
+            "number": "4",
+            "title": "Term, Commitment & Renewal",
+            "content": [
+                "4.1. Initial Term: The Services are provided for the duration specified in the Order Form (e.g., 6 months, 12 months).",
+                "4.2. Auto-Renewal: Unless otherwise stated in the Order Form, the Agreement shall automatically renew for successive periods of the same duration unless either party gives written notice of non-renewal at least 30 days before the end of the current term.",
+                "4.3. No Early Termination: The Client acknowledges that the fees are based on the full commitment period. Early termination does not relieve the Client of the obligation to pay the remaining fees for the full term."
+            ]
+        },
+        {
+            "id": "scope",
+            "number": "5",
+            "title": "Scope of Services",
+            "content": [
+                "5.1. Listings: The Company grants the Client a non-exclusive right to publish listings on the Platform, subject to our Quality Standards.",
+                "5.2. Modifications: We reserve the right to modify the Platform layout, categorization, and functionality at any time to improve user experience.",
+                "5.3. Availability: We aim for 99.9% Platform uptime but do not guarantee uninterrupted access due to maintenance or force majeure."
+            ]
+        },
+        {
+            "id": "fees",
+            "number": "6",
+            "title": "Fees, Invoicing & Payment",
+            "content": [
+                "6.1. Fees: Fees are set forth in the Order Form and are exclusive of VAT.",
+                "6.2. Payment Terms: Invoices are generated monthly or upfront as agreed. Payment is due within 14 days of the invoice date.",
+                "6.3. Late Payment: We reserve the right to suspend Services if payment is more than 30 days overdue. A reactivation fee may apply.",
+                "6.4. Taxes: The Client is responsible for all applicable taxes, including VAT at the prevailing rate in the UAE."
+            ]
+        },
+        {
+            "id": "responsibilities",
+            "number": "7",
+            "title": "Client Responsibilities",
+            "content": [
+                "7.1. Accuracy: The Client warrants that all Content provided is accurate, current, and does not violate any third-party rights.",
+                "7.2. Compliance: The Client must comply with all applicable UAE laws, including RERA regulations for real estate brokers and developers.",
+                "7.3. License: The Client grants Us a worldwide, royalty-free license to use, display, and distribute the Content on the Platform and our marketing channels."
+            ]
+        },
+        {
+            "id": "no-guarantee",
+            "number": "8",
+            "title": "No-Guarantee Clause",
+            "content": [
+                "While we strive to provide high-quality Leads and visibility, the Company makes no guarantee regarding the quantity or quality of inquiries, leads, or sales conversions resulting from the Services. Subscription fees are payable regardless of the volume of leads generated."
+            ]
+        },
+        {
+            "id": "suspension",
+            "number": "9",
+            "title": "Suspension & Termination",
+            "content": [
+                "9.1. For Cause: We may terminate the Agreement immediately if the Client breaches a material term (e.g., non-payment, posting fraudulent listings) and fails to cure it within 7 days of notice.",
+                "9.2. Effect of Termination: Upon termination, all listings will be removed, and outstanding fees become immediately due."
+            ]
+        },
+        {
+            "id": "warranties",
+            "number": "10",
+            "title": "Warranties & Disclaimers",
+            "content": [
+                "The Services are provided \"as is\". To the fullest extent permitted by law, We disclaim all warranties, express or implied, including the implied warranties of merchantability and fitness for a particular purpose."
+            ]
+        },
+        {
+            "id": "liability",
+            "number": "11",
+            "title": "Limitation of Liability",
+            "content": [
+                "11.1. Cap: Our total liability for any claim arising out of this Agreement shall not exceed the total amount paid by the Client in the 3 months preceding the claim.",
+                "11.2. Exclusion: In no event shall We be liable for any indirect, consequential, or special damages, including loss of profits or data."
+            ]
+        },
+        {
+            "id": "jurisdiction",
+            "number": "12",
+            "title": "Governing Law & Jurisdiction",
+            "content": [
+                "This Agreement shall be governed by the laws of the United Arab Emirates as applied in the Emirate of Dubai. Any dispute arising out of or in connection with this Agreement shall be subject to the exclusive jurisdiction of the Courts of Dubai (or DIFC Courts if explicitly agreed)."
+            ]
+        },
+        {
+            "id": "miscellaneous",
+            "number": "13",
+            "title": "Miscellaneous",
+            "content": [
+                "13.1. Assignment: The Client may not assign this Agreement without our prior written consent.",
+                "13.2. Severability: If any provision is found unenforceable, the remaining provisions will remain in full force.",
+                "13.3. Entire Agreement: This Agreement constitutes the entire understanding between the parties regarding the subject matter."
+            ]
+        }
+    ]
+}

@@ -1,0 +1,110 @@
+{
+  "hero": {
+    "title": "My Dubai Broker",
+    "subtitle": "Redefining the standard of luxury"
+  },
+  "redefining": {
+    "heading": {
+      "bold": "Redefining",
+      "light": "How the World Experiences Luxury"
+    },
+    "content": [
+      "My Dubai Broker is a new-generation marketplace built in Dubai - the capital of innovation and sophistication - bringing together buyers, sellers, and brands who deal only in the exceptional.",
+      "We believe that true luxury is verified. Every asset on our platform - from villas and penthouses to supercars and private jets - passes through a strict authenticity process before it’s ever seen by the world.",
+      "Our vision is simple: to create a trusted environment where ambition meets precision, and where every listing represents genuine value."
+    ]
+  },
+  "confidence": {
+    "heading": {
+      "bold": "Connecting",
+      "light": "Confidence with Opportunity"
+    },
+    "content": [
+      "Whether you're purchasing a beachfront estate, a limited-edition car, or an investment property, My Dubai Broker ensures your experience is guided by transparency and trust.",
+      "We connect verified agencies, developers, and private owners with global buyers who appreciate rarity, credibility, and craftsmanship."
+    ]
+  },
+  "categories": {
+    "heading": {
+      "bold": "Our",
+      "light": "Market Segment Categories"
+    },
+    "subtitle": "Every category is curated for quality, presentation, and legitimacy - ensuring that what you see is truly worth seeing.",
+    "items": [
+      {
+        "id": "real-estate",
+        "title": "Real Estate",
+        "subtitle": "Waterfront mansions, branded residences, and signature penthouses."
+      },
+      {
+        "id": "cars",
+        "title": "Supercars",
+        "subtitle": "Supercars, exotics, and collector editions."
+      },
+      {
+        "id": "yachts",
+        "title": "Yachts",
+        "subtitle": "Luxury and mega yachts for private ownership or charter."
+      },
+      {
+        "id": "jets-helicopters",
+        "title": "Private Jets",
+        "subtitle": "Personal and corporate aircrafts for seamless travel."
+      }
+    ]
+  },
+  "marketplace": {
+    "heading": {
+      "bold": "A Marketplace",
+      "light": "Built on Verification"
+    },
+    "features": [
+      {
+        "title": "Authenticity First",
+        "description": "Every listing is backed by ownership documents. We prioritize legitimacy above all else to ensure a safe marketplace."
+      },
+      {
+        "title": "Curated Selection",
+        "description": "Manual review ensures only credible assets go live. We filter out the noise so you can focus on the exceptional."
+      },
+      {
+        "title": "Global Network",
+        "description": "Verified partners across the UAE, Europe, Asia, and North America providing access to a world of opportunities."
+      },
+      {
+        "title": "Data Transparency",
+        "description": "Analytics that empower sellers and build buyer confidence. We provide the insights needed to make informed decisions."
+      }
+    ]
+  },
+  "technology": {
+    "heading": {
+      "bold": "Your Time. Your Trust.",
+      "light": "Our Technology."
+    },
+    "content": [
+      "Finding something exceptional shouldn’t take endless searching. My Dubai Broker combines advanced filters, personalized alerts, and multilingual SEO so you can discover verified listings from across the world in one destination.",
+      "From AI-enhanced descriptions to high-definition imagery and VR tours, every detail is designed to elevate how luxury is experienced online."
+    ]
+  },
+  "empowering": {
+    "heading": {
+      "bold": "Empowering",
+      "light": "Professionals & Brands"
+    },
+    "content": [
+      "For developers, agencies, and dealers, My Dubai Broker is more than visibility - it's positioning. List, market, and measure performance within an ecosystem crafted for ultra-luxury clientele.",
+      "Our marketing suite includes multi-language SEO, retargeting, premium placements, and direct campaign options across social and search networks."
+    ],
+    "cta": "Explore Business Solutions"
+  },
+  "future": {
+    "heading": {
+      "bold": "The Future of",
+      "light": "Verified Luxury Starts Here"
+    },
+    "subtitle": "From Dubai to the world, My Dubai Broker stands for integrity, precision, and excellence. We don’t list everything - only what deserves to be seen.",
+    "primaryCta": "Partner with Us",
+    "secondaryCta": "Explore Listings"
+  }
+}

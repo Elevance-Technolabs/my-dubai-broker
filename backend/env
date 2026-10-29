@@ -1,0 +1,11 @@
+PORT=3001
+NODE_ENV="development"
+DATABASE_URL=postgres://031aa79762fc48ab800bd24849a5e43a891bb5ed51df3ded1d963dbc4cab38a3:sk_4VClZ7f5ajvB3SIJgT_OQ@db.prisma.io:5432/postgres?sslmode=require&pool=true
+# DATABASE_URL="postgresql://postgres:admin@123@localhost:5432/postgres"
+BETTER_AUTH_SECRET=av2r32acGOCSPX-asdasdfwegorgjsdfkv
+BETTER_AUTH_URL=http://localhost:3000
+R2_ACCOUNT_ID=a576f7386e20235c925d3a21225a45b9
+R2_ACCESS_KEY_ID=abe0e1e89c6343dc17c5ffbfb5fbcd8c
+R2_SECRET_ACCESS_KEY=38dced6ece83336f188fad0687259bcef8a9f9ee8c8b0cc75f2e00876fad467d
+R2_BUCKET_NAME=mdb-assets
+R2_PUBLIC_URL=https://pub-1de7dfea171c4885a2f451049f57ee36.r2.dev

@@ -1,0 +1,175 @@
+{
+  "header": {
+    "lastUpdated": {
+      "label": "Last Updated:",
+      "value": "January 12, 2026"
+    },
+    "controller": {
+      "label": "Data Controller:",
+      "value": "My Dubai Broker FZ-LLC"
+    }
+  },
+  "privacyPolicy": {
+    "introduction": {
+      "sidebarTitle": "Introduction",
+      "title": "Introduction & Scope",
+      "scope": "This Privacy Policy applies to the processing of personal data of website visitors, members/buyers, sellers (agencies, dealers, developers, and verified owners), suppliers/partners, and job applicants by My Dubai Broker as the data controller.",
+      "commitment": "My Dubai Broker values the protection of your privacy and takes its responsibility to safeguard personal data seriously. This Policy explains what we collect, how we use it, the legal bases, your rights, and how we comply with applicable laws, including the UAE Personal Data Protection Law (PDPL) and the EU General Data Protection Regulation (GDPR) (when applicable)."
+    },
+    "definitions": {
+      "sidebarTitle": "Definitions",
+      "title": "Definitions",
+      "personalDataLabel": "Personal Data",
+      "personalDataDefinition": "\"Personal data\" means any information relating to an identified or identifiable natural person. This includes identifiers such as name, email address, phone number, identification documents (such as passport or Emirates ID), online identifiers (IP address, cookies), and location data.",
+      "controllerDetailsLabel": "Data Controller Details",
+      "controllerName": "My Dubai Broker FZ-LLC",
+      "location": "Dubai Design District (d3), Dubai, United Arab Emirates",
+      "emailLabel": "Email:",
+      "email": "privacy@mydubaibroker.com"
+    },
+    "purposesOfProcessing": {
+      "sidebarTitle": "Purposes of Processing",
+      "title": "Purposes of Data Processing by User Category",
+      "overview": "We process personal data only for specified, explicit, and legitimate purposes depending on how you interact with our platform.",
+      "categories": [
+        {
+          "id": "visitors",
+          "title": "I. Visitors to Our Website",
+          "activities": [
+            {
+              "title": "Customer Service",
+              "purpose": "To respond to inquiries made via website forms, social media, phone, or email."
+            },
+            {
+              "title": "Cookies & Analytics",
+              "purpose": "To operate our site securely, improve performance, and analyze usage patterns."
+            }
+          ]
+        },
+        {
+          "id": "members",
+          "title": "II. Members / Buyers",
+          "activities": [
+            {
+              "title": "Account Management",
+              "purpose": "Creating and managing your account, saving favorite listings, and managing preferences."
+            },
+            {
+              "title": "Lead Generation & Recommendations",
+              "purpose": "connecting you with sellers upon request and providing personalized asset recommendations."
+            }
+          ]
+        },
+        {
+          "id": "suppliers",
+          "title": "III. Suppliers",
+          "activities": [
+            {
+              "title": "Agreement Execution",
+              "purpose": "Managing procurement, vendor contracts, invoicing, and professional communications."
+            }
+          ]
+        },
+        {
+          "id": "sellers",
+          "title": "IV. Sellers (Agencies, Dealers, Developers, Owners)",
+          "activities": [
+            {
+              "title": "Onboarding & Verification",
+              "purpose": "Verifying identity, trade licenses, and asset ownership documents to maintain platform integrity."
+            },
+            {
+              "title": "Billing & Payouts",
+              "purpose": "Processing subscription fees, listing fees, and managing financial transactions."
+            }
+          ]
+        },
+        {
+          "id": "third-parties",
+          "title": "V. Third Parties",
+          "activities": [
+            {
+              "title": "Market Intelligence",
+              "purpose": "Aggregating public listing data to provide comprehensive market insights (where permitted)."
+            }
+          ]
+        },
+        {
+          "id": "applicants",
+          "title": "VI. Applicants",
+          "activities": [
+            {
+              "title": "Recruitment",
+              "purpose": "Assessing suitability for roles, processing applications, and communication during the hiring process."
+            }
+          ]
+        }
+      ]
+    },
+    "legalBases": {
+      "sidebarTitle": "Legal Bases",
+      "title": "Legal Bases for Processing",
+      "overview": "We rely on the following legal grounds to process your data:",
+      "list": [
+        "**Consent:** When you explicitly agree (e.g., newsletter signup, non-essential cookies).",
+        "**Contract:** To fulfill our service agreement with you (e.g., account services, billing).",
+        "**Legal Obligation:** To comply with tax, financial, or regulatory laws (e.g., verifying identity).",
+        "**Legitimate Interest:** To improve our services, ensure security, and prevent fraud."
+      ]
+    },
+    "dataCategories": {
+      "sidebarTitle": "Data Categories",
+      "title": "Data Categories Processed",
+      "list": [
+        "**Identity Data:** Name, username, date of birth, passport/ID copies (for verification).",
+        "**Contact Data:** Email address, phone number, billing address.",
+        "**Financial Data:** Bank account, payment card details (processed via secure payment gateways).",
+        "**Technical Data:** IP address, browser type, login data, time zone settings.",
+        "**Usage Data:** Information about how you use our website, services, and applications.",
+        "**Marketing Data:** Preferences in receiving marketing and communication preferences."
+      ]
+    },
+    "internationalTransfers": {
+      "sidebarTitle": "Data Transfers",
+      "title": "International Data Transfers",
+      "policy": "My Dubai Broker operates globally. Your data may be transferred to and stored in countries outside your country of residence, including domains where data protection laws may differ.",
+      "safeguards": "When transferring data, we ensure appropriate safeguards are in place, such as Standard Contractual Clauses (SCCs) or adequacy decisions, to protect your privacy rights in accordance with PDPL and GDPR."
+    },
+    "dataRetention": {
+      "sidebarTitle": "Data Retention",
+      "title": "Data Retention References",
+      "overview": "We retain your personal data only as long as necessary to fulfill the purposes for which it was collected:",
+      "list": [
+        "**Active Accounts:** Retained for the duration of the account's life.",
+        "**Financial Records:** Retained for 7 years (or as required by tax laws).",
+        "**Inquiries/Leads:** Retained for 24 months.",
+        "**Applications:** Retained for 6 months after the position allows."
+      ]
+    },
+    "yourRights": {
+      "sidebarTitle": "User Rights",
+      "title": "User Rights",
+      "context": "Under applicable data protection laws, you have the following rights:",
+      "rightsList": [
+        "**Right to Access:** Request a copy of the personal data we hold about you.",
+        "**Right to Rectification:** Request correction of inaccurate or incomplete data.",
+        "**Right to Erasure:** Request deletion of your data (\"Right to be forgotten\").",
+        "**Right to Restrict Processing:** Request suspension of processing in certain scenarios.",
+        "**Right to Data Portability:** Request transfer of your data to you or a third party.",
+        "**Right to Object:** Object to processing based on legitimate interests or direct marketing."
+      ]
+    },
+    "contactInformation": {
+      "sidebarTitle": "Contact Info",
+      "title": "Contact Information",
+      "instruction": "If you have any questions, concerns, or wish to exercise your rights, please contact our Data Protection Office:",
+      "email": "privacy@mydubaibroker.com",
+      "address": {
+        "title": "Data Protection Officer",
+        "company": "My Dubai Broker FZ-LLC",
+        "location": "Dubai Design District, Building 4",
+        "city": "Dubai, UAE"
+      }
+    }
+  }
+}

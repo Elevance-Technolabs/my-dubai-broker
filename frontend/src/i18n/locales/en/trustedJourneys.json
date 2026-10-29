@@ -1,0 +1,57 @@
+{
+    "hero": {
+        "title": "Trusted Journeys",
+        "backgroundImage": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c"
+    },
+    "intro": {
+        "title": "Curator's Note",
+        "description": "“Every extraordinary purchase begins with trust – and every rare story starts with visibility. At My Dubai Broker, we bring together the world's most discerning buyers and verified sellers on one secure platform built for results.”",
+        "subDescription": "Although our story is still being written, our vision is already clear: to re-define the discovery, authentication, and marketing of luxury in Dubai."
+    },
+    "sellers": {
+        "title": "For Sellers",
+        "subtitle": "Use your listings to tell success stories.",
+        "description": "Developers, brokers, and private collectors choose My Dubai Broker because every inquiry is genuine, every connection is verified, and every opportunity is global.",
+        "quote": "“From a private beachfront villa to a rare collector car – our sellers don't just find buyers, they find the right buyers.”",
+        "additionalText": "Whether you are representing a brand, an agency, or an individual mastermind, our tools, analytics, and marketing network help your listings go further and faster with absolute credibility.",
+        "cta": "SELL WITH US"
+    },
+    "buyers": {
+        "title": "For Buyers",
+        "subtitle": "Find more than just listings: find confidence.",
+        "description": "Each asset on My Dubai Broker is checked for authenticity, ownership, and legitimacy before being launched.",
+        "quote": "“Buying through My Dubai Broker means peace of mind. Every property, every car, every jet is verified to the last detail.”",
+        "additionalText": "We don’t just connect you to sellers; we connect you to a world where trust is the first priority and luxury is secondary.",
+        "cta": "BUY WITH US"
+    },
+    "promise": {
+        "title": "The My Dubai Broker Promise",
+        "items": [
+            {
+                "title": "Authenticity First",
+                "description": "All listings confirmed through official documentation."
+            },
+            {
+                "title": "Global Exposure",
+                "description": "Buyers and sellers from 71 countries."
+            },
+            {
+                "title": "Curated Luxury",
+                "description": "Only what deserves to be seen."
+            },
+            {
+                "title": "Results That Matter",
+                "description": "Visibility, credibility, and qualified leads."
+            }
+        ]
+    },
+    "cta": {
+        "title": "Your Success Story Starts Here.",
+        "description": "Become part of the fast-expanding community of luxury brands, brokers, and buyers who are redefining the way the world trades high-value assets.",
+        "listBrand": "LIST YOUR BRAND",
+        "exploreOpportunities": "EXPLORE OPPORTUNITIES",
+        "becomePartner": "BECOME A PARTNER",
+        "browseCollections": "BROWSE EXCLUSIVE COLLECTIONS",
+        "tagline": "MY DUBAI BROKER - TRANSLATING LUXURY INTO LEGACY"
+    }
+}

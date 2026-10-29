@@ -1,0 +1,66 @@
+{
+  "form": {
+    "heading": {
+      "bold": "أدرج",
+      "light": "سيارتك"
+    },
+    "sections": {
+      "general": "المعلومات العامة",
+      "vehicle": "تفاصيل المركبة",
+      "contact": "معلومات الاتصال",
+      "media": "الوسائط",
+      "features": "الميزات والخيارات"
+    },
+    "fields": {
+      "title": "عنوان الإعلان",
+      "description": "الوصف",
+      "price": "السعر",
+      "currency": "العملة",
+      "brand": "العلامة التجارية",
+      "model": "الموديل",
+      "year": "السنة",
+      "variant": "الفئة",
+      "mileage": "المسافة المقطوعة (كم)",
+      "condition": "الحالة",
+      "transmission": "ناقل الحركة",
+      "engineSize": "سعة المحرك",
+      "horsepower": "القوة الحصانية",
+      "color": "اللون الخارجي",
+      "interiorColor": "اللون الداخلي",
+      "licenseNumber": "رقم اللوحة",
+      "primaryEmail": "البريد الإلكتروني",
+      "primaryPhone": "رقم الهاتف",
+      "qualityNarrative": "وصف الجودة",
+      "internalReferenceCode": "كود المرجع الداخلي",
+      "photoUrls": "روابط الصور (رابط واحد لكل سطر)",
+      "videoUrl": "رابط الفيديو",
+      "warranty": "تحت الضمان",
+      "negotiable": "السعر قابل للتفاوض",
+      "options": "الخيارات / الميزات"
+    },
+    "placeholders": {
+      "title": "مثال: 2024 مرسيدس-بنز S-Class S 580",
+      "description": "صف حالة السيارة وأبرز مميزاتها...",
+      "price": "450000",
+      "brand": "اختر العلامة التجارية",
+      "model": "اختر الموديل",
+      "year": "اختر السنة",
+      "mileage": "0",
+      "email": "sales@luxurymotors.com",
+      "phone": "+971501234567",
+      "photoUrls": "https://example.com/image1.jpg\nhttps://example.com/image2.jpg"
+    },
+    "options": {
+      "condition": {
+        "new": "جديدة تماماً",
+        "likeNew": "مثل الجديدة",
+        "used": "مستعملة"
+      },
+      "transmission": {
+        "auto": "أوتوماتيك",
+        "manual": "يدوي"
+      }
+    },
+    "submit": "إرسال الإعلان"
+  }
+}

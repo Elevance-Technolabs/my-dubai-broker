@@ -1,0 +1,13 @@
+.DS_Store
+node_modules
+/dist
+
+/generated/prisma
+.env
+
+/src/generated/prisma
+
+/src/generated/prisma
+
+/mdb
+/mdb.pub

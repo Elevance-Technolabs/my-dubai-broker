@@ -1,0 +1,501 @@
+{
+  "navbar": {
+    "logo": "MY DUBAI BROKER.",
+    "menu": {
+      "realEstate": "Real Estate",
+      "cars": "Cars",
+      "yachts": "Yachts",
+      "jets": "Jets",
+      "collectibles": "Collectibles",
+      "rentals": "Rentals",
+      "theView": "The View"
+    },
+    "cta": {
+      "sellWithUs": "Sell With Us",
+      "login": "Login",
+      "contact": "Contact"
+    },
+    "megaMenu": {
+      "realEstate": {
+        "columns": [
+          {
+            "title": "Top Areas",
+            "items": [
+              "Palm Jumeirah",
+              "Emirates Hills",
+              "Dubai Hills Estate",
+              "Jumeirah Bay Island",
+              "Al Barari",
+              "District One"
+            ]
+          },
+          {
+            "title": "Property Styles",
+            "items": [
+              "Signature Villas",
+              "Waterfront Residences",
+              "Sky Penthouses",
+              "Private Mansions",
+              "Gated Estates"
+            ]
+          },
+          {
+            "title": "Collections",
+            "items": [
+              "Billionaires' Row",
+              "AED 50M+ Residences",
+              "Waterfront Icons",
+              "Architectural Masterpieces",
+              "Branded Living"
+            ]
+          }
+        ],
+        "featured": {
+          "title": "Emirates Hills",
+          "subtitle": "Dubai's most private residential enclave",
+          "linkText": "EXPLORE AREA",
+          "description": "Not every property qualifies. This collection is shaped by rarity, location, architecture, and long-term value - not volume.",
+          "image": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750"
+        }
+      },
+      "cars": {
+        "columns": [
+          {
+            "title": "Top Marques",
+            "items": [
+              "Rolls-Royce",
+              "Bentley",
+              "Ferrari",
+              "Lamborghini",
+              "Porsche",
+              "Aston Martin"
+            ]
+          },
+          {
+            "title": "Car Styles",
+            "items": [
+              "Hypercars",
+              "Limited Editions",
+              "Coachbuilt / Bespoke",
+              "Performance Icons",
+              "Luxury Grand Tourers"
+            ]
+          },
+          {
+            "title": "Collections",
+            "items": [
+              "UAE One-Offs",
+              "Low-Mileage Icons",
+              "Collector Grade",
+              "Factory Special Orders"
+            ]
+          }
+        ],
+        "featured": {
+          "description": "Selected for rarity, provenance, and uncompromised condition. Not every supercar qualifies.",
+          "image": "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e"
+        }
+      },
+      "yachts": {
+        "columns": [
+          {
+            "title": "Categories",
+            "items": [
+              "Superyachts",
+              "Mega Yachts",
+              "Explorer Yachts",
+              "Motor Yachts"
+            ]
+          },
+          {
+            "title": "Use & Lifestyle",
+            "items": [
+              "Private Ownership",
+              "Charter-Ready",
+              "Long-Range Cruisers"
+            ]
+          },
+          {
+            "title": "Collections",
+            "items": [
+              "UAE-Based Yachts",
+              "New-Build Opportunities",
+              "Turnkey Charter Assets"
+            ]
+          }
+        ],
+        "featured": {
+          "description": "Curated for build pedigree, naval architecture, and seaworthiness. Built to travel, not to sit.",
+          "image": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a"
+        }
+      },
+      "jets": {
+        "columns": [
+          {
+            "title": "Aircraft Types",
+            "items": [
+              "Light Jets",
+              "Midsize Jets",
+              "Long-Range Jets"
+            ]
+          },
+          {
+            "title": "Ownership",
+            "items": [
+              "Private Ownership",
+              "Fractional Opportunities",
+              "Charter-Ready Aircraft"
+            ]
+          },
+          {
+            "title": "Collections",
+            "items": [
+              "Low-Hours Aircraft",
+              "UAE-Registered Jets",
+              "Intercontinental Range"
+            ]
+          }
+        ],
+        "featured": {
+          "description": "Selected for range, maintenance history, and operational integrity. Time matters. Precision matters.",
+          "image": "https://images.unsplash.com/photo-1540962351504-03099e0a754b"
+        }
+      },
+      "collectibles": {
+        "columns": [
+          {
+            "title": "Categories",
+            "items": [
+              "Rare Watches",
+              "Automotive Memorabilia",
+              "Aviation Collectibles",
+              "Design Objects"
+            ]
+          },
+          {
+            "title": "Collections",
+            "items": [
+              "Investment Grade",
+              "Limited Production",
+              "Provenance Verified"
+            ]
+          }
+        ],
+        "featured": {
+          "description": "Objects chosen for cultural value, scarcity, and long-term relevance. Not trends. Legacies.",
+          "image": "https://images.unsplash.com/photo-1523170335258-f5ed11844a49"
+        }
+      }
+    }
+  },
+  "hero": {
+    "slides": [
+      {
+        "title": "Only what deserves to be seen",
+        "subtitle": "Not everything gets listed",
+        "propertyName": "Emerald Estates",
+        "propertyLocation": "Mystic Fjords, Norway"
+      },
+      {
+        "title": "Only what deserves to be seen",
+        "subtitle": "Not everything gets listed",
+        "propertyName": "The Royal Penthouse",
+        "propertyLocation": "Palm Jumeirah, Dubai"
+      },
+      {
+        "title": "Only what deserves to be seen",
+        "subtitle": "Not everything gets listed",
+        "propertyName": "Azure Heights",
+        "propertyLocation": "Monaco City, Monaco"
+      }
+    ]
+  },
+  "collections": {
+    "heading": {
+      "bold": "Curated",
+      "light": "Collections"
+    },
+    "items": [
+      {
+        "title": "Real Estate",
+        "count": "{{count}} Listings"
+      },
+      {
+        "title": "Cars",
+        "count": "{{count}} Listings"
+      },
+      {
+        "title": "Yachts",
+        "count": "{{count}} Listings"
+      },
+      {
+        "title": "Jets",
+        "count": "{{count}} Listings"
+      }
+    ]
+  },
+  "exclusives": {
+    "heading": {
+      "bold": "Exclusives",
+      "light": "You Shouldn't Miss"
+    },
+    "listedBy": "LISTED BY:",
+    "view": "View"
+  },
+  "luxuryInsights": {
+    "subtitle": "The View",
+    "heading": {
+      "bold": "Luxury insights",
+      "light": ", design stories, and curated perspectives."
+    },
+    "readTime": "{{minutes}} min read"
+  },
+  "essentials": {
+    "heading": {
+      "bold": "Essential",
+      "light": "Links"
+    },
+    "realEstate": [
+      {
+        "title": "POPULAR AREAS",
+        "items": [
+          "Downtown Dubai Apartments",
+          "Dubai Marina Penthouses",
+          "Palm Jumeirah Villas",
+          "Business Bay Offices"
+        ]
+      },
+      {
+        "title": "PROPERTY TYPES",
+        "items": [
+          "Luxury Penthouses",
+          "Beachfront Villas",
+          "High-end Apartments",
+          "Commercial Space"
+        ]
+      },
+      {
+        "title": "LIFESTYLE",
+        "items": [
+          "Golf Course Living",
+          "Waterfront Homes",
+          "Skyline Views",
+          "Gated Communities"
+        ]
+      },
+      {
+        "title": "NEW PROJECTS",
+        "items": [
+          "Emaar Beachfront",
+          "Dubai Hills Estate",
+          "Port De La Mer",
+          "District One"
+        ]
+      }
+    ],
+    "cars": [
+      {
+        "title": "TOP BRANDS",
+        "items": [
+          "Bugatti",
+          "Ferrari",
+          "Lamborghini",
+          "Rolls-Royce"
+        ]
+      },
+      {
+        "title": "BODY TYPES",
+        "items": [
+          "Coupe",
+          "Convertible",
+          "SUV",
+          "Sedan"
+        ]
+      },
+      {
+        "title": "SERVICES",
+        "items": [
+          "Buy",
+          "Sell",
+          "Consign",
+          "Detailing"
+        ]
+      },
+      {
+        "title": "SHOWROOMS",
+        "items": [
+          "Sheikh Zayed Road",
+          "Dubai Marina",
+          "Al Quoz",
+          "Downtown"
+        ]
+      }
+    ]
+  },
+  "quickLinks": {
+    "heading": {
+      "bold": "Dubai's Hottest Listings",
+      "light": "Essential Links"
+    },
+    "categories": {
+      "neighborhoods": {
+        "title": "Dubai Neighborhoods",
+        "links": [
+          "Dazzling Dubai Homes",
+          "Magical Dubai Dwellings",
+          "Charming Dubai Villas",
+          "Stunning Dubai Residences",
+          "Lovely Dubai Abodes",
+          "Snug Dubai Retreats",
+          "Charming Dubai Houses"
+        ]
+      },
+      "explore": {
+        "title": "Explore Dubai",
+        "links": [
+          "Dubai Delights",
+          "Desert Oasis",
+          "Skyline Wonders",
+          "Luxury Retreats",
+          "Cultural Gems",
+          "Vibrant Markets",
+          "Modern Marvels"
+        ]
+      },
+      "vehicles": {
+        "title": "Luxury Vehicles in Dubai",
+        "links": [
+          "Dubai Exotics",
+          "Luxury Rides Dubai",
+          "Dubai Dream Cars",
+          "Elite Cars Dubai",
+          "Dubai Luxury Wheels",
+          "Dubai's Finest Cars",
+          "Dubai Luxury Autos"
+        ]
+      },
+      "jets": {
+        "title": "Jets & Helicopters in Dubai",
+        "links": [
+          "Dubai Skies",
+          "Aerial Adventures",
+          "Sky High Tours",
+          "Heli Rides Dubai",
+          "Jet Set Dubai",
+          "Dubai Air Tours",
+          "Chopper Experiences"
+        ]
+      },
+      "yachts": {
+        "title": "Yachts in Dubai",
+        "links": [
+          "Dubai Yachts",
+          "Luxury Yachts Dubai",
+          "Dubai Boat Tours",
+          "Yacht Rentals Dubai",
+          "Dubai Sailing Adventures",
+          "Dubai Yacht Charters",
+          "Dubai Yacht Experience"
+        ]
+      }
+    },
+    "viewAll": "View All Listings"
+  },
+  "trustedBrands": {
+    "heading": {
+      "bold": "Trusted by Leading",
+      "light": "Luxury Brands"
+    }
+  },
+  "newsletter": {
+    "heading": {
+      "bold": "Stay",
+      "light": "Informed About Luxury"
+    },
+    "description": "Subscribe to our curated newsletter for exclusive updates, market insights, and elite listings delivered to your inbox.",
+    "form": {
+      "placeholder": "Enter your email address",
+      "button": "Subscribe",
+      "disclaimer": "By subscribing, you agree to our Privacy Policy and consent to receive updates."
+    }
+  },
+  "footer": {
+    "description": "Curating the world's most exclusive luxury properties, vehicles, and collectibles for discerning clients.",
+    "sections": {
+      "about": {
+        "title": "ABOUT",
+        "links": [
+          [
+            "About My Dubai Broker",
+            "/about"
+          ],
+          [
+            "Trusted Journeys",
+            "/trusted-journeys"
+          ],
+          [
+            "How We Verify Listings",
+            "/select-category"
+          ],
+          [
+            "Buying Safely",
+            "/buying-standards"
+          ]
+        ]
+      },
+      "sellers": {
+        "title": "FOR SELLERS & BRANDS",
+        "links": [
+          [
+            "Sell With Us",
+            "/contact"
+          ],
+          [
+            "Advertising Solutions",
+            "/brand-visibility"
+          ],
+          [
+            "Business & Marketing Terms",
+            "/business-terms"
+          ]
+        ]
+      },
+      "legal": {
+        "title": "LEGAL TERMS",
+        "links": [
+          [
+            "Terms of Use",
+            "/terms"
+          ],
+          [
+            "Privacy Policy",
+            "/privacy"
+          ],
+          [
+            "Verified Buying Standards",
+            "/buying-standards"
+          ],
+          [
+            "Listing Removal & Data Request",
+            "#"
+          ]
+        ]
+      },
+      "support": {
+        "title": "SUPPORT",
+        "links": [
+          [
+            "Help & FAQ",
+            "/faq"
+          ],
+          [
+            "Contact Us",
+            "/contact"
+          ]
+        ]
+      }
+    },
+    "copyright": "© {{year}} My Dubai Broker. All rights reserved.",
+    "followUs": "Follow Us"
+  }
+}

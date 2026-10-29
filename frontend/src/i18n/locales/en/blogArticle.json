@@ -1,0 +1,28 @@
+{
+  "report2026": {
+    "category": "Market Analysis",
+    "date": "JAN 22, 2026",
+    "title": "Dubai Property Market Report 2026",
+    "excerpt": "In a landmark performance, the Dubai property market has continued its meteoric rise into 2026, setting new records in transaction volumes and ultra-luxury sales.",
+    "author": {
+      "name": "Sarah Jenkins",
+      "role": "Real Estate Analyst",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop"
+    },
+    "sidebar": {
+      "authorTitle": "Author",
+      "relatedTitle": "Related Articles",
+      "newsletter": {
+        "title": "Join the Inner Circle",
+        "description": "Get exclusive market insights and luxury listings delivered to your inbox.",
+        "placeholder": "Your Email",
+        "button": "Subscribe"
+      }
+    },
+    "moreFromTitle": {
+      "bold": "More",
+      "light": "from The View"
+    },
+    "readArticle": "Read Article"
+  }
+}

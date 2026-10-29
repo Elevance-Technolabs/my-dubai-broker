@@ -1,0 +1,23 @@
+{
+  "hero": {
+    "title": "Support Center",
+    "subtitle": "We're here to assist you."
+  },
+  "cards": {
+    "faq": {
+      "title": "FAQ",
+      "description": "Find answers to common questions about our services, fees, and processes.",
+      "button": "VIEW FAQ"
+    },
+    "contact": {
+      "title": "Contact Support",
+      "description": "Need personalized assistance? Send us a message and our team will get back to you.",
+      "button": "CONTACT US"
+    },
+    "concierge": {
+      "title": "Concierge",
+      "description": "For urgent matters or VIP requests, call our 24/7 dedicated concierge line.",
+      "phone": "+971 12 345 6789"
+    }
+  }
+}

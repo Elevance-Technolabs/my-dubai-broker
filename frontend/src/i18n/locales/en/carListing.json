@@ -1,0 +1,66 @@
+{
+  "form": {
+    "heading": {
+      "bold": "List Your",
+      "light": "Car"
+    },
+    "sections": {
+      "general": "General Information",
+      "vehicle": "Vehicle Details",
+      "contact": "Contact Information",
+      "media": "Media",
+      "features": "Features & Options"
+    },
+    "fields": {
+      "title": "Listing Title",
+      "description": "Description",
+      "price": "Price",
+      "currency": "Currency",
+      "brand": "Brand",
+      "model": "Model",
+      "year": "Year",
+      "variant": "Variant",
+      "mileage": "Mileage (km)",
+      "condition": "Condition",
+      "transmission": "Transmission",
+      "engineSize": "Engine Size",
+      "horsepower": "Horsepower",
+      "color": "Exterior Color",
+      "interiorColor": "Interior Color",
+      "licenseNumber": "License Number",
+      "primaryEmail": "Email Address",
+      "primaryPhone": "Phone Number",
+      "qualityNarrative": "Quality Narrative",
+      "internalReferenceCode": "Internal Ref Code",
+      "photoUrls": "Photo URLs (one per line)",
+      "videoUrl": "Video URL",
+      "warranty": "Under Warranty",
+      "negotiable": "Price Negotiable",
+      "options": "Options/Features"
+    },
+    "placeholders": {
+      "title": "e.g. 2024 Mercedes-Benz S-Class S 580",
+      "description": "Describe the condition and highlights of the car...",
+      "price": "450000",
+      "brand": "Select Brand",
+      "model": "Select Model",
+      "year": "Select Year",
+      "mileage": "0",
+      "email": "sales@luxurymotors.com",
+      "phone": "+971501234567",
+      "photoUrls": "https://example.com/image1.jpg\nhttps://example.com/image2.jpg"
+    },
+    "options": {
+      "condition": {
+        "new": "Brand New",
+        "likeNew": "Like New",
+        "used": "Used"
+      },
+      "transmission": {
+        "auto": "Automatic",
+        "manual": "Manual"
+      }
+    },
+    "submit": "Submit Car Listing"
+  }
+}

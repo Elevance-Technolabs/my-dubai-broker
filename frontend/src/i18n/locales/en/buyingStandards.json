@@ -1,0 +1,111 @@
+{
+    "hero": {
+        "title": "Verified Buying Standards",
+        "sidebarTitle": "Introduction",
+        "subtitle": "Clear, Professional, and Secure Transactions"
+    },
+    "info": {
+        "lastUpdated": "February 02, 2026",
+        "standard": "Platform Integrity & Verification"
+    },
+    "sections": [
+        {
+            "id": "introduction",
+            "number": "1",
+            "title": "Verified Buying Standards",
+            "sidebarTitle": "Introduction",
+            "content": [
+                "At My Dubai Broker, trust and authenticity are at the heart of everything we do. Although every property on our site undergoes a verification process to ensure its authenticity and ownership, we do not act as a broker, intermediary, or trustee between the buyer and seller."
+            ]
+        },
+        {
+            "id": "scope-role",
+            "number": "2",
+            "title": "",
+            "sidebarTitle": "Scope & Role",
+            "content": [
+                "Our mission is to link discerning buyers with authentic sellers of high-value assets such as real estate, automobiles, yachts, airplanes, and helicopters in a secure and transparent environment.",
+                "Nevertheless, the actual completion of transactions and due diligence is the buyer's/seller's responsibility.",
+                "In order to assist you in making informed decisions, we have gathered the following best practices."
+            ]
+        },
+        {
+            "id": "guidelines",
+            "number": "3",
+            "title": "Essential Buying Guidelines",
+            "sidebarTitle": "Buying Guidelines",
+            "subsections": [
+                {
+                    "id": "verify",
+                    "number": "1",
+                    "title": "Verify Before You Pay",
+                    "content": "Never pay full amounts in advance. Always use reputable escrow services, bank guaranteed money transfers, or trusted payment channels. Legitimate sellers and agencies will never demand payment in advance."
+                },
+                {
+                    "id": "documentation",
+                    "number": "2",
+                    "title": "Request Complete Documentation",
+                    "description": "Always ask for and check:",
+                    "list": [
+                        "Original ownership or registration papers",
+                        "Proof of identity or trade license (for agencies/dealers)",
+                        "Title deed or certificate of authenticity (for properties or collectibles)"
+                    ],
+                    "accuracyNote": "My Dubai Broker examines the documents during the listing approval process, but it is always best that you personally check all the documents before finalizing any purchase."
+                },
+                {
+                    "id": "agreement",
+                    "number": "3",
+                    "title": "Always Sign a Written Agreement",
+                    "content": "Make sure that a written contract is signed and acknowledged by both parties before any money or assets are transferred.",
+                    "note": "In property transactions, make sure that the agreement complies with the Dubai Land Department (DLD) or legal requirements."
+                },
+                {
+                    "id": "digital",
+                    "number": "4",
+                    "title": "Be Cautious with Digital Documents",
+                    "content": "Scanned or emailed documents can be edited. If possible, request physical verification or video verification of ownership."
+                },
+                {
+                    "id": "personal-info",
+                    "number": "5",
+                    "title": "Protect Your Personal Information",
+                    "content": "My Dubai Broker will never contact you to request passwords, payment information, or account credentials via email, phone, or WhatsApp.",
+                    "securityNote": "If you receive any suspicious communication purporting to be from us, please report it immediately to security@mydubaibroker.com."
+                }
+            ]
+        },
+        {
+            "id": "international",
+            "number": "4",
+            "title": "Additional Recommendations for International Buyers",
+            "sidebarTitle": "International Buyers",
+            "list": [
+                "Verify import/export responsibilities or registration regulations in your country before closing a deal.",
+                "When buying expensive items like cars or yachts, it is a good idea to check the shipping insurance and customs regulations in advance.",
+                "When buying property, deal only with approved conveyancing companies or escrow agents recognized by the Dubai Land Department."
+            ]
+        },
+        {
+            "id": "security",
+            "number": "5",
+            "title": "Stay Aware, Stay Secure",
+            "sidebarTitle": "Security Awareness",
+            "content": [
+                "My Dubai Broker performs rigorous checks before advertising the property, such as ID and license verification, as well as ownership. It is up to you to complete the final due diligence as the buyer.",
+                "Buying safely involves asking the right questions, scrutinizing the documents, and only working with certified professionals."
+            ]
+        },
+        {
+            "id": "contact",
+            "number": "6",
+            "title": "Support & Contact",
+            "sidebarTitle": "Contact & Support",
+            "description": "If there are any questions, please do not hesitate to contact our Support Team at:",
+            "details": {
+                "Email": "support@mydubaibroker.com",
+                "Location": "Dubai, United Arab Emirates"
+            }
+        }
+    ]
+}

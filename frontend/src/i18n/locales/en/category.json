@@ -1,0 +1,75 @@
+{
+  "hero": {
+    "realEstate": {
+      "title": "Dubai’s Most Curated Luxury Marketplace",
+      "subtitle": "Discover the finest properties in Dubai's most prestigious communities."
+    },
+    "cars": {
+      "title": "Luxury Cars",
+      "subtitle": "Not every car gets listed."
+    },
+    "yachts": {
+      "title": "Luxury Yachts",
+      "subtitle": "Experience the ultimate freedom on the open seas."
+    },
+    "jets": {
+      "title": "Private Aviation",
+      "subtitle": "Experience the ultimate freedom of flight."
+    },
+    "rentals": {
+      "title": "Luxury Rentals",
+      "subtitle": "Discover the finest properties in Dubai's most prestigious communities."
+    },
+    "collectibles": {
+      "title": "Luxury Collectibles",
+      "subtitle": "Discover the finest collectibles in Dubai's most prestigious communities."
+    }
+  },
+  "newsletter": {
+    "heading": {
+      "bold": "Stay Informed",
+      "light": "About Luxury"
+    }
+  },
+  "signatureCollection": {
+    "titleBold": "Signature",
+    "titleLight": "Collection"
+  },
+  "popularSearches": {
+    "title": "Popular Searches"
+  },
+  "common": {
+    "priceOnRequest": "Price on Request",
+    "listings": "Listings",
+    "enquire": "ENQUIRE"
+  },
+  "jetSignature": {
+    "titleBold": "Only",
+    "titleLight": "What Deserves to Be Seen",
+    "subtitle": "A limited selection of private aircraft curated for range, pedigree, and relevance."
+  },
+  "manufacturers": {
+    "title": "Manufacturers",
+    "gulfstream": "Gulfstream",
+    "bombardier": "Bombardier",
+    "dassault": "Dassault Aviation",
+    "embraer": "Embraer"
+  },
+  "exploreFurther": {
+    "title": "Explore Further",
+    "manufacturers": "MANUFACTURERS",
+    "jetCategories": "JET CATEGORIES",
+    "acquisitionType": "ACQUISITION TYPE"
+  },
+  "curatorsNote": {
+    "title": "Curator's Note",
+    "content": "\"Every aircraft on MyDubaiBroker is reviewed for provenance, configuration, and operational relevance. We do not publish inventory lists. We publish aircraft that make sense - technically, financially, and strategically.\""
+  },
+  "aircraftCategories": {
+    "titleBold": "Aircraft",
+    "titleLight": "Categories",
+    "privateJets": "PRIVATE JETS",
+    "missionProfiles": "MISSION PROFILES",
+    "aircraftType": "AIRCRAFT TYPE"
+  }
+}

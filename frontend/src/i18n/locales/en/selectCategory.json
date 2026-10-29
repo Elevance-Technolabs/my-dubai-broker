@@ -1,0 +1,64 @@
+{
+    "hero": {
+        "title": "Select Listing Category",
+        "description": "You can choose how you want to present your asset on My Dubai Broker"
+    },
+    "realEstate": {
+        "title": "Real Estate",
+        "description": "Reach global high-net-worth buyers and investors actively searching for Dubai's most exclusive villas, mansions, and branded residences.",
+        "subDescription": "Every property on My Dubai Broker is verified for authenticity, because trust is the foundation of luxury.",
+        "cta": "List Real Estate"
+    },
+    "lifestyle": {
+        "title": "Lifestyle Categories",
+        "description": "Showcase your high-value inventory to a refined audience of collectors, entrepreneurs, and world travelers.",
+        "subDescription": "From supercars to private jets, every category is designed to highlight craftsmanship, credibility, and value.",
+        "categories": {
+            "cars": "Cars",
+            "yachts": "Yachts",
+            "jets": "Jets",
+            "helicopters": "Helicopters"
+        }
+    },
+    "network": {
+        "title": "Be Part of Dubai's Verified Luxury Network",
+        "description": "Extend your presence within the world's most exclusive luxury marketplace. Whether you are a developer, dealer, or private owner, My Dubai Broker connects you with serious buyers who are ready to transact."
+    },
+    "benefits": {
+        "presence": {
+            "title": "Build Your Luxury Presence",
+            "description": "Create a professional profile that reflects the prestige of your brand. Present your listings in a refined environment built specifically for verified luxury.",
+            "items": [
+                "Unlimited HD photos and videos",
+                "Verified company logo on search & listing pages",
+                "Professional business profile with credibility badge",
+                "AI-enhanced titles and descriptions"
+            ]
+        },
+        "visibility": {
+            "title": "Elevate Every Listing",
+            "description": "Reach affluent buyers through multi-channel visibility across the My Dubai Broker global network.",
+            "items": [
+                "SEO optimisation in English & Arabic",
+                "Targeted campaigns on Google & Meta",
+                "Priority placement in search results",
+                "Optional integration into exclusive email campaigns + lead generation"
+            ]
+        },
+        "performance": {
+            "title": "Track Your Performance",
+            "description": "Make informed decisions with real-time insights into listing and lead performance.",
+            "items": [
+                "Live lead & inquiry reports",
+                "Listing analytics & audience data",
+                "CSV export of raw data",
+                "Visibility into top-performing assets"
+            ]
+        }
+    },
+    "branding": {
+        "title": "Verified. Visible. Valuable.",
+        "description": "Welcome to My Dubai Broker, where credibility meets opportunity",
+        "tagline": "Only What Deserves to be Seen"
+    }
+}

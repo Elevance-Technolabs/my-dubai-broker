@@ -1,0 +1,1183 @@
+// ============================================================
+// MY DUBAI BROKER — Prisma Schema
+// Full platform schema: Organisation · Identity · Catalogue ·
+// Listings · Review · Scoring · Leads · Analytics · Operations
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+/// Top-level asset categories. Jet and Helicopter are asset types
+/// under PRIVATE_AVIATION — not separate categories.
+enum CompanyCategory {
+  REAL_ESTATE
+  CARS
+  YACHTS
+  PRIVATE_AVIATION
+  COLLECTIBLES
+}
+
+/// Asset types nested under their parent category.
+enum AssetType {
+  // Real Estate
+  APARTMENT
+  VILLA
+  TOWNHOUSE
+  PENTHOUSE
+  OFFICE
+  RETAIL
+  WAREHOUSE
+  LAND
+  // Cars
+  SEDAN
+  SUV
+  SPORTS_CAR
+  CONVERTIBLE
+  TRUCK
+  VAN
+  MOTORCYCLE
+  // Yachts
+  MOTOR_YACHT
+  SAILING_YACHT
+  SUPER_YACHT
+  SPEED_BOAT
+  CATAMARAN
+  // Private Aviation
+  JET
+  HELICOPTER
+  TURBOPROP
+  // Collectibles
+  WATCH
+  ART
+  JEWELLERY
+  HANDBAG
+  WINE_SPIRITS
+  COINS_STAMPS
+  OTHER_COLLECTIBLE
+}
+
+/// The commercial purpose of the listing — stored on every listing.
+enum OfferingType {
+  SALE
+  LONG_TERM_RENT
+  SHORT_TERM_RENT
+  OFF_PLAN
+  CHARTER
+  PRICE_ON_REQUEST
+}
+
+/// Approval lifecycle — controlled by platform reviewers.
+enum ApprovalStatus {
+  DRAFT
+  SUBMITTED
+  PENDING_REVIEW
+  CHANGES_REQUIRED
+  APPROVED
+  REJECTED
+}
+
+/// Publication status — controlled by the company/system.
+enum PublicationStatus {
+  UNPUBLISHED
+  SCHEDULED
+  LIVE
+  PAUSED
+  EXPIRED
+  ARCHIVED
+}
+
+/// Company lifecycle. SUSPENDED is a post-approval state.
+enum CompanyStatus {
+  DRAFT
+  SUBMITTED
+  PENDING_REVIEW
+  CHANGES_REQUIRED
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum DocumentStatus {
+  MISSING
+  UPLOADED
+  UNDER_REVIEW
+  VALID
+  EXPIRING
+  EXPIRED
+}
+
+enum Currency {
+  AED
+  USD
+  EUR
+  GBP
+  SAR
+  QAR
+}
+
+enum UserRole {
+  super_admin
+  platform_reviewer
+  company_owner
+  company_manager
+  agent
+  listing_coordinator
+  viewer
+}
+
+enum UploadStatus {
+  PENDING
+  ATTACHED
+  FAILED
+}
+
+enum LeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  APPOINTMENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum LeadActivityType {
+  CALL
+  WHATSAPP
+  EMAIL
+  NOTE
+  STAGE_CHANGE
+  ASSIGNMENT
+  FOLLOW_UP_SCHEDULED
+  FOLLOW_UP_COMPLETED
+}
+
+enum PerformanceEventType {
+  IMPRESSION
+  LISTING_VIEW
+  PHONE_REVEAL
+  CALL_CLICK
+  WHATSAPP_CLICK
+  EMAIL_CLICK
+  ENQUIRY_SUBMITTED
+  FAVOURITE
+  SHARE
+  MEDIA_INTERACTION
+  RETURN_VISIT
+}
+
+enum NotificationPriority {
+  URGENT
+  ACTION_NEEDED
+  INFORMATION
+}
+
+enum CompanyOnboardingStep {
+  SELECT_CATEGORIES
+  UPLOAD_DOCUMENTS
+  COMPANY_PROFILE
+  SUBMITTED
+  COMPLETED
+}
+
+// ============================================================
+// BETTER-AUTH MODELS (do not rename — required by the library)
+// ============================================================
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  role UserRole @default(viewer)
+
+  // Company membership
+  company   Company? @relation(fields: [companyId], references: [id])
+  companyId String?
+
+  // Contact
+  phone String?
+
+  // Agent credential (Broker Registration Number etc.)
+  brn String?
+
+  // Per-user capability overrides layered on top of the role default, e.g.
+  // { "listings.submit_to_platform": true } — see src/middleware/permissions.ts.
+  // Copied from Invitation.permissions when an invite is accepted; can also
+  // be changed later via PATCH /companies/me/users/:userId/permissions.
+  permissions Json?
+
+  // better-auth admin plugin
+  banned     Boolean   @default(false)
+  banReason  String?
+  banExpires DateTime?
+
+  // Relations
+  uploads           Upload[]
+  agentProfile      AgentProfile?
+  sentInvitations   Invitation[]        @relation("InvitationSender")
+  listings          Listing[]           @relation("ListingCreator")
+  secondaryListings Listing[]           @relation("ListingSecondaryAgents")
+  approvalReviews   ApprovalReview[]
+  leadActivities    LeadActivity[]
+  assignedLeads     Lead[]              @relation("LeadAssignee")
+  auditLogs         AuditLog[]
+  fileAccessLogs    FileAccessLog[]
+  notifications     Notification[]
+  followUps         FollowUp[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String?
+  companyId String?
+  // Required by better-auth's admin() plugin (impersonation feature) — see
+  // src/lib/auth.ts. Not something this app's own code reads/writes.
+  impersonatedBy String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ============================================================
+// ORGANISATION
+// ============================================================
+
+model Company {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Onboarding
+  onboardingStep        CompanyOnboardingStep @default(SELECT_CATEGORIES)
+  onboardingCompletedAt DateTime?
+
+  // Status lifecycle
+  status          CompanyStatus @default(DRAFT)
+  rejectionReason String?
+
+  // Enabled categories (max 1 in Phase 1, enforced at API level)
+  categories CompanyCategory[]
+
+  // Profile
+  name           String  @unique
+  slug           String? @unique
+  description    String?
+  address        String?
+  contactEmail   String?
+  contactPhone   String?
+  websiteUrl     String?
+  socialMedia    Json?
+  companyLogoUrl String?
+  coverImageUrl  String?
+  listingLogoUrl String?
+  languages      String[]
+  leadApiKey     String? @unique
+
+  // Response settings (for lead SLA)
+  officeHoursStart String? // "09:00"
+  officeHoursEnd   String? // "18:00"
+  timezone         String? @default("Asia/Dubai")
+  leadSlaMinutes   Int     @default(60)
+
+  // Relations
+  users       User[]
+  listings    Listing[]
+  documents   CompanyDocument[]
+  invitations Invitation[]
+  leads       Lead[]
+  statusHistory StatusHistory[] @relation("CompanyStatusHistory")
+
+  @@map("companies")
+}
+
+/// Replaces flat URL fields on Company — each doc is a tracked record.
+model CompanyDocument {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyId    String
+  company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Classification
+  category     CompanyCategory? // null = applies to all categories
+  documentType String           // "trade_license" | "rera_license" | "emirates_id" | etc.
+
+  // File
+  fileUrl String
+  status  DocumentStatus @default(UPLOADED)
+
+  // Document metadata
+  documentNumber    String?
+  issuingAuthority  String?
+  issueDate         DateTime?
+  expiryDate        DateTime?
+
+  // Review
+  reviewNote       String?
+  reviewedAt       DateTime?
+  reviewedById     String?
+
+  @@index([companyId, documentType])
+  @@index([status, expiryDate])
+  @@map("company_documents")
+}
+
+// ============================================================
+// IDENTITY
+// ============================================================
+
+/// Public-facing agent profile — separate from the auth User record.
+model AgentProfile {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Public profile fields
+  displayName  String?
+  bio          String?
+  photoUrl     String?
+  phone        String?
+  whatsapp     String?
+  email        String?
+  languages    String[]
+  specialities CompanyCategory[]
+
+  // Credentials (per category, e.g. BRN for real estate)
+  credentials Json? // [{ category, credentialType, credentialNumber, expiryDate }]
+
+  // Contact preferences
+  showPhone     Boolean @default(true)
+  showWhatsapp  Boolean @default(true)
+  showEmail     Boolean @default(false)
+
+  @@map("agent_profiles")
+}
+
+/// Pending invitation to join a company workspace.
+model Invitation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  email     String
+  role      UserRole
+  token     String   @unique
+
+  sentById  String
+  sentBy    User   @relation("InvitationSender", fields: [sentById], references: [id])
+
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+
+  // Permissions override (JSON capability map per Section 19)
+  permissions Json?
+
+  @@index([token])
+  @@index([email, companyId])
+  @@map("invitations")
+}
+
+// ============================================================
+// LISTINGS
+// ============================================================
+
+model Listing {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Identity
+  title        String
+  slug         String @unique
+  publicRef    String @unique // e.g. MDB-RE-00001 — human-readable reference
+  description  String @db.Text
+
+  // Classification
+  category     CompanyCategory
+  assetType    AssetType
+  offeringType OfferingType
+
+  // Pricing (flexible per offering type)
+  salePrice     Decimal?  @db.Decimal(15, 2)
+  annualRent    Decimal?  @db.Decimal(15, 2)
+  monthlyRent   Decimal?  @db.Decimal(15, 2)
+  dailyRate     Decimal?  @db.Decimal(15, 2)
+  charterRate   Decimal?  @db.Decimal(15, 2)
+  currency      Currency  @default(AED)
+  priceOnRequest Boolean  @default(false)
+  negotiable    Boolean   @default(false)
+
+  // Location
+  country       String?
+  city          String?
+  area          String?
+  address       String?
+  hideExactLocation Boolean @default(false)
+  latitude      Float?
+  longitude     Float?
+  operatingBase String? // For aviation/yachts
+
+  // Media
+  coverImageUrl String?
+  photoUrls     String[]
+  videoUrl      String?
+  vrTourUrl     String?
+  floorPlanUrls String[]
+
+  // Status (dual-track: approval + publication are independent)
+  approvalStatus    ApprovalStatus    @default(DRAFT)
+  publicationStatus PublicationStatus @default(UNPUBLISHED)
+
+  // Admin review
+  isFlagged            Boolean   @default(false)
+  adminRejectionReason String?
+  submittedAt          DateTime?
+  reviewedAt           DateTime?
+  publishedAt          DateTime?
+  expiresAt            DateTime?
+
+  // Internal quality metadata
+  licenseNumber         String? // permit/RERA/registration
+  internalReferenceCode String? // company internal ref
+
+  // Lead routing contact
+  primaryEmail    String?
+  primaryPhone    String?
+
+  // Ownership
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+  creatorId String
+  creator   User    @relation("ListingCreator", fields: [creatorId], references: [id])
+
+  secondaryAgents User[] @relation("ListingSecondaryAgents")
+
+  // Reviewer
+  reviewedById String?
+
+  // Category-specific sub-tables
+  realEstateListing     RealEstateListing?
+  carListing            CarListing?
+  yachtListing          YachtListing?
+  privateAviationListing PrivateAviationListing?
+  collectibleListing    CollectibleListing?
+
+  // Related records
+  availability    Availability?
+  approvalReviews ApprovalReview[]
+  statusHistory   StatusHistory[]  @relation("ListingStatusHistory")
+  qualitySnapshot QualitySnapshot?
+  rankSnapshot    RankSnapshot?
+  leads           Lead[]
+  performanceEvents PerformanceEvent[]
+
+  @@index([companyId])
+  @@index([category])
+  @@index([approvalStatus, publicationStatus])
+  @@index([creatorId])
+  @@map("listings")
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  updatedAt DateTime @updatedAt
+
+  listingId    String   @unique
+  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  isAvailable      Boolean  @default(true)
+  confirmedAt      DateTime @default(now())
+  nextConfirmDue   DateTime // set to confirmedAt + 30 days typically
+  unavailableUntil DateTime?
+  notes            String?
+
+  @@map("availability")
+}
+
+// ─── Real Estate ────────────────────────────────────────────
+
+model RealEstateListing {
+  id        String  @id @default(cuid())
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  propertyType  String   // apartment, villa, etc. (duplicates AssetType for granularity)
+  emirate       String?
+  community     String?
+  building      String?
+  permitNumber  String?
+
+  bedrooms    Int?
+  bathrooms   Int?
+  builtUpArea Float?   // sqft
+  plotArea    Float?   // sqft
+  floor       Int?
+  totalFloors Int?
+  parking     Int?
+
+  furnished     Boolean @default(false)
+  completionStatus String? // ready | off-plan | under-construction
+  developer     String?
+  paymentPlan   String?
+  serviceCharge Decimal? @db.Decimal(10, 2)
+
+  // Features
+  views            String[]
+  outdoor          String[]
+  indoor           String[]
+  communityFeatures String[]
+  amenities        String[]
+  propertyTags     String[]
+
+  @@index([propertyType])
+  @@map("real_estate_listings")
+}
+
+// ─── Cars ───────────────────────────────────────────────────
+
+model CarListing {
+  id        String  @id @default(cuid())
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  make          String
+  model         String
+  variant       String?
+  year          Int
+  mileage       Int?
+  condition     String  // new | used | certified-pre-owned
+  bodyType      String?
+  transmission  String?
+  fuelType      String?
+  engineSize    String?
+  horsepower    Int?
+  exteriorColor String?
+  interiorColor String?
+  doors         Int?
+  seats         Int?
+  regionalSpec  String? // GCC | US | European | Japanese
+
+  warranty         Boolean @default(false)
+  serviceHistory   Boolean @default(false)
+  registrationYear Int?
+  plateNumber      String?
+  chassisNumber    String?
+
+  options      String[]
+
+  // Rental-specific
+  rentalTerms  String?
+
+  @@index([make, model])
+  @@map("car_listings")
+}
+
+// ─── Yachts ─────────────────────────────────────────────────
+
+model YachtListing {
+  id        String  @id @default(cuid())
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  builder     String?
+  model       String?
+  year        Int?
+  lengthFt    Float?
+  beamFt      Float?
+  draftFt     Float?
+  hullMaterial String?
+
+  cabins      Int?
+  guestCapacity Int?
+  crewCapacity  Int?
+  crewIncluded  Boolean @default(false)
+  engineHours Int?
+  engines     String?
+
+  flag            String?
+  registrationNumber String?
+  classification  String?
+
+  navigation   String[]
+  amenities    String[]
+
+  // Charter
+  charterAvailability String? // year-round | seasonal
+  homePort    String?
+
+  @@index([builder, model])
+  @@map("yacht_listings")
+}
+
+// ─── Private Aviation (replaces separate Jet + Helicopter) ──
+
+model PrivateAviationListing {
+  id        String  @id @default(cuid())
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  // assetType on parent Listing distinguishes JET / HELICOPTER / TURBOPROP
+  manufacturer      String
+  model             String
+  year              Int?
+  serialNumber      String?
+  registrationTail  String? // e.g. A6-MDB
+
+  totalHours        Int?
+  engineHours       Int?
+  passengerCapacity Int?
+  rangeNm           Int?    // nautical miles
+
+  avionics          String?
+  interiorConfig    String? // e.g. 8-seat club config
+  interiorDetails   String?
+  maintenanceHistory String?
+  lastInspectionDate DateTime?
+
+  @@index([manufacturer, model])
+  @@map("private_aviation_listings")
+}
+
+// ─── Collectibles ────────────────────────────────────────────
+
+model CollectibleListing {
+  id        String  @id @default(cuid())
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  // assetType on parent Listing classifies WATCH / ART / JEWELLERY / etc.
+  makerOrArtist String?
+  referenceNumber String?
+  year          Int?
+  condition     String?
+  dimensions    String?
+  edition       String?
+  serialNumber  String?
+
+  // Authenticity & provenance
+  certificateOfAuthenticity Boolean @default(false)
+  provenanceDescription     String?
+  custodyDetails            String?
+
+  // For watches specifically
+  movement      String?
+  caseMaterial  String?
+  caseSizeMm    Float?
+  dialColor     String?
+  strapMaterial String?
+  waterResistance String?
+
+  @@map("collectible_listings")
+}
+
+// ============================================================
+// REVIEW & APPROVAL
+// ============================================================
+
+model ApprovalReview {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Polymorphic — either a listing or company review
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id])
+
+  reviewerId String
+  reviewer   User   @relation(fields: [reviewerId], references: [id])
+
+  // Decision
+  decision       ApprovalStatus // APPROVED | REJECTED | CHANGES_REQUIRED
+  internalNote   String?        // never shown to partner
+  partnerReason  String?        // shown to partner on rejection/changes
+
+  submittedVersion Json? // snapshot of listing data at time of submission
+
+  comments ReviewComment[]
+
+  @@index([listingId])
+  @@index([reviewerId])
+  @@map("approval_reviews")
+}
+
+model ReviewComment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  reviewId String
+  review   ApprovalReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  field              String  // the specific field or section the comment is about
+  comment            String
+  isVisibleToPartner Boolean @default(true)
+
+  @@index([reviewId])
+  @@map("review_comments")
+}
+
+/// Immutable log of every status transition on any entity.
+model StatusHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  entityType String // "listing" | "company" | "document"
+  entityId   String
+
+  // Polymorphic convenience relations
+  listing   Listing? @relation("ListingStatusHistory", fields: [listingId], references: [id])
+  listingId String?
+  company   Company? @relation("CompanyStatusHistory", fields: [companyId], references: [id])
+  companyId String?
+
+  fromStatus String
+  toStatus   String
+  actorId    String
+  reason     String?
+
+  @@index([entityType, entityId])
+  @@index([listingId])
+  @@index([companyId])
+  @@map("status_history")
+}
+
+// ============================================================
+// SCORING — Quality
+// ============================================================
+
+model QualityRule {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category    CompanyCategory?
+  assetType   AssetType?
+  offeringType OfferingType?
+
+  component   String  // "required_details" | "media" | "verification" | "title_description" | "location_specs" | "freshness_availability"
+  maxPoints   Int
+  weight      Float   // proportion of total
+  isActive    Boolean @default(true)
+  version     Int     @default(1)
+
+  // Configurable check definitions (JSON array of rule objects)
+  checks      Json
+
+  @@unique([category, component, version])
+  @@map("quality_rules")
+}
+
+/// Point-in-time snapshot of a listing's quality score.
+model QualitySnapshot {
+  id          String   @id @default(cuid())
+  calculatedAt DateTime @default(now())
+
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  score     Int   // 0–100
+  rating    String // "excellent" | "good" | "needs_attention" | "incomplete"
+
+  breakdown Json  // { component: { score, maxPoints, failedChecks: [], actions: [] } }
+  previousScore Int?
+  ruleVersion   Int?
+
+  @@map("quality_snapshots")
+}
+
+// ============================================================
+// SCORING — Visibility / Ranking
+// ============================================================
+
+model RankRule {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category    CompanyCategory?
+  offeringType OfferingType?
+
+  component   String  // "relevance" | "quality" | "freshness" | "response" | "engagement" | "price_context"
+  weight      Float
+  isActive    Boolean @default(true)
+  version     Int     @default(1)
+
+  @@unique([category, component, version])
+  @@map("rank_rules")
+}
+
+/// Point-in-time snapshot of a listing's search visibility.
+model RankSnapshot {
+  id           String   @id @default(cuid())
+  calculatedAt DateTime @default(now())
+
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  visibilityLevel String  // "high" | "medium" | "low" | "not_eligible"
+  percentile      Float?  // 0–100
+  rank            Int?
+  totalCompeting  Int?
+
+  // Top 3 reasons affecting visibility
+  reasons     Json  // [{ component, description, impact: "positive"|"negative"|"neutral" }]
+  breakdown   Json  // { component: { score, weight, rawValue } }
+
+  eligibilityPassed Boolean @default(false)
+  eligibilityReasons Json? // why not eligible (if applicable)
+
+  ruleVersion   Int?
+
+  @@map("rank_snapshots")
+}
+
+// ============================================================
+// LEADS
+// ============================================================
+
+model Lead {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Listing & company context
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  // Current assignee
+  assignedToId String?
+  assignedTo   User?   @relation("LeadAssignee", fields: [assignedToId], references: [id])
+
+  // Stage
+  stage LeadStage @default(NEW)
+
+  // Customer details
+  customerName    String
+  customerPhone   String?
+  customerEmail   String?
+  customerCountry String?
+  preferredContact String? // "call" | "whatsapp" | "email"
+  consentRecorded Boolean  @default(false)
+  message         String?  @db.Text // free-text enquiry message from the capture form
+
+  // Source tracking
+  sourcePage    String?
+  sourceForm    String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmContent    String?
+  deviceType    String?
+  customerCountryCode String?
+
+  // Timing (SLA tracking)
+  firstOpenedAt    DateTime?
+  firstRespondedAt DateTime?
+  lastActivityAt   DateTime?
+  nextFollowUpAt   DateTime?
+
+  // Qualification
+  budget    Decimal? @db.Decimal(15, 2)
+  currency  Currency @default(AED)
+  timeframe String?
+  intent    String?  // "buy" | "rent" | "invest" | "charter"
+  outcome   String?  // "won" | "lost" | "archived"
+  outcomeNote String?
+
+  // Duplicate detection
+  isDuplicate Boolean @default(false)
+  duplicateOfId String?
+
+  activities LeadActivity[]
+  followUps  FollowUp[]
+
+  @@index([companyId])
+  @@index([listingId])
+  @@index([assignedToId])
+  @@index([stage])
+  @@map("leads")
+}
+
+model LeadActivity {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+
+  type    LeadActivityType
+  note    String?
+  metadata Json?
+
+  @@index([leadId])
+  @@map("lead_activities")
+}
+
+model FollowUp {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+
+  scheduledAt  DateTime
+  note         String?
+  completedAt  DateTime?
+  cancelled    Boolean @default(false)
+
+  @@index([leadId])
+  @@index([scheduledAt])
+  @@map("follow_ups")
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+/// Raw event stream — never deleted, rolled up nightly.
+model PerformanceEvent {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+  companyId String
+
+  eventType PerformanceEventType
+
+  // Session / identity (anonymised)
+  sessionRef String?
+  isAuthenticated Boolean @default(false)
+
+  // Context
+  searchQuery   String?
+  searchFilters Json?
+  sourcePage    String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+
+  // Device / location (privacy-policy-controlled)
+  deviceType    String?
+  countryCode   String?
+
+  // Exclusion flags
+  isStaff       Boolean @default(false)
+  isSuspicious  Boolean @default(false)
+
+  @@index([listingId, eventType])
+  @@index([companyId, createdAt])
+  @@index([createdAt])
+  @@map("performance_events")
+}
+
+/// Nightly aggregated summary — does not replace raw events.
+model DailyRollup {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+
+  listingId String
+  companyId String
+
+  impressions Int @default(0)
+  views       Int @default(0)
+  phoneReveals Int @default(0)
+  callClicks  Int @default(0)
+  whatsappClicks Int @default(0)
+  emailClicks Int @default(0)
+  enquiries   Int @default(0)
+  favourites  Int @default(0)
+
+  // Calculated
+  clickThroughRate  Float? // views / impressions
+  enquiryConversionRate Float? // enquiries / views
+
+  @@unique([date, listingId])
+  @@index([companyId, date])
+  @@map("daily_rollups")
+}
+
+/// Async export job tracking.
+model ReportExport {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requestedById String
+  companyId     String?
+
+  reportType  String  // "listings" | "company" | "leads" | "performance"
+  filters     Json
+  status      String  @default("pending") // pending | processing | ready | failed
+  fileUrl     String?
+  expiresAt   DateTime?
+  errorMessage String?
+
+  @@index([requestedById])
+  @@map("report_exports")
+}
+
+// ============================================================
+// OPERATIONS
+// ============================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  priority  NotificationPriority
+  type      String  // "listing_approved" | "lead_new" | "document_expiring" | etc.
+  title     String
+  body      String
+  actionUrl String?
+
+  readAt   DateTime?
+  sentAt   DateTime?
+
+  // Delivery channels
+  deliveredInApp Boolean @default(false)
+  deliveredEmail Boolean @default(false)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+/// Immutable audit trail for all sensitive platform actions.
+model AuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  actorId   String
+  actor     User   @relation(fields: [actorId], references: [id])
+  companyId String?
+
+  action     String // "listing.status.changed" | "company.suspended" | "user.deactivated" etc.
+  entityType String // "listing" | "company" | "user" | "document"
+  entityId   String
+
+  previousValue Json?
+  newValue      Json?
+  reason        String?
+
+  // Technical metadata
+  requestRef  String? // request ID for tracing
+  ipAddress   String?
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([companyId])
+  @@map("audit_logs")
+}
+
+/// Log every access to sensitive documents (identity, company docs).
+model FileAccessLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+
+  fileUrl    String
+  action     String // "view" | "download" | "replace" | "delete"
+  entityType String? // "company_document" | "agent_profile" etc.
+  entityId   String?
+
+  @@index([actorId])
+  @@index([fileUrl])
+  @@map("file_access_logs")
+}
+
+// ============================================================
+// UPLOADS (retained from original — used by media management)
+// ============================================================
+
+model Upload {
+  id          String       @id
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key         String       @unique
+  contentType String
+  size        Int
+  status      UploadStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@map("uploads")
+}

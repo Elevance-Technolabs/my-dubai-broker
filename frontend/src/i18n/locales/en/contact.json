@@ -1,0 +1,51 @@
+{
+  "hero": {
+    "title": "Contact & Support",
+    "subtitle": "For enquiries, assistance, or verified submissions."
+  },
+  "requestAssistance": {
+    "title": "Request Assistance",
+    "subtitle": "Submit a request and our team will review and respond accordingly."
+  },
+  "form": {
+    "fields": {
+      "fullName": "FULL NAME",
+      "emailAddress": "EMAIL ADDRESS",
+      "category": "CATEGORY",
+      "subject": "SUBJECT",
+      "message": "MESSAGE"
+    },
+    "placeholders": {
+      "fullName": "Enter your full name",
+      "emailAddress": "Enter your email address",
+      "subject": "Enter the subject",
+      "message": "How can we assist you?"
+    },
+    "options": {
+      "realEstate": "Real Estate",
+      "cars": "Cars",
+      "yachts": "Yachts",
+      "jets": "Jets",
+      "general": "General Inquiry"
+    },
+    "submit": "SUBMIT REQUEST",
+    "helperText": "Requests are typically reviewed within one business day."
+  },
+  "enquiries": {
+    "general": {
+      "title": "General Enquiries",
+      "subtitle": "For general questions, you may also reach us directly.",
+      "emailLabel": "EMAIL",
+      "email": "support@mydubaibroker.com",
+      "hoursLabel": "BUSINESS HOURS",
+      "hoursValue": "Monday - Friday\n09:00 to 18:00 (GST)"
+    },
+    "specific": {
+      "title": "Specific Enquiries",
+      "subtitle": "For strategic partnerships, media requests or specialized listing verification.",
+      "label": "PARTNERSHIPS / MEDIA / VERIFIED LISTINGS",
+      "email": "Support@mydubaibroker.com"
+    }
+  },
+  "footerNote": "My Dubai Broker is a curated marketplace. All submissions are reviewed prior to publication."
+}
