@@ -1,6 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Input from "@/components/ui/Input";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordData,
+} from "@/lib/schemas/accountSchemas";
+import { summarizeFieldErrors } from "@/lib/utils/formErrors";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -9,29 +17,38 @@ import { FrontendAuthService } from "@/services/auth.service";
 
 export default function ForgotPasswordPage() {
   const { locale } = useParams();
-  const [email, setEmail] = useState("");
+  const methods = useForm<ForgotPasswordData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+    mode: "onTouched",
+    reValidateMode: "onChange",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const email = methods.watch("email");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      toast.error("Enter your email address");
-      return;
-    }
-
+  const onSubmit = async (data: ForgotPasswordData) => {
     setIsSubmitting(true);
-    const response = await FrontendAuthService.forgotPassword(
-      email.trim(),
-      `/${locale}/reset-password`,
-    );
-    setIsSubmitting(false);
-
-    if (response.success) {
-      setSent(true);
-    } else {
-      toast.error(response.error || "Failed to send reset email");
+    try {
+      const response = await FrontendAuthService.forgotPassword(
+        data.email.trim(),
+        `/${locale}/reset-password`,
+      );
+      if (response.success) {
+        toast.success("If that email has an account, a reset link is on its way.");
+        setSent(true);
+      } else {
+        toast.error(response.error || "Failed to send reset email");
+      }
+    } catch {
+      toast.error("Could not reach the server. Please try again in a moment.");
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const onInvalid = (errors: Parameters<typeof summarizeFieldErrors>[0]) => {
+    toast.error(summarizeFieldErrors(errors));
   };
 
   return (
@@ -53,23 +70,25 @@ export default function ForgotPasswordPage() {
               Enter the email address on your account and we'll send you a link to reset
               your password.
             </p>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-                  Email address
-                </label>
-                <input
+            <FormProvider {...methods}>
+              <form
+                onSubmit={methods.handleSubmit(onSubmit, onInvalid)}
+                className="space-y-5"
+                noValidate
+              >
+                <Input
+                  id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold transition-colors"
-                  autoFocus
+                  label="Email address"
+                  isMandatory
+                  register={methods.register}
+                  labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
                 />
-              </div>
-              <Button type="submit" variant="dark" disabled={isSubmitting} className="w-full h-12">
-                {isSubmitting ? "Sending..." : "Send Reset Link"}
-              </Button>
-            </form>
+                <Button type="submit" variant="dark" disabled={isSubmitting} className="w-full h-12">
+                  {isSubmitting ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </form>
+            </FormProvider>
           </>
         )}
 

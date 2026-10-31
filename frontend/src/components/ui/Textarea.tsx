@@ -34,9 +34,10 @@ const Textarea: React.FC<TextareaProps> = ({
   ...props
 }) => {
   const context = useFormContext();
-  const fieldError = context?.formState?.errors?.[id]?.message as
-    | string
-    | undefined;
+  const errorObj = id
+    .split(".")
+    .reduce<any>((obj, key) => obj?.[key], context?.formState?.errors);
+  const fieldError = errorObj?.message as string | undefined;
 
   const baseTextareaClasses =
     "w-full border border-gray-200 px-4 py-3 text-sm font-sans focus:outline-none focus:border-gold transition-colors placeholder:text-gray-300 resize-none";

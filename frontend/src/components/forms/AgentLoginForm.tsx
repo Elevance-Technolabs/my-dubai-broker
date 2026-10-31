@@ -13,6 +13,7 @@ import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { toast } from "sonner";
+import { summarizeFieldErrors } from "@/lib/utils/formErrors";
 import { FrontendAuthService } from "@/services/auth.service";
 import type { Locale } from "@/i18n/config";
 
@@ -25,7 +26,8 @@ export default function AgentLoginForm({ onSuccess, locale }: AgentLoginFormProp
   const methods = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: defaultLoginValues,
-    mode: "onChange",
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 
   const { register, handleSubmit } = methods;
@@ -33,33 +35,42 @@ export default function AgentLoginForm({ onSuccess, locale }: AgentLoginFormProp
   const [isLoading, setIsLoading] = React.useState(false);
   const [rememberMe, setRememberMe] = React.useState(true);
 
+  const onInvalid = (errors: Parameters<typeof summarizeFieldErrors>[0]) => {
+    toast.error(summarizeFieldErrors(errors));
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    const response = await FrontendAuthService.login({
-      email: data.email,
-      password: data.password,
-      rememberMe,
-    });
+    try {
+      const response = await FrontendAuthService.login({
+        email: data.email,
+        password: data.password,
+        rememberMe,
+      });
 
-    setIsLoading(false);
-
-    if (response.success) {
-      toast.success("Signed in successfully!");
-      if (onSuccess) {
-        onSuccess(data);
+      if (response.success) {
+        toast.success("Signed in successfully!");
+        if (onSuccess) {
+          onSuccess(data);
+        }
+      } else {
+        toast.error(
+          response.error || "Failed to sign in. Please check your credentials.",
+        );
       }
-    } else {
-      toast.error(
-        response.error || "Failed to sign in. Please check your credentials.",
-      );
+    } catch {
+      toast.error("Could not reach the server. Please try again in a moment.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
         <Input
           id="email"
+          isMandatory
           label="Email Address"
           type="email"
           placeholder="name@agency.com"
@@ -69,6 +80,7 @@ export default function AgentLoginForm({ onSuccess, locale }: AgentLoginFormProp
 
         <Input
           id="password"
+          isMandatory
           label="Password"
           type="password"
           placeholder="Enter your password"

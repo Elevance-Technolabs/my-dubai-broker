@@ -12,6 +12,7 @@ import {
   realEstateSchema,
   defaultRealEstateValues,
   RealEstateFormData,
+  RealEstateFormInput,
 } from "@/lib/schemas/realEstateSchema";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -26,6 +27,12 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { realEstateService } from "@/services/realEstate.service";
 import { toast } from "sonner";
+import { validateImageFile } from "@/lib/utils/r2Upload";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+  realEstateFieldMap,
+} from "@/lib/utils/formErrors";
 
 type RealEstateListingFormProps = {
   dict: RealEstateListingDict;
@@ -53,13 +60,14 @@ export default function RealEstateListingForm({
 }: RealEstateListingFormProps) {
   const router = useRouter();
 
-  const methods = useForm<RealEstateFormData>({
-    // @ts-ignore - complex zod schema with coercion causes type mismatch in resolver
+  const methods = useForm<RealEstateFormInput, unknown, RealEstateFormData>({
     resolver: zodResolver(realEstateSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
     defaultValues: {
       ...defaultRealEstateValues,
       ...initialData,
-    } as RealEstateFormData,
+    } as RealEstateFormInput,
   });
 
   const {
@@ -118,7 +126,15 @@ export default function RealEstateListingForm({
         );
         router.push("/dashboard");
       } else {
-        toast.error(response.error || "Failed to save listing");
+        const unmapped = applyServerFieldErrors(
+          methods.setError,
+          response.fieldErrors,
+          realEstateFieldMap,
+          Object.keys(methods.getValues()),
+        );
+        toast.error(response.error || "Failed to save listing", {
+          description: unmapped.length ? unmapped.join("; ") : undefined,
+        });
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
@@ -127,11 +143,11 @@ export default function RealEstateListingForm({
     }
   };
 
-  const onError: SubmitErrorHandler<RealEstateFormData> = (errors) => {
+  const onError: SubmitErrorHandler<RealEstateFormInput> = (errors) => {
     if (errors.photoFiles) {
       toast.error("Please select a cover image before submitting.");
     } else {
-      toast.error("Please fill in all required fields correctly.");
+      toast.error(summarizeFieldErrors(errors));
     }
   };
 
@@ -141,6 +157,12 @@ export default function RealEstateListingForm({
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      const problem = validateImageFile(file);
+      if (problem) {
+        toast.error(problem);
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const newPreviews = [...imagePreviews];
@@ -483,6 +505,12 @@ export default function RealEstateListingForm({
                     ))}
                   </div>
                 </div>
+              )}
+
+              {errors.photoFiles && (
+                <p className="text-sm text-red-500">
+                  {errors.photoFiles.message as string}
+                </p>
               )}
 
               {/* Main Cover Image */}

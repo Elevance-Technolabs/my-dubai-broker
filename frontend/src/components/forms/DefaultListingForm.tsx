@@ -2,12 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
-import { useForm, FormProvider, useWatch } from "react-hook-form";
+import {
+  useForm,
+  FormProvider,
+  useWatch,
+  SubmitErrorHandler,
+} from "react-hook-form";
+import { toast } from "sonner";
+import { summarizeFieldErrors } from "@/lib/utils/formErrors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   defaultListingSchema,
   defaultListingValues,
   DefaultListingFormData,
+  DefaultListingFormInput,
 } from "@/lib/schemas/defaultListingSchema";
 import ImageWithLoader from "@/components/ui/ImageWithLoader";
 import Button from "@/components/ui/Button";
@@ -112,7 +120,7 @@ export default function DefaultListingForm({
 }: DefaultListingFormProps) {
   const router = useRouter();
 
-  const methods = useForm<DefaultListingFormData>({
+  const methods = useForm<DefaultListingFormInput, unknown, DefaultListingFormData>({
     resolver: zodResolver(defaultListingSchema),
     defaultValues: {
       ...defaultListingValues,
@@ -205,10 +213,14 @@ export default function DefaultListingForm({
     router.push("/dashboard");
   };
 
+  const onError: SubmitErrorHandler<DefaultListingFormInput> = (errors) => {
+    toast.error(summarizeFieldErrors(errors));
+  };
+
   return (
     <FormProvider {...methods}>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onError)}
         className="bg-white shadow-[0_2px_20px_rgba(0,0,0,0.01)] border border-gray-50"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 items-start">

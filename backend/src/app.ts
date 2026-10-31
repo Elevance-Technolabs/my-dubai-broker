@@ -19,6 +19,9 @@ app.use(
 	cors({
 		origin: env.CORS_ORIGINS,
 		credentials: true,
+		// Lets the browser read the bearer token issued on sign-in (see the
+		// bearer() plugin in lib/auth.ts).
+		exposedHeaders: ["set-auth-token"],
 	}),
 );
 

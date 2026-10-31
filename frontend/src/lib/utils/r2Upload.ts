@@ -10,11 +10,14 @@ export const validateImageFile = (
 ): string | null => {
   if (!allowedTypes.includes(file.type)) {
     return allowedTypes === ALLOWED_IMAGE_TYPES
-      ? "Only JPEG, PNG and WebP images are allowed"
-      : "Only JPEG, PNG, WebP images and PDF files are allowed";
+      ? `"${file.name}": only JPEG, PNG and WebP images are allowed`
+      : `"${file.name}": only JPEG, PNG, WebP images and PDF files are allowed`;
   }
-  if (file.size <= 0 || file.size > MAX_IMAGE_SIZE) {
-    return "Image must be 5 MB or smaller";
+  if (file.size <= 0) {
+    return `"${file.name}" is empty`;
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    return `"${file.name}" is too large (5 MB maximum)`;
   }
   return null;
 };
@@ -38,12 +41,28 @@ export const putFileToR2 = (
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
+      } else if (xhr.status === 403) {
+        reject(
+          new Error(
+            `Could not upload "${file.name}": permission denied. Please try again.`,
+          ),
+        );
+      } else if (xhr.status === 413) {
+        reject(new Error(`"${file.name}" is too large to upload.`));
       } else {
-        reject(new Error(`Upload failed (${xhr.status})`));
+        reject(
+          new Error(`Could not upload "${file.name}" (error ${xhr.status}).`),
+        );
       }
     };
-    xhr.onerror = () => reject(new Error("Network error during upload"));
-    xhr.onabort = () => reject(new Error("Upload cancelled"));
+    // CORS rejections and dropped connections both land here with no status.
+    xhr.onerror = () =>
+      reject(
+        new Error(
+          `Could not upload "${file.name}". Check your connection and try again.`,
+        ),
+      );
+    xhr.onabort = () => reject(new Error(`Upload of "${file.name}" was cancelled.`));
 
     signal?.addEventListener("abort", () => xhr.abort(), { once: true });
     xhr.send(file);

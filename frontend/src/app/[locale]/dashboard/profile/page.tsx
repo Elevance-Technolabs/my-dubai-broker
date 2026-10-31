@@ -7,6 +7,19 @@ import Button from "@/components/ui/Button";
 import ImageWithLoader from "@/components/ui/ImageWithLoader";
 import { ProfileService, type MyProfileResult } from "@/services/profile.service";
 import { UploadService } from "@/services/upload.service";
+import { profileSchema } from "@/lib/schemas/accountSchemas";
+import { validateImageFile } from "@/lib/utils/r2Upload";
+
+type ProfileErrors = Record<string, string | undefined>;
+
+const inputClass = (error?: string) =>
+  `w-full px-4 py-3 border text-sm focus:outline-none focus:border-luxury-gold ${
+    error ? "border-red-500 bg-red-50" : "border-gray-200"
+  }`;
+
+const FieldError = ({ message }: { message?: string }) => (
+  <p className="text-sm text-red-500 mt-0.5 min-h-5">{message}</p>
+);
 
 export default function ProfilePage() {
   const [data, setData] = useState<MyProfileResult | null>(null);
@@ -24,6 +37,7 @@ export default function ProfilePage() {
   const [showEmail, setShowEmail] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [errors, setErrors] = useState<ProfileErrors>({});
 
   useEffect(() => {
     ProfileService.getMyProfile().then((response) => {
@@ -50,47 +64,102 @@ export default function ProfilePage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const problem = validateImageFile(file);
+    if (problem) {
+      toast.error(problem);
+      setErrors((prev) => ({ ...prev, photo: problem }));
+      e.target.value = "";
+      return;
+    }
+    setErrors((prev) => ({ ...prev, photo: undefined }));
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-
-    let photoUploadId: string | undefined;
-    if (photoFile) {
-      try {
-        const uploaded = await UploadService.uploadImage(photoFile, { context: "listing-photo" });
-        photoUploadId = uploaded.uploadId;
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Failed to upload photo");
-        setIsSaving(false);
-        return;
+  const validate = (): ProfileErrors => {
+    const result = profileSchema.safeParse({
+      displayName,
+      bio,
+      phone,
+      whatsapp,
+      email: contactEmail,
+      languages,
+    });
+    const next: ProfileErrors = {};
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        next[String(issue.path[0])] ??= issue.message;
       }
     }
+    return next;
+  };
 
-    const response = await ProfileService.updateMyProfile({
-      displayName: displayName || undefined,
-      bio: bio || undefined,
-      phone: phone || undefined,
-      whatsapp: whatsapp || undefined,
-      email: contactEmail || undefined,
-      languages: languages
-        ? languages.split(",").map((l) => l.trim()).filter(Boolean)
-        : undefined,
-      showPhone,
-      showWhatsapp,
-      showEmail,
-      ...(photoUploadId ? { photoUploadId } : {}),
-    });
+  // Once a field has been flagged, re-check on every change so the message
+  // clears as soon as the value is fixed.
+  const revalidate = () => {
+    if (Object.keys(errors).length > 0) {
+      setErrors({ ...validate(), photo: errors.photo });
+    }
+  };
 
-    setIsSaving(false);
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const problems = validate();
+    setErrors(problems);
+    const messages = Object.values(problems).filter(Boolean);
+    if (messages.length > 0) {
+      toast.error(messages.slice(0, 3).join("; "));
+      return;
+    }
 
-    if (response.success) {
-      toast.success("Profile updated");
-    } else {
-      toast.error(response.error || "Failed to update profile");
+    setIsSaving(true);
+    try {
+      let photoUploadId: string | undefined;
+      if (photoFile) {
+        try {
+          const uploaded = await UploadService.uploadImage(photoFile, {
+            context: "listing-photo",
+          });
+          photoUploadId = uploaded.uploadId;
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : "Failed to upload photo",
+          );
+          return;
+        }
+      }
+
+      const response = await ProfileService.updateMyProfile({
+        displayName: displayName.trim() || undefined,
+        bio: bio || undefined,
+        phone: phone || undefined,
+        whatsapp: whatsapp || undefined,
+        email: contactEmail || undefined,
+        languages: languages
+          ? languages.split(",").map((l) => l.trim()).filter(Boolean)
+          : undefined,
+        showPhone,
+        showWhatsapp,
+        showEmail,
+        ...(photoUploadId ? { photoUploadId } : {}),
+      });
+
+      if (response.success) {
+        toast.success("Profile updated");
+      } else {
+        if (response.fieldErrors) {
+          const mapped: ProfileErrors = {};
+          for (const [k, v] of Object.entries(response.fieldErrors)) {
+            mapped[k === "photoUploadId" ? "photo" : k] = v;
+          }
+          setErrors(mapped);
+        }
+        toast.error(response.error || "Failed to update profile");
+      }
+    } catch {
+      toast.error("Could not save your profile. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -111,7 +180,7 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-10">
+      <form onSubmit={handleSave} className="space-y-10" noValidate>
         <div className="flex items-center gap-6">
           <label className="relative w-24 h-24 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center cursor-pointer overflow-hidden shrink-0">
             {photoPreview ? (
@@ -119,8 +188,9 @@ export default function ProfilePage() {
             ) : (
               <Camera size={20} className="text-gray-300" />
             )}
-            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoChange} />
           </label>
+          {errors.photo && <p className="text-sm text-red-500">{errors.photo}</p>}
           <div>
             <p className="text-sm font-medium text-luxury-black">{data?.user.name}</p>
             <p className="text-xs text-gray-400">{data?.user.email} &middot; {data?.user.role.replace("_", " ")}</p>
@@ -130,13 +200,15 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-              Display name
+              Display name <span className="text-red-500">*</span>
             </label>
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold"
+              onBlur={revalidate}
+              className={inputClass(errors.displayName)}
             />
+            <FieldError message={errors.displayName} />
           </div>
           <div>
             <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
@@ -146,7 +218,7 @@ export default function ProfilePage() {
               value={languages}
               onChange={(e) => setLanguages(e.target.value)}
               placeholder="English, Arabic"
-              className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold"
+              className={inputClass()}
             />
           </div>
         </div>
@@ -158,9 +230,11 @@ export default function ProfilePage() {
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
+            onBlur={revalidate}
             rows={4}
-            className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold"
+            className={inputClass(errors.bio)}
           />
+          <FieldError message={errors.bio} />
         </div>
 
         <div className="space-y-6">
@@ -168,9 +242,9 @@ export default function ProfilePage() {
             Public contact details
           </h3>
           {[
-            { label: "Phone", value: phone, setValue: setPhone, show: showPhone, setShow: setShowPhone },
-            { label: "WhatsApp", value: whatsapp, setValue: setWhatsapp, show: showWhatsapp, setShow: setShowWhatsapp },
-            { label: "Email", value: contactEmail, setValue: setContactEmail, show: showEmail, setShow: setShowEmail },
+            { key: "phone", label: "Phone", value: phone, setValue: setPhone, show: showPhone, setShow: setShowPhone },
+            { key: "whatsapp", label: "WhatsApp", value: whatsapp, setValue: setWhatsapp, show: showWhatsapp, setShow: setShowWhatsapp },
+            { key: "email", label: "Email", value: contactEmail, setValue: setContactEmail, show: showEmail, setShow: setShowEmail },
           ].map((field) => (
             <div key={field.label} className="flex items-end gap-4">
               <div className="flex-1">
@@ -180,8 +254,10 @@ export default function ProfilePage() {
                 <input
                   value={field.value}
                   onChange={(e) => field.setValue(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold"
+                  onBlur={revalidate}
+                  className={inputClass(errors[field.key])}
                 />
+                <FieldError message={errors[field.key]} />
               </div>
               <label className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-gray-400 pb-3 cursor-pointer shrink-0">
                 <input

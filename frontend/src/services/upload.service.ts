@@ -61,7 +61,9 @@ export const UploadService = {
       ? await UploadService.presignPublic(file, context)
       : await UploadService.presign(file, context);
     if (!presign.success || !presign.data) {
-      throw new Error(presign.error || "Could not start upload");
+      throw new Error(
+        `Could not upload "${file.name}": ${presign.error || "could not start upload"}`,
+      );
     }
 
     const { uploadId, uploadUrl, key } = presign.data;

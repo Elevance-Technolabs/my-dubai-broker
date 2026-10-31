@@ -12,6 +12,7 @@ import {
   carSchema,
   defaultCarValues,
   CarFormData,
+  CarFormInput,
 } from "@/lib/schemas/carSchema";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -32,6 +33,12 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { carService } from "@/services/car.service";
 import { toast } from "sonner";
+import { validateImageFile } from "@/lib/utils/r2Upload";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+  carFieldMap,
+} from "@/lib/utils/formErrors";
 
 type CarListingFormProps = {
   dict: CarListingDict;
@@ -59,13 +66,14 @@ export default function CarListingForm({
 }: CarListingFormProps) {
   const router = useRouter();
 
-  const methods = useForm<CarFormData>({
-    // @ts-ignore - complex zod schema with coercion causes type mismatch in resolver
+  const methods = useForm<CarFormInput, unknown, CarFormData>({
     resolver: zodResolver(carSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
     defaultValues: {
       ...defaultCarValues,
       ...initialData,
-    } as CarFormData,
+    } as CarFormInput,
   });
 
   const {
@@ -106,7 +114,15 @@ export default function CarListingForm({
         );
         router.push("/dashboard");
       } else {
-        toast.error(response.error || "Failed to save listing");
+        const unmapped = applyServerFieldErrors(
+          methods.setError,
+          response.fieldErrors,
+          carFieldMap,
+          Object.keys(methods.getValues()),
+        );
+        toast.error(response.error || "Failed to save listing", {
+          description: unmapped.length ? unmapped.join("; ") : undefined,
+        });
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
@@ -115,11 +131,11 @@ export default function CarListingForm({
     }
   };
 
-  const onError: SubmitErrorHandler<CarFormData> = (errors) => {
+  const onError: SubmitErrorHandler<CarFormInput> = (errors) => {
     if (errors.photoFiles) {
       toast.error("Please select a cover image before submitting.");
     } else {
-      toast.error("Please fill in all required fields correctly.");
+      toast.error(summarizeFieldErrors(errors));
     }
   };
 
@@ -129,6 +145,12 @@ export default function CarListingForm({
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      const problem = validateImageFile(file);
+      if (problem) {
+        toast.error(problem);
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const newPreviews = [...imagePreviews];
@@ -271,6 +293,7 @@ export default function CarListingForm({
                   label={t.fields.mileage}
                   placeholder={t.placeholders.mileage}
                   register={methods.register}
+                  isMandatory
                 />
                 <Select
                   id="condition"
@@ -454,6 +477,12 @@ export default function CarListingForm({
                     ))}
                   </div>
                 </div>
+              )}
+
+              {errors.photoFiles && (
+                <p className="text-sm text-red-500">
+                  {errors.photoFiles.message as string}
+                </p>
               )}
 
               {/* Main Cover Image */}

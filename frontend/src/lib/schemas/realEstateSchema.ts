@@ -1,46 +1,33 @@
 import { z } from "zod";
-import { Currency, PropertyListingType } from "@/types/enums";
+import { PropertyListingType } from "@/types/enums";
+import {
+  enumField,
+  numberField,
+  optionalNumberField,
+  optionalText,
+  requiredText,
+} from "./common";
+import { listingBaseShape, validateListingPhotos } from "./listingBase";
 
 export const realEstateSchema = z
   .object({
-    // Common Fields
-    title: z.string().min(1, { message: "Title is required" }),
-    description: z.string().min(1, { message: "Description is required" }),
-    price: z.coerce
-      .number()
-      .min(1, { message: "Price must be a positive number" }),
-    currency: z.enum(Object.values(Currency) as [string, ...string[]], {
-      message: "Currency is required",
-    }),
-    photoFiles: z.array(z.custom<File>((value) => value instanceof File)),
-    existingPhotoKeys: z.array(z.string()).default([]),
-    videoUrl: z.string().url().optional().or(z.literal("")),
-    qualityNarrative: z
-      .string()
-      .min(1, { message: "Quality narrative is required" }),
-    primaryEmail: z.string().email({ message: "Invalid email address" }),
-    primaryPhone: z.string().min(1, { message: "Phone number is required" }),
-    internalReferenceCode: z.string().optional(),
-    licenseNumber: z.string().min(1, { message: "License number is required" }),
-
+    ...listingBaseShape,
     // Real Estate Specific Fields
-    propertyType: z.string().min(1, { message: "Property type is required" }),
-    status: z.enum(Object.values(PropertyListingType) as [string, ...string[]]),
-    permitNumber: z.string().optional(),
-    bedrooms: z.coerce.number().int().min(0),
-    bathrooms: z.coerce.number().int().min(0),
-    builtUpArea: z.coerce
-      .number()
-      .positive({ message: "Built-up area must be a positive number" }),
+    propertyType: requiredText("Property type"),
+    status: enumField("Status", Object.values(PropertyListingType) as [string, ...string[]]),
+    permitNumber: optionalText("Permit number"),
+    bedrooms: numberField("Bedrooms", { min: 0, int: true }),
+    bathrooms: numberField("Bathrooms", { min: 0, int: true }),
+    builtUpArea: numberField("Built-up area", { gt: 0 }),
     plotArea: z.preprocess(
       (val) => (val === 0 || val === "" || val === null ? undefined : val),
-      z.coerce.number().positive().optional(),
+      optionalNumberField("Plot area", { gt: 0 }),
     ),
-    floor: z.coerce.number().int().optional(),
-    parking: z.coerce.number().int().min(0).optional(),
-    developer: z.string().optional(),
+    floor: optionalNumberField("Floor", { int: true }),
+    parking: optionalNumberField("Parking spaces", { min: 0, int: true }),
+    developer: optionalText("Developer"),
     furnished: z.boolean().optional(),
-    paymentPlan: z.string().optional(),
+    paymentPlan: optionalText("Payment plan"),
 
     // Arrays / Tags
     views: z.string().optional(),
@@ -50,16 +37,12 @@ export const realEstateSchema = z
     propertyTags: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.photoFiles.length + data.existingPhotoKeys.length < 1) {
-      ctx.addIssue({
-        code: "custom",
-        message: "At least one photo is required",
-        path: ["photoFiles"],
-      });
-    }
+    validateListingPhotos(data, ctx);
   });
 
 export type RealEstateFormData = z.infer<typeof realEstateSchema>;
+// Raw form values before zod's number preprocessing (inputs hold strings).
+export type RealEstateFormInput = z.input<typeof realEstateSchema>;
 
 export const defaultRealEstateValues: Partial<RealEstateFormData> = {
   title: "",

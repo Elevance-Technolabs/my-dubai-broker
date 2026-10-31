@@ -56,6 +56,7 @@ export default function AdminListingsView() {
   const [selectedListing, setSelectedListing] = useState<any | null>(null);
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [reasonError, setReasonError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [reasonModalAction, setReasonModalAction] = useState<
     typeof ApprovalStatus.REJECTED | typeof ApprovalStatus.CHANGES_REQUIRED
@@ -90,14 +91,16 @@ export default function AdminListingsView() {
     id: string,
     status: string,
     reason?: string,
-  ) => {
+  ): Promise<boolean> => {
     const response = await AdminService.updateListingStatus(id, status, reason);
     if (response.success) {
       toast.success(`Listing ${status.toLowerCase()} successfully`);
       fetchListings();
       setSelectedListing(null);
+      return true;
     } else {
       toast.error(response.error || "Failed to update status");
+      return false;
     }
   };
 
@@ -476,7 +479,10 @@ export default function AdminListingsView() {
             <div className="p-8">
               <textarea
                 value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
+                onChange={(e) => {
+                  setRejectionReason(e.target.value);
+                  if (reasonError) setReasonError(null);
+                }}
                 placeholder={
                   reasonModalAction === ApprovalStatus.REJECTED
                     ? "Reason for rejection (e.g., Photos are blurry, Invalid pricing...)"
@@ -485,6 +491,9 @@ export default function AdminListingsView() {
                 className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all min-h-[140px] font-satoshi text-sm bg-slate-50/50 placeholder:text-slate-400"
                 autoFocus
               />
+              {reasonError && (
+                <p className="text-sm text-red-500 mt-2">{reasonError}</p>
+              )}
             </div>
 
             <div className="p-8 bg-slate-50/30 flex items-center gap-4">
@@ -492,6 +501,7 @@ export default function AdminListingsView() {
                 onClick={() => {
                   setIsRejectionModalOpen(false);
                   setRejectionReason("");
+                  setReasonError(null);
                 }}
                 disabled={isUpdatingStatus}
                 className="flex-1 py-4 px-4 rounded-xl text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all disabled:opacity-50"
@@ -500,21 +510,38 @@ export default function AdminListingsView() {
               </button>
               <button
                 onClick={async () => {
-                  if (!rejectionReason.trim()) {
-                    toast.error("Please provide a reason");
+                  const trimmed = rejectionReason.trim();
+                  const problem = !trimmed
+                    ? "Reason is required"
+                    : trimmed.length < 3
+                      ? "Reason must be at least 3 characters"
+                      : trimmed.length > 500
+                        ? "Reason must be at most 500 characters"
+                        : null;
+                  if (problem) {
+                    setReasonError(problem);
+                    toast.error(problem);
                     return;
                   }
                   setIsUpdatingStatus(true);
-                  await handleStatusUpdate(
-                    selectedListing.id,
-                    reasonModalAction,
-                    rejectionReason,
-                  );
-                  setIsUpdatingStatus(false);
-                  setIsRejectionModalOpen(false);
-                  setRejectionReason("");
+                  try {
+                    const ok = await handleStatusUpdate(
+                      selectedListing.id,
+                      reasonModalAction,
+                      trimmed,
+                    );
+                    // Keep the modal (and the typed reason) open on failure.
+                    if (ok) {
+                      setIsRejectionModalOpen(false);
+                      setRejectionReason("");
+                    }
+                  } catch {
+                    toast.error("Could not update the status. Please try again.");
+                  } finally {
+                    setIsUpdatingStatus(false);
+                  }
                 }}
-                disabled={isUpdatingStatus || !rejectionReason.trim()}
+                disabled={isUpdatingStatus}
                 className="flex-2 py-4 px-4 bg-rose-600 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
               >
                 {isUpdatingStatus

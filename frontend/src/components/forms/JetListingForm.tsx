@@ -12,6 +12,7 @@ import {
   jetSchema,
   defaultJetValues,
   JetFormData,
+  JetFormInput,
 } from "@/lib/schemas/jetSchema";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -26,6 +27,12 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { jetService } from "@/services/jet.service";
 import { toast } from "sonner";
+import { validateImageFile } from "@/lib/utils/r2Upload";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+  jetFieldMap,
+} from "@/lib/utils/formErrors";
 
 type JetListingFormProps = {
   dict: JetListingDict;
@@ -53,13 +60,14 @@ export default function JetListingForm({
 }: JetListingFormProps) {
   const router = useRouter();
 
-  const methods = useForm<JetFormData>({
-    // @ts-ignore - complex zod schema with coercion causes type mismatch in resolver
+  const methods = useForm<JetFormInput, unknown, JetFormData>({
     resolver: zodResolver(jetSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
     defaultValues: {
       ...defaultJetValues,
       ...initialData,
-    } as JetFormData,
+    } as JetFormInput,
   });
 
   const {
@@ -100,7 +108,15 @@ export default function JetListingForm({
         );
         router.push("/dashboard");
       } else {
-        toast.error(response.error || "Failed to save listing");
+        const unmapped = applyServerFieldErrors(
+          methods.setError,
+          response.fieldErrors,
+          jetFieldMap,
+          Object.keys(methods.getValues()),
+        );
+        toast.error(response.error || "Failed to save listing", {
+          description: unmapped.length ? unmapped.join("; ") : undefined,
+        });
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
@@ -109,11 +125,11 @@ export default function JetListingForm({
     }
   };
 
-  const onError: SubmitErrorHandler<JetFormData> = (errors) => {
+  const onError: SubmitErrorHandler<JetFormInput> = (errors) => {
     if (errors.photoFiles) {
       toast.error("Please select a cover image before submitting.");
     } else {
-      toast.error("Please fill in all required fields correctly.");
+      toast.error(summarizeFieldErrors(errors));
     }
   };
 
@@ -123,6 +139,12 @@ export default function JetListingForm({
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      const problem = validateImageFile(file);
+      if (problem) {
+        toast.error(problem);
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const newPreviews = [...imagePreviews];
@@ -433,6 +455,12 @@ export default function JetListingForm({
                     ))}
                   </div>
                 </div>
+              )}
+
+              {errors.photoFiles && (
+                <p className="text-sm text-red-500">
+                  {errors.photoFiles.message as string}
+                </p>
               )}
 
               {/* Main Cover Image */}

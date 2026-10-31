@@ -1,57 +1,35 @@
 import { z } from "zod";
-import { Currency } from "@/types/enums";
+import {
+  numberField,
+  optionalNumberField,
+  optionalText,
+  requiredText,
+  yearField,
+} from "./common";
+import { listingBaseShape, validateListingPhotos } from "./listingBase";
 
 export const yachtSchema = z
   .object({
-    title: z.string().min(1, { message: "Title is required" }),
-    description: z.string().min(1, { message: "Description is required" }),
-    price: z.coerce
-      .number()
-      .min(1, { message: "Price must be a positive number" }),
-    currency: z.enum(Object.values(Currency) as [string, ...string[]], {
-      message: "Currency is required",
-    }),
-    photoFiles: z.array(z.custom<File>((value) => value instanceof File)),
-    existingPhotoKeys: z.array(z.string()).default([]),
-    videoUrl: z.string().url().optional().or(z.literal("")),
-    qualityNarrative: z
-      .string()
-      .min(1, { message: "Quality narrative is required" }),
-    primaryEmail: z.string().email({ message: "Invalid email address" }),
-    primaryPhone: z.string().min(1, { message: "Phone number is required" }),
-    internalReferenceCode: z.string().optional(),
-    licenseNumber: z.string().min(1, { message: "License number is required" }),
-
+    ...listingBaseShape,
     // Yacht Specific Fields
-    yachtType: z.string().min(1, { message: "Yacht type is required" }),
-    year: z.coerce
-      .number()
-      .min(1900)
-      .max(new Date().getFullYear() + 1),
-    make: z.string().min(1, { message: "Make is required" }),
-    length: z.coerce
-      .number()
-      .positive({ message: "Length must be a positive number" }),
-    beam: z.coerce
-      .number()
-      .positive({ message: "Beam must be a positive number" }),
-    crewInfo: z.string().optional(),
-    engineHours: z.coerce.number().min(0).optional(),
-    cabins: z.coerce.number().int().min(0).optional(),
-    materials: z.string().optional(),
+    yachtType: requiredText("Yacht type"),
+    year: yearField(),
+    make: requiredText("Make"),
+    length: numberField("Length", { gt: 0 }),
+    beam: numberField("Beam", { gt: 0 }),
+    crewInfo: optionalText("Crew info"),
+    engineHours: optionalNumberField("Engine hours", { min: 0 }),
+    cabins: optionalNumberField("Cabins", { min: 0, int: true }),
+    materials: optionalText("Materials"),
     navigation: z.array(z.string()).optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.photoFiles.length + data.existingPhotoKeys.length < 1) {
-      ctx.addIssue({
-        code: "custom",
-        message: "At least one photo is required",
-        path: ["photoFiles"],
-      });
-    }
+    validateListingPhotos(data, ctx);
   });
 
 export type YachtFormData = z.infer<typeof yachtSchema>;
+// Raw form values before zod's number preprocessing (inputs hold strings).
+export type YachtFormInput = z.input<typeof yachtSchema>;
 
 export const defaultYachtValues: Partial<YachtFormData> = {
   title: "",

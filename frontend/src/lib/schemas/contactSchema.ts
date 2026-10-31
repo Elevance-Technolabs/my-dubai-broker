@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { emailField, requiredText, selectField } from "./common";
 
 export const contactSchema = z.object({
-  fullName: z.string().min(1, { message: "Full name is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
-  category: z.string().min(1, { message: "Please select an option" }),
-  subject: z.string().min(1, { message: "Subject is required" }),
-  message: z.string().min(1, { message: "Message is required" }),
+  fullName: requiredText("Full name", { min: 2, max: 100 }),
+  email: emailField("Email"),
+  category: selectField("Category"),
+  subject: requiredText("Subject", { min: 3, max: 150 }),
+  message: requiredText("Message", { min: 10, max: 2000 }),
 });
 
 export type ContactFormData = z.infer<typeof contactSchema>;

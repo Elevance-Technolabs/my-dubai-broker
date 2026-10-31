@@ -25,19 +25,41 @@ export const paginationSchema = z.object({
 
 export const createListingSchema = z.object({
 	// Core
-	title: z.string().min(5).max(200),
-	description: z.string().min(20),
-	category: z.enum(enumValues(CompanyCategory)),
-	assetType: z.enum(enumValues(AssetType)),
-	offeringType: z.enum(enumValues(OfferingType)),
+	title: z
+		.string("Title is required")
+		.min(5, "Title must be at least 5 characters")
+		.max(200, "Title must be at most 200 characters"),
+	description: z
+		.string("Description is required")
+		.min(20, "Description must be at least 20 characters"),
+	category: z.enum(enumValues(CompanyCategory), "Please choose a valid category"),
+	assetType: z.enum(enumValues(AssetType), "Please choose a valid asset type"),
+	offeringType: z.enum(enumValues(OfferingType), "Please choose a valid offering type"),
 
 	// Pricing (at least one price field or priceOnRequest required — validated in service)
-	salePrice: z.number().positive().optional(),
-	annualRent: z.number().positive().optional(),
-	monthlyRent: z.number().positive().optional(),
-	dailyRate: z.number().positive().optional(),
-	charterRate: z.number().positive().optional(),
-	currency: z.enum(enumValues(Currency)).default("AED"),
+	salePrice: z
+		.number("Sale price must be a number")
+		.positive("Sale price must be greater than 0")
+		.optional(),
+	annualRent: z
+		.number("Annual rent must be a number")
+		.positive("Annual rent must be greater than 0")
+		.optional(),
+	monthlyRent: z
+		.number("Monthly rent must be a number")
+		.positive("Monthly rent must be greater than 0")
+		.optional(),
+	dailyRate: z
+		.number("Daily rate must be a number")
+		.positive("Daily rate must be greater than 0")
+		.optional(),
+	charterRate: z
+		.number("Charter rate must be a number")
+		.positive("Charter rate must be greater than 0")
+		.optional(),
+	currency: z
+		.enum(enumValues(Currency), "Please choose a valid currency")
+		.default("AED"),
 	priceOnRequest: z.boolean().default(false),
 	negotiable: z.boolean().default(false),
 
@@ -52,13 +74,19 @@ export const createListingSchema = z.object({
 	operatingBase: z.string().optional(),
 
 	// Contact
-	primaryEmail: z.preprocess(emptyToUndefined, z.string().email().optional()),
+	primaryEmail: z.preprocess(emptyToUndefined, z.string().email("Enter a valid email address").optional()),
 	primaryPhone: z.string().optional(),
 
 	// Media
 	photoUploadIds: z.array(z.string()).default([]),
-	videoUrl: z.preprocess(emptyToUndefined, z.string().url().optional()),
-	vrTourUrl: z.preprocess(emptyToUndefined, z.string().url().optional()),
+	videoUrl: z.preprocess(
+		emptyToUndefined,
+		z.string().url("Video link must be a valid URL (including https://)").optional(),
+	),
+	vrTourUrl: z.preprocess(
+		emptyToUndefined,
+		z.string().url("VR tour link must be a valid URL (including https://)").optional(),
+	),
 
 	// Internal
 	licenseNumber: z.string().optional(),

@@ -12,6 +12,8 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import Textarea from "../ui/Textarea";
+import { toast } from "sonner";
+import { summarizeFieldErrors } from "@/lib/utils/formErrors";
 
 type ContactFormProps = {
   dict: any;
@@ -21,14 +23,21 @@ export default function ContactForm({ dict }: ContactFormProps) {
   const methods = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: defaultContactValues,
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 
   const onSubmit = (data: ContactFormData) => {
     console.log("Form Data:", data);
-    // Handle submission logic here
+    // TODO: no backend endpoint exists for contact requests yet; once one
+    // does, send `data` here and toast.error on failure.
+    toast.success("Thank you. Your message has been received.");
+    methods.reset(defaultContactValues);
   };
 
-  const messageError = methods.formState.errors.message?.message;
+  const onInvalid = (errors: Parameters<typeof summarizeFieldErrors>[0]) => {
+    toast.error(summarizeFieldErrors(errors));
+  };
 
   return (
     <section className="bg-white py-24">
@@ -44,7 +53,7 @@ export default function ContactForm({ dict }: ContactFormProps) {
 
         <FormProvider {...methods}>
           <form
-            onSubmit={methods.handleSubmit(onSubmit)}
+            onSubmit={methods.handleSubmit(onSubmit, onInvalid)}
             className="space-y-12"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -53,6 +62,7 @@ export default function ContactForm({ dict }: ContactFormProps) {
                 label={dict.form.fields.fullName}
                 placeholder={dict.form.placeholders.fullName}
                 register={methods.register}
+                isMandatory
                 className="bg-[#FAFAFA] px-4 py-4"
                 labelClassName="text-[10px] uppercase tracking-widest text-[#B5B5B5] mb-2 font-semibold"
               />
@@ -62,6 +72,7 @@ export default function ContactForm({ dict }: ContactFormProps) {
                 placeholder={dict.form.placeholders.emailAddress}
                 type="email"
                 register={methods.register}
+                isMandatory
                 className="bg-[#FAFAFA] px-4 py-4"
                 labelClassName="text-[10px] uppercase tracking-widest text-[#B5B5B5] mb-2 font-semibold"
               />
@@ -82,6 +93,7 @@ export default function ContactForm({ dict }: ContactFormProps) {
                   },
                 ]}
                 register={methods.register}
+                isMandatory
                 className="bg-[#FAFAFA] px-4 py-4"
                 labelClassName="text-[10px] uppercase tracking-widest text-[#B5B5B5] mb-2 font-semibold"
               />
@@ -90,6 +102,7 @@ export default function ContactForm({ dict }: ContactFormProps) {
                 label={dict.form.fields.subject}
                 placeholder={dict.form.placeholders.subject}
                 register={methods.register}
+                isMandatory
                 className="bg-[#FAFAFA] px-4 py-4"
                 labelClassName="text-[10px] uppercase tracking-widest text-[#B5B5B5] mb-2 font-semibold"
               />
@@ -103,6 +116,7 @@ export default function ContactForm({ dict }: ContactFormProps) {
                 rows={8}
                 className={`bg-[#FAFAFA] px-4 py-4 text-sm font-sans focus:outline-none transition-colors placeholder:text-gray-300 resize-none w-full`}
                 register={methods.register}
+                isMandatory
                 labelClassName="text-[10px] uppercase tracking-widest text-[#B5B5B5] mb-2 font-semibold"
               />
             </div>

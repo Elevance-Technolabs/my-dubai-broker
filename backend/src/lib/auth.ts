@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { admin } from "better-auth/plugins";
+import { admin, bearer } from "better-auth/plugins";
 import { prisma } from "../prisma/client.js";
 import { emailTemplates, sendEmail } from "./email.js";
 import { env } from "./env.js";
@@ -60,6 +60,12 @@ export const auth = betterAuth({
 		// additionalFields.role.defaultValue says above. "user" is not a
 		// valid UserRole. This is the option that actually controls it.
 		admin({ defaultRole: "viewer" }),
+		// Accepts `Authorization: Bearer <token>` as an alternative to the
+		// session cookie. The deployed frontend (vercel.app) and backend
+		// (onrender.com) are different sites, so browsers that block
+		// third-party cookies never send the cookie back — the frontend
+		// stores the `set-auth-token` response header and sends it instead.
+		bearer(),
 	],
 	// socialProviders: {
 	// 	google: {

@@ -12,6 +12,7 @@ import {
   helicopterSchema,
   defaultHelicopterValues,
   HelicopterFormData,
+  HelicopterFormInput,
 } from "@/lib/schemas/helicopterSchema";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -26,6 +27,12 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { helicopterService } from "@/services/helicopter.service";
 import { toast } from "sonner";
+import { validateImageFile } from "@/lib/utils/r2Upload";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+  helicopterFieldMap,
+} from "@/lib/utils/formErrors";
 
 type HelicopterListingFormProps = {
   dict: HelicopterListingDict;
@@ -53,13 +60,14 @@ export default function HelicopterListingForm({
 }: HelicopterListingFormProps) {
   const router = useRouter();
 
-  const methods = useForm<HelicopterFormData>({
-    // @ts-ignore - complex zod schema with coercion causes type mismatch in resolver
+  const methods = useForm<HelicopterFormInput, unknown, HelicopterFormData>({
     resolver: zodResolver(helicopterSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
     defaultValues: {
       ...defaultHelicopterValues,
       ...initialData,
-    } as HelicopterFormData,
+    } as HelicopterFormInput,
   });
 
   const {
@@ -100,7 +108,15 @@ export default function HelicopterListingForm({
         );
         router.push("/dashboard");
       } else {
-        toast.error(response.error || "Failed to save listing");
+        const unmapped = applyServerFieldErrors(
+          methods.setError,
+          response.fieldErrors,
+          helicopterFieldMap,
+          Object.keys(methods.getValues()),
+        );
+        toast.error(response.error || "Failed to save listing", {
+          description: unmapped.length ? unmapped.join("; ") : undefined,
+        });
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
@@ -109,11 +125,11 @@ export default function HelicopterListingForm({
     }
   };
 
-  const onError: SubmitErrorHandler<HelicopterFormData> = (errors) => {
+  const onError: SubmitErrorHandler<HelicopterFormInput> = (errors) => {
     if (errors.photoFiles) {
       toast.error("Please select a cover image before submitting.");
     } else {
-      toast.error("Please fill in all required fields correctly.");
+      toast.error(summarizeFieldErrors(errors));
     }
   };
 
@@ -123,6 +139,12 @@ export default function HelicopterListingForm({
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      const problem = validateImageFile(file);
+      if (problem) {
+        toast.error(problem);
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const newPreviews = [...imagePreviews];
@@ -432,6 +454,12 @@ export default function HelicopterListingForm({
                     ))}
                   </div>
                 </div>
+              )}
+
+              {errors.photoFiles && (
+                <p className="text-sm text-red-500">
+                  {errors.photoFiles.message as string}
+                </p>
               )}
 
               {/* Main Cover Image */}

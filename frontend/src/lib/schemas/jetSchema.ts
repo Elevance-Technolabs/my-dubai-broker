@@ -1,63 +1,44 @@
 import { z } from "zod";
-import { Currency } from "@/types/enums";
+import {
+  enumField,
+  numberField,
+  optionalText,
+  requiredText,
+  yearField,
+} from "./common";
+import { listingBaseShape, validateListingPhotos } from "./listingBase";
 
 export const jetSchema = z
   .object({
-    // Common Fields
-    title: z.string().min(1, { message: "Title is required" }),
-    description: z.string().min(1, { message: "Description is required" }),
-    price: z.coerce
-      .number()
-      .min(1, { message: "Price must be a positive number" }),
-    offeringType: z.enum(["SALE", "CHARTER"]).default("SALE"),
-    rateBasis: z.enum(["HOUR", "DAY"]).default("HOUR"),
-    currency: z.enum(Object.values(Currency) as [string, ...string[]], {
-      message: "Currency is required",
-    }),
-    photoFiles: z.array(z.custom<File>((value) => value instanceof File)),
-    existingPhotoKeys: z.array(z.string()).default([]),
-    videoUrl: z.string().url().optional().or(z.literal("")),
-    qualityNarrative: z
-      .string()
-      .min(1, { message: "Quality narrative is required" }),
-    primaryEmail: z.string().email({ message: "Invalid email address" }),
-    primaryPhone: z.string().min(1, { message: "Phone number is required" }),
-    internalReferenceCode: z.string().optional(),
-    licenseNumber: z.string().min(1, { message: "License number is required" }),
-
+    ...listingBaseShape,
+    offeringType: enumField("Offering type", ["SALE", "CHARTER"]).default("SALE"),
+    rateBasis: enumField("Rate basis", ["HOUR", "DAY"]).default("HOUR"),
     // Jet Specific Fields
-    manufacturer: z.string().min(1, { message: "Manufacturer is required" }),
-    model: z.string().min(1, { message: "Model is required" }),
-    year: z.coerce
-      .number()
-      .min(1900)
-      .max(new Date().getFullYear() + 1),
-    totalHours: z.coerce
-      .number()
-      .min(0, { message: "Total hours must be positive" }),
-    passengerCapacity: z.coerce
-      .number()
-      .int()
-      .min(1, { message: "Capacity must be at least 1" }),
-    range: z.coerce
-      .number()
-      .int()
-      .positive({ message: "Range must be a positive number" }),
-    interiorDetails: z.string().optional(),
-    avionics: z.string().optional(),
-    maintenanceHistory: z.string().optional(),
+    manufacturer: requiredText("Manufacturer"),
+    model: requiredText("Model"),
+    year: yearField(),
+    totalHours: numberField("Total hours", { min: 0 }),
+    passengerCapacity: numberField("Passenger capacity", { min: 1, int: true }),
+    range: numberField("Range", { gt: 0, int: true }),
+    interiorDetails: optionalText("Interior details"),
+    avionics: optionalText("Avionics"),
+    maintenanceHistory: optionalText("Maintenance history"),
   })
   .superRefine((data, ctx) => {
-    if (data.photoFiles.length + data.existingPhotoKeys.length < 1) {
+    validateListingPhotos(data, ctx);
+    // Charter listings are priced per hour or per day, so both are needed.
+    if (data.offeringType === "CHARTER" && !data.rateBasis) {
       ctx.addIssue({
         code: "custom",
-        message: "At least one photo is required",
-        path: ["photoFiles"],
+        message: "Please select a rate basis",
+        path: ["rateBasis"],
       });
     }
   });
 
 export type JetFormData = z.infer<typeof jetSchema>;
+// Raw form values before zod's number preprocessing (inputs hold strings).
+export type JetFormInput = z.input<typeof jetSchema>;
 
 export const defaultJetValues: Partial<JetFormData> = {
   title: "",

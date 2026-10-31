@@ -5,6 +5,8 @@ import React, { useState, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils/cn";
 import { Upload, X, FileText, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+import { ALLOWED_DOCUMENT_TYPES, validateImageFile } from "@/lib/utils/r2Upload";
 
 interface FileUploadProps {
   id: string;
@@ -36,12 +38,27 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   const fieldError = errors?.[id]?.message as string | undefined;
 
+  // Reject unsupported / oversized files up front with a toast naming the
+  // file, rather than failing later during the upload.
+  const filterValid = (list: FileList | null): File[] => {
+    const valid: File[] = [];
+    for (const file of Array.from(list ?? [])) {
+      const problem = validateImageFile(file, ALLOWED_DOCUMENT_TYPES);
+      if (problem) {
+        toast.error(problem);
+      } else {
+        valid.push(file);
+      }
+    }
+    return valid;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
+    const selectedFiles = filterValid(e.target.files);
     if (selectedFiles && selectedFiles.length > 0) {
       if (multiple) {
         const currentFiles = Array.isArray(files) ? files : [];
-        setValue(id, [...currentFiles, ...Array.from(selectedFiles)], { shouldValidate: true, shouldDirty: true });
+        setValue(id, [...currentFiles, ...selectedFiles], { shouldValidate: true, shouldDirty: true });
       } else {
         setValue(id, selectedFiles[0], { shouldValidate: true, shouldDirty: true });
       }
@@ -62,11 +79,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const droppedFiles = e.dataTransfer.files;
+    const droppedFiles = filterValid(e.dataTransfer.files);
     if (droppedFiles && droppedFiles.length > 0) {
       if (multiple) {
         const currentFiles = files || [];
-        setValue(id, [...currentFiles, ...Array.from(droppedFiles)], { shouldValidate: true });
+        setValue(id, [...currentFiles, ...droppedFiles], { shouldValidate: true });
       } else {
         setValue(id, droppedFiles[0], { shouldValidate: true });
       }
@@ -171,7 +188,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
         <span className="text-xs font-bold text-slate-900 mb-1">Drag & Drop or Click to Upload</span>
         <span className="text-[10px] text-slate-400 uppercase tracking-widest font-medium">
-          {helperText || `Maximum size 10MB (${accept || 'All formats'})`}
+          {helperText || `Maximum size 5MB (${accept || 'All formats'})`}
         </span>
       </div>
 

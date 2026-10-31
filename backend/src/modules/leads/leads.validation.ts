@@ -2,12 +2,14 @@ import { z } from "zod";
 
 export const createLeadSchema = z
 	.object({
-		listingId: z.string().min(1),
-		customerName: z.string().min(1),
+		listingId: z.string().min(1, "Listing is required"),
+		customerName: z.string().min(1, "Please enter your name"),
 		customerPhone: z.string().optional(),
-		customerEmail: z.string().email().optional(),
+		customerEmail: z.string().email("Enter a valid email address").optional(),
 		customerCountry: z.string().optional(),
-		preferredContact: z.enum(["call", "whatsapp", "email"]).optional(),
+		preferredContact: z
+			.enum(["call", "whatsapp", "email"], "Choose call, WhatsApp or email")
+			.optional(),
 		consentRecorded: z.boolean().optional(),
 		message: z.string().optional(),
 		sourcePage: z.string().optional(),
@@ -16,9 +18,14 @@ export const createLeadSchema = z
 		utmMedium: z.string().optional(),
 		utmCampaign: z.string().optional(),
 		utmContent: z.string().optional(),
-		budget: z.number().positive().optional(),
+		budget: z
+			.number("Budget must be a number")
+			.positive("Budget must be greater than 0")
+			.optional(),
 		timeframe: z.string().optional(),
-		intent: z.enum(["buy", "rent", "invest", "charter"]).optional(),
+		intent: z
+			.enum(["buy", "rent", "invest", "charter"], "Choose a valid enquiry type")
+			.optional(),
 	})
 	.refine((data) => data.customerPhone || data.customerEmail, {
 		message: "Provide at least a phone number or an email address",
@@ -67,5 +74,5 @@ export const addLeadActivitySchema = z.object({
 });
 
 export const assignLeadSchema = z.object({
-	assigneeId: z.string().min(1),
+	assigneeId: z.string().min(1, "Please choose who to assign this lead to"),
 });

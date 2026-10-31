@@ -12,6 +12,7 @@ import {
   yachtSchema,
   defaultYachtValues,
   YachtFormData,
+  YachtFormInput,
 } from "@/lib/schemas/yachtSchema";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -26,6 +27,12 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { yachtService } from "@/services/yacht.service"; // Corrected import path/name if needed
 import { toast } from "sonner";
+import { validateImageFile } from "@/lib/utils/r2Upload";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+  yachtFieldMap,
+} from "@/lib/utils/formErrors";
 
 type YachtListingFormProps = {
   dict: YachtListingDict;
@@ -53,13 +60,14 @@ export default function YachtListingForm({
 }: YachtListingFormProps) {
   const router = useRouter();
 
-  const methods = useForm<YachtFormData>({
-    // @ts-ignore - complex zod schema with coercion causes type mismatch in resolver
+  const methods = useForm<YachtFormInput, unknown, YachtFormData>({
     resolver: zodResolver(yachtSchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
     defaultValues: {
       ...defaultYachtValues,
       ...initialData,
-    } as YachtFormData,
+    } as YachtFormInput,
   });
 
   const {
@@ -100,7 +108,15 @@ export default function YachtListingForm({
         );
         router.push("/dashboard");
       } else {
-        toast.error(response.error || "Failed to save listing");
+        const unmapped = applyServerFieldErrors(
+          methods.setError,
+          response.fieldErrors,
+          yachtFieldMap,
+          Object.keys(methods.getValues()),
+        );
+        toast.error(response.error || "Failed to save listing", {
+          description: unmapped.length ? unmapped.join("; ") : undefined,
+        });
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
@@ -109,11 +125,11 @@ export default function YachtListingForm({
     }
   };
 
-  const onError: SubmitErrorHandler<YachtFormData> = (errors) => {
+  const onError: SubmitErrorHandler<YachtFormInput> = (errors) => {
     if (errors.photoFiles) {
       toast.error("Please select a cover image before submitting.");
     } else {
-      toast.error("Please fill in all required fields correctly.");
+      toast.error(summarizeFieldErrors(errors));
     }
   };
 
@@ -123,6 +139,12 @@ export default function YachtListingForm({
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      const problem = validateImageFile(file);
+      if (problem) {
+        toast.error(problem);
+        e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const newPreviews = [...imagePreviews];
@@ -395,6 +417,12 @@ export default function YachtListingForm({
                     ))}
                   </div>
                 </div>
+              )}
+
+              {errors.photoFiles && (
+                <p className="text-sm text-red-500">
+                  {errors.photoFiles.message as string}
+                </p>
               )}
 
               {/* Main Cover Image */}

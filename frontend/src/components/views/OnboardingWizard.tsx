@@ -6,6 +6,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   defaultOnboardingValues,
+  ONBOARDING_DOCUMENT_LABELS,
   AssetCategory,
   assetCategories,
   onboardingStep1Schema,
@@ -36,11 +37,85 @@ import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { UploadService } from "@/services/upload.service";
 import { CompanyService } from "@/services/company.service";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+} from "@/lib/utils/formErrors";
 import { CATEGORY_LABEL_TO_ENUM, CategoryLabel } from "@/types/enums";
 
 interface OnboardingWizardProps {
   dict: OnboardingDict;
 }
+
+// Backend onboarding field -> wizard form field. `*UploadId` fields map to the
+// file input that produced them.
+const ONBOARDING_FIELD_MAP: Record<string, string> = {
+  name: "companyName",
+  contactEmail: "contactEmails",
+  contactPhone: "phoneNumbers",
+  languages: "languagesSpoken",
+  "socialMedia.instagram": "socialMediaLinks.instagram",
+  "socialMedia.linkedin": "socialMediaLinks.linkedin",
+  "socialMedia.twitter": "socialMediaLinks.twitter",
+  tradeLicenseUploadId: "tradeLicense",
+  reraLicenseUploadId: "reraLicense",
+  emiratesIdUploadId: "ownerEmiratesId",
+  passportUploadId: "ownerPassport",
+  showroomRegistrationUploadId: "showroomRegistration",
+  carDealerLicenseUploadId: "carDealerLicense",
+  marineTradeLicenseUploadId: "marineTradeLicense",
+  boatDealerCertificateUploadId: "boatDealerCertificate",
+  aviationDealerLicenseUploadId: "aviationDealerLicense",
+  aocOperatorDocumentUploadId: "aocDocument",
+  companyLogoUploadId: "companyLogo",
+  coverImageUploadId: "coverImage",
+  listingLogoUploadId: "listingLogo",
+};
+
+const ONBOARDING_KNOWN_FIELDS = [
+  ...Object.keys(defaultOnboardingValues),
+  "socialMediaLinks.instagram",
+  "socialMediaLinks.linkedin",
+  "socialMediaLinks.twitter",
+];
+
+const STEP_FIELDS: Record<number, string[]> = {
+  1: ["categories"],
+  2: [
+    "tradeLicense",
+    "reraLicense",
+    "brn",
+    "carTradeLicense",
+    "carDealerLicense",
+    "showroomRegistration",
+    "marineTradeLicense",
+    "boatDealerCertificate",
+    "aviationDealerLicense",
+    "aocDocument",
+    "ownerEmiratesId",
+    "ownerPassport",
+  ],
+};
+const stepForField = (field: string) =>
+  Number(
+    Object.entries(STEP_FIELDS).find(([, names]) => names.includes(field))?.[0] ??
+      3,
+  );
+
+const FIELD_LABELS: Record<string, string> = {
+  ...ONBOARDING_DOCUMENT_LABELS,
+  companyName: "Company name",
+  contactEmails: "Contact email",
+  phoneNumbers: "Contact phone",
+  websiteUrl: "Website",
+  ownerEmail: "Owner email",
+  languagesSpoken: "Languages",
+  "socialMediaLinks.instagram": "Instagram link",
+  "socialMediaLinks.linkedin": "LinkedIn link",
+  "socialMediaLinks.twitter": "Twitter link",
+  companyLogo: "Company logo",
+  coverImage: "Cover image",
+};
 
 const steps = [
   { id: 1, title: "Categories" },
@@ -131,12 +206,14 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
           ? onboardingStep2Schema
           : onboardingStep3Schema,
     ),
-    mode: "onChange",
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 
   const {
     watch,
     setValue,
+    setError,
     register,
     handleSubmit,
     formState: { errors, isValid },
@@ -197,18 +274,24 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
 
     if (isStepValid && currentStep < 3) {
       setCurrentStep(currentStep + 1);
-    } else {
-      // Trigger a validation to show specific error messages in the UI
-      await trigger();
-      if (!isStepValid) {
-        toast.error("Please upload all required documents");
-      }
+    } else if (!isStepValid) {
+      // trigger() above already populated the inline errors; name them in a toast.
+      toast.error(summarizeFieldErrors(methods.formState.errors, FIELD_LABELS));
     }
+  };
+
+  const onInvalid = (errors: any) => {
+    toast.error(summarizeFieldErrors(errors, FIELD_LABELS));
   };
 
   const prevStep = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
+
+  // Abort the whole submission when a document fails to upload: continuing
+  // would register the company without that document.
+  const uploadFailure = (field: string, error: any) =>
+    `${FIELD_LABELS[field] ?? field} upload failed: ${error?.message ?? "please try again"}`;
 
   const uploadFiles = async (data: any) => {
     const fileFields = [
@@ -239,7 +322,7 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
           });
           updatedData[`${field}UploadId`] = uploaded.uploadId;
         } catch (error: any) {
-          toast.error(`Failed to upload ${field}: ${error.message}`);
+          throw new Error(uploadFailure(field, error));
         }
       } else if (Array.isArray(file) && file[0] instanceof File) {
         try {
@@ -248,7 +331,7 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
           });
           updatedData[`${field}UploadId`] = uploaded.uploadId;
         } catch (error: any) {
-          toast.error(`Failed to upload ${field}: ${error.message}`);
+          throw new Error(uploadFailure(field, error));
         }
       }
     }
@@ -315,8 +398,22 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
         clearOnboardingDraft();
         router.push(`/${locale}/admin-login`);
       } else {
+        const unmapped = applyServerFieldErrors(
+          setError,
+          response.fieldErrors,
+          ONBOARDING_FIELD_MAP,
+          ONBOARDING_KNOWN_FIELDS,
+        );
+        // Jump to the earliest step that has a server-reported problem.
+        const mappedNames = Object.keys(response.fieldErrors ?? {})
+          .map((f) => (f in ONBOARDING_FIELD_MAP ? ONBOARDING_FIELD_MAP[f] : f))
+          .filter((n) => ONBOARDING_KNOWN_FIELDS.includes(n));
+        if (mappedNames.length > 0) {
+          setCurrentStep(Math.min(...mappedNames.map(stepForField)));
+        }
         toast.error(response.error || "Failed to complete onboarding", {
           id: loadingToast,
+          description: unmapped.length ? unmapped.join("; ") : undefined,
         });
       }
     } catch (error: any) {
@@ -600,10 +697,12 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                   id="companyName"
                   label={dict.steps.step3.fields.companyName}
                   register={register}
+                  isMandatory
                 />
                 <div className="space-y-1.5">
                   <label className="text-slate-900 font-medium text-sm mb-1.5">
-                    {dict.steps.step3.fields.description}
+                    {dict.steps.step3.fields.description}{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     {...(register as any)("description")}
@@ -653,7 +752,6 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                   label={dict.steps.step3.fields.website}
                   register={register}
                   placeholder="https://..."
-                  isMandatory
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -734,24 +832,21 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Input
                       id="socialMediaLinks.instagram"
-                      placeholder="Instagram URL"
+                      placeholder="Instagram URL (optional)"
                       register={register}
                       leftIcon={<Instagram size={16} />}
-                      isMandatory
                     />
                     <Input
                       id="socialMediaLinks.linkedin"
-                      placeholder="LinkedIn URL"
+                      placeholder="LinkedIn URL (optional)"
                       register={register}
                       leftIcon={<Linkedin size={16} />}
-                      isMandatory
                     />
                     <Input
                       id="socialMediaLinks.twitter"
-                      placeholder="Twitter URL"
+                      placeholder="Twitter URL (optional)"
                       register={register}
                       leftIcon={<Twitter size={16} />}
-                      isMandatory
                     />
                   </div>
                 </div>
@@ -851,7 +946,7 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
         {/* Form Content */}
         <div className="min-h-[300px] mb-12">
           <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)}>{renderStep()}</form>
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)}>{renderStep()}</form>
           </FormProvider>
         </div>
 
@@ -883,7 +978,7 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
               </button>
             ) : (
               <button
-                onClick={handleSubmit(onSubmit)}
+                onClick={handleSubmit(onSubmit, onInvalid)}
                 disabled={isSubmitting}
                 className="bg-gold text-white px-12 py-4 rounded-xl flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest hover:bg-gold-hover transition-all shadow-lg active:scale-95 shadow-gold/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >

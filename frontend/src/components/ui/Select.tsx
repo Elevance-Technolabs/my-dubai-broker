@@ -41,9 +41,10 @@ const Select: React.FC<SelectProps> = ({
   ...props
 }) => {
   const form = useFormContext();
-  const fieldError = form?.formState?.errors?.[id]?.message as
-    | string
-    | undefined;
+  const errorObj = id
+    .split(".")
+    .reduce<any>((obj, key) => obj?.[key], form?.formState?.errors);
+  const fieldError = errorObj?.message as string | undefined;
 
   const baseSelectClasses =
     "w-full border border-gray-200 px-4 py-3 text-sm font-sans focus:outline-none focus:border-gold transition-colors appearance-none bg-white placeholder:text-gray-300";

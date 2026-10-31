@@ -29,21 +29,21 @@ export const onboardingStep2Schema = z.object({
 });
 
 export const onboardingStep4Schema = z.object({
-	name: z.string().min(1, "Company name is required").optional(),
+	name: z.string("Company name is required").min(1, "Company name is required").optional(),
 	description: z
 		.string()
 		.min(10, "Description should be at least 10 characters")
 		.optional(),
-	address: z.string().min(5, "Address is required").optional(),
-	contactEmail: z.string().email("Invalid email address").optional(),
-	contactPhone: z.string().min(5, "Invalid phone number").optional(),
+	address: z.string().min(5, "Address must be at least 5 characters").optional(),
+	contactEmail: z.string().email("Contact email must be a valid email address").optional(),
+	contactPhone: z.string().min(5, "Contact phone must be at least 5 characters").optional(),
 	websiteUrl: z
 		.string()
-		.url("Invalid website URL")
+		.url("Website must be a valid URL (including https://)")
 		.optional()
 		.or(z.literal("")),
 	socialMedia: z
-		.record(z.string(), z.string().url().or(z.literal("")))
+		.record(z.string(), z.string().url("Enter a valid URL (including https://)").or(z.literal("")))
 		.optional(),
 	companyLogoUploadId: z.string().uuid().optional(),
 	coverImageUploadId: z.string().uuid().optional(),
@@ -52,7 +52,7 @@ export const onboardingStep4Schema = z.object({
 		.array(z.string())
 		.min(1, "At least one language must be selected")
 		.optional(),
-	ownerEmail: z.string().email("Invalid owner email").optional(),
+	ownerEmail: z.string().email("Owner email must be a valid email address").optional(),
 	password: z
 		.string()
 		.min(8, "Password must be at least 8 characters")
@@ -83,20 +83,20 @@ export const onboardingSchema = z.object({
 	aocOperatorDocumentUploadId: z.string().uuid().optional(),
 
 	// Step 4: Company Profile
-	name: z.string().min(1, "Company name is required"),
+	name: z.string("Company name is required").min(1, "Company name is required"),
 	description: z
 		.string()
 		.min(10, "Description should be at least 10 characters"),
-	address: z.string().min(5, "Address is required"),
-	contactEmail: z.string().email("Invalid email address"),
-	contactPhone: z.string().min(5, "Invalid phone number"),
+	address: z.string().min(5, "Address must be at least 5 characters"),
+	contactEmail: z.string().email("Contact email must be a valid email address"),
+	contactPhone: z.string().min(5, "Contact phone must be at least 5 characters"),
 	websiteUrl: z
 		.string()
-		.url("Invalid website URL")
+		.url("Website must be a valid URL (including https://)")
 		.optional()
 		.or(z.literal("")),
 	socialMedia: z
-		.record(z.string(), z.string().url().or(z.literal("")))
+		.record(z.string(), z.string().url("Enter a valid URL (including https://)").or(z.literal("")))
 		.optional(),
 	companyLogoUploadId: z.string().uuid().optional(),
 	coverImageUploadId: z.string().uuid().optional(),
@@ -104,6 +104,6 @@ export const onboardingSchema = z.object({
 	languages: z
 		.array(z.string())
 		.min(1, "At least one language must be selected"),
-	ownerEmail: z.string().email("Invalid owner email"),
+	ownerEmail: z.string().email("Owner email must be a valid email address"),
 	password: z.string().min(8, "Password must be at least 8 characters"),
 });

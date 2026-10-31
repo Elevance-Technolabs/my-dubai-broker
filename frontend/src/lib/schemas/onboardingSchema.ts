@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CATEGORY_LABELS, CategoryLabel } from "@/types/enums";
+import { fileField } from "./common";
 
 export const assetCategories = CATEGORY_LABELS;
 export type AssetCategory = CategoryLabel;
@@ -7,8 +8,25 @@ export type AssetCategory = CategoryLabel;
 export const onboardingStep1Schema = z.object({
   categories: z
     .array(z.enum(assetCategories))
-    .min(1, "Please select at least one category"),
+    .min(1, "At least one category must be selected"),
 });
+
+// One label per document, used both in the schema messages and by the
+// wizard's error toast, so the toast doesn't prefix a second, different name.
+export const ONBOARDING_DOCUMENT_LABELS: Record<string, string> = {
+  tradeLicense: "Real estate trade license",
+  reraLicense: "RERA license",
+  brn: "BRN",
+  carTradeLicense: "Car trade license",
+  carDealerLicense: "Car dealer license",
+  showroomRegistration: "Showroom registration",
+  marineTradeLicense: "Marine trade license",
+  boatDealerCertificate: "Boat dealer certificate",
+  aviationDealerLicense: "Aviation dealer license",
+  aocDocument: "AOC document",
+  ownerEmiratesId: "Emirates ID",
+  ownerPassport: "Passport",
+};
 
 export const onboardingStep2Schema = z
   .object({
@@ -38,102 +56,47 @@ export const onboardingStep2Schema = z
   })
   .superRefine((data, ctx) => {
     const cats = data.categories || [];
+    const values = data as Record<string, unknown>;
+
+    const requireDocs = (keys: string[]) => {
+      for (const key of keys) {
+        if (!values[key]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${ONBOARDING_DOCUMENT_LABELS[key]} is required`,
+            path: [key],
+          });
+        }
+      }
+    };
 
     if (cats.includes("Real Estate")) {
-      if (!data.tradeLicense) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Real Estate: Trade license is required",
-          path: ["tradeLicense"],
-        });
-      }
-      if (!data.reraLicense) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Real Estate: Rera license is required",
-          path: ["reraLicense"],
-        });
-      }
-      if (!data.brn) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Real Estate: BRN is required",
-          path: ["brn"],
-        });
-      }
+      requireDocs(["tradeLicense", "reraLicense", "brn"]);
     }
-
     if (cats.includes("Cars")) {
-      if (!data.carTradeLicense) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Cars: Trade license is required",
-          path: ["carTradeLicense"],
-        });
-      }
-      if (!data.carDealerLicense) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Cars: Dealer license is required",
-          path: ["carDealerLicense"],
-        });
-      }
-      if (!data.showroomRegistration) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Cars: Showroom registration is required",
-          path: ["showroomRegistration"],
-        });
-      }
+      requireDocs(["carTradeLicense", "carDealerLicense", "showroomRegistration"]);
     }
-
     if (cats.includes("Yachts")) {
-      if (!data.marineTradeLicense) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Yachts: Marine trade license is required",
-          path: ["marineTradeLicense"],
-        });
-      }
-      if (!data.boatDealerCertificate) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Yachts: Boat dealer certificate is required",
-          path: ["boatDealerCertificate"],
-        });
-      }
+      requireDocs(["marineTradeLicense", "boatDealerCertificate"]);
     }
-
     if (cats.includes("Private Jets / Helicopters")) {
-      if (!data.aviationDealerLicense) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Jets: Aviation dealer license is required",
-          path: ["aviationDealerLicense"],
-        });
-      }
-      if (!data.aocDocument) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Jets: AOC Document is required",
-          path: ["aocDocument"],
-        });
-      }
+      requireDocs(["aviationDealerLicense", "aocDocument"]);
     }
+    requireDocs(["ownerEmiratesId", "ownerPassport"]);
 
-    if (!data.ownerEmiratesId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Owner's Emirates ID is required",
-        path: ["ownerEmiratesId"],
-      });
-    }
-    if (!data.ownerPassport) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Owner's Passport is required",
-        path: ["ownerPassport"],
-      });
+    // Type / size of anything that was picked (same limits as the backend presign).
+    for (const [key, label] of Object.entries(ONBOARDING_DOCUMENT_LABELS)) {
+      if (key === "brn") continue; // text field, not a file
+      const value = values[key];
+      if (!value) continue;
+      const res = fileField(label, { allowPdf: true }).safeParse(value);
+      if (!res.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: res.error.issues[0].message,
+          path: [key],
+        });
+      }
     }
   });
 
@@ -154,35 +117,39 @@ export const onboardingStep3Schema = z.object({
   ownerPassport: z.any().optional(),
 
   // Step 3 specific fields
-  companyName: z.string().min(2, "Company name is required"),
+  companyName: z.string().min(1, "Company name is required"),
   description: z
     .string()
-    .min(10, "Description should be at least 10 characters"),
-  address: z.string().min(5, "Address is required"),
-  contactEmails: z.string().email("Invalid email address"),
-  phoneNumbers: z.string().min(7, "Phone number is required"),
-  websiteUrl: z.string().url("Valid Website URL is required"),
-  ownerEmail: z.string().email("Invalid owner email"),
+    .min(10, "Description must be at least 10 characters"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  contactEmails: z
+    .string()
+    .email("Contact email must be a valid email address"),
+  phoneNumbers: z.string().min(5, "Contact phone must be at least 5 characters"),
+  websiteUrl: z
+    .string()
+    .url("Website must be a valid URL (including https://)")
+    .or(z.literal("")),
+  ownerEmail: z.string().email("Owner email must be a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   socialMediaLinks: z.object({
-    instagram: z.string().url("Valid Instagram URL is required"),
-    linkedin: z.string().url("Valid LinkedIn URL is required"),
-    twitter: z.string().url("Valid Twitter URL is required"),
+    instagram: z
+      .string()
+      .url("Instagram link must be a valid URL (including https://)")
+      .or(z.literal("")),
+    linkedin: z
+      .string()
+      .url("LinkedIn link must be a valid URL (including https://)")
+      .or(z.literal("")),
+    twitter: z
+      .string()
+      .url("Twitter link must be a valid URL (including https://)")
+      .or(z.literal("")),
   }),
-  languagesSpoken: z.array(z.string()).min(1, "Select at least one language"),
-  companyLogo: z
-    .any()
-    .refine(
-      (val) => val !== null && val !== undefined,
-      "Company logo is required",
-    ),
-  coverImage: z
-    .any()
-    .refine(
-      (val) => val !== null && val !== undefined,
-      "Cover image is required",
-    ),
-  listingLogo: z.any().optional(),
+  languagesSpoken: z.array(z.string()).min(1, "At least one language must be selected"),
+  companyLogo: fileField("Company logo"),
+  coverImage: fileField("Cover image"),
+  listingLogo: fileField("Listing logo", { required: false }),
 });
 
 export type Step1Data = z.infer<typeof onboardingStep1Schema>;

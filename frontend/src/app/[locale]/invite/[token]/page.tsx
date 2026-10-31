@@ -1,6 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Input from "@/components/ui/Input";
+import {
+  acceptInvitationSchema,
+  type AcceptInvitationData,
+} from "@/lib/schemas/accountSchemas";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+} from "@/lib/utils/formErrors";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle } from "lucide-react";
@@ -19,52 +30,60 @@ export default function AcceptInvitationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const methods = useForm<AcceptInvitationData>({
+    resolver: zodResolver(acceptInvitationSchema),
+    defaultValues: { name: "", password: "", confirmPassword: "" },
+    mode: "onTouched",
+    reValidateMode: "onChange",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {
     if (!token) return;
-    InvitationService.getByToken(token).then((response) => {
-      if (response.success && response.data) {
-        setInvitation(response.data);
-      } else {
-        setError(response.error || "This invitation is no longer valid.");
-      }
-      setLoading(false);
-    });
+    InvitationService.getByToken(token)
+      .then((response) => {
+        if (response.success && response.data) {
+          setInvitation(response.data);
+        } else {
+          setError(response.error || "This invitation is no longer valid.");
+        }
+      })
+      .catch(() => setError("Could not load this invitation. Please try again."))
+      .finally(() => setLoading(false));
   }, [token]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      toast.error("Enter your full name");
-      return;
-    }
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
+  const onSubmit = async (data: AcceptInvitationData) => {
     setIsSubmitting(true);
-    const response = await InvitationService.accept(token, {
-      name: name.trim(),
-      password,
-    });
-    setIsSubmitting(false);
+    try {
+      const response = await InvitationService.accept(token, {
+        name: data.name.trim(),
+        password: data.password,
+      });
 
-    if (response.success) {
-      setAccepted(true);
-      toast.success("Account created — you can now sign in.");
-    } else {
-      toast.error(response.error || "Failed to accept invitation");
+      if (response.success) {
+        setAccepted(true);
+        toast.success("Account created. You can now sign in.");
+      } else {
+        const unmapped = applyServerFieldErrors(
+          methods.setError,
+          response.fieldErrors,
+          {},
+          ["name", "password"],
+        );
+        toast.error(response.error || "Failed to accept invitation", {
+          description: unmapped.length ? unmapped.join("; ") : undefined,
+        });
+      }
+    } catch {
+      toast.error("Could not reach the server. Please try again in a moment.");
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const onInvalid = (errors: Parameters<typeof summarizeFieldErrors>[0]) => {
+    toast.error(summarizeFieldErrors(errors));
   };
 
   if (loading) {
@@ -126,50 +145,45 @@ export default function AcceptInvitationPage() {
           <span className="font-medium text-luxury-black">{invitation.email}</span>.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-              Full name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold transition-colors"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold transition-colors"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-              Confirm password
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold transition-colors"
-            />
-          </div>
-          <Button
-            type="submit"
-            variant="dark"
-            disabled={isSubmitting}
-            className="w-full h-12"
+        <FormProvider {...methods}>
+          <form
+            onSubmit={methods.handleSubmit(onSubmit, onInvalid)}
+            className="space-y-5"
+            noValidate
           >
-            {isSubmitting ? "Creating account..." : "Accept & Create Account"}
-          </Button>
-        </form>
+            <Input
+              id="name"
+              label="Full name"
+              isMandatory
+              register={methods.register}
+              labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
+            />
+            <Input
+              id="password"
+              type="password"
+              label="Password"
+              isMandatory
+              register={methods.register}
+              labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
+            />
+            <Input
+              id="confirmPassword"
+              type="password"
+              label="Confirm password"
+              isMandatory
+              register={methods.register}
+              labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
+            />
+            <Button
+              type="submit"
+              variant="dark"
+              disabled={isSubmitting}
+              className="w-full h-12"
+            >
+              {isSubmitting ? "Creating account..." : "Accept & Create Account"}
+            </Button>
+          </form>
+        </FormProvider>
       </div>
     </div>
   );

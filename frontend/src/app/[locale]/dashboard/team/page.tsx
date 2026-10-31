@@ -21,6 +21,7 @@ import {
   InvitationService,
   type Invitation,
 } from "@/services/invitation.service";
+import { inviteSchema } from "@/lib/schemas/accountSchemas";
 import { CompanyService, type CompanyUser } from "@/services/company.service";
 import { UserRole, COMPANY_MANAGEMENT_ROLES } from "@/types/enums";
 
@@ -80,6 +81,7 @@ export default function TeamPage() {
   const [role, setRole] = useState<string>(UserRole.AGENT);
   const [allowDirectSubmit, setAllowDirectSubmit] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [inviteErrors, setInviteErrors] = useState<{ email?: string; role?: string }>({});
 
   const fetchInvitations = async () => {
     const response = await InvitationService.list();
@@ -109,39 +111,66 @@ export default function TeamPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canManage, isOwner]);
 
+  const validateInvite = (nextEmail: string, nextRole: string) => {
+    const result = inviteSchema.safeParse({ email: nextEmail.trim(), role: nextRole });
+    const next: { email?: string; role?: string } = {};
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as "email" | "role";
+        next[key] ??= issue.message;
+      }
+    }
+    setInviteErrors(next);
+    return next;
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
-      toast.error("Enter an email address");
+    const problems = validateInvite(email, role);
+    if (problems.email || problems.role) {
+      toast.error(
+        [problems.email, problems.role].filter(Boolean).join("; "),
+      );
       return;
     }
     setIsSending(true);
-    const response = await InvitationService.create({
-      email: email.trim(),
-      role: role as UserRole,
-      ...(role === UserRole.AGENT && allowDirectSubmit
-        ? { permissions: { [SUBMIT_CAPABILITY]: true } }
-        : {}),
-    });
-    setIsSending(false);
-
-    if (response.success && response.data) {
-      toast.success(`Invitation sent to ${email}`);
-      setEmail("");
-      setAllowDirectSubmit(false);
-      fetchInvitations();
-
-      // sendEmail is a placeholder that only logs server-side (see
-      // PENDING.md) — surface the link here too so it can be shared
-      // directly until a real provider (Resend) is wired in.
-      const link = inviteLinkFor(response.data.token);
-      navigator.clipboard?.writeText(link).catch(() => {});
-      toast.message("Invite link copied to clipboard", {
-        description: link,
-        duration: 10000,
+    try {
+      const response = await InvitationService.create({
+        email: email.trim(),
+        role: role as UserRole,
+        ...(role === UserRole.AGENT && allowDirectSubmit
+          ? { permissions: { [SUBMIT_CAPABILITY]: true } }
+          : {}),
       });
-    } else {
-      toast.error(response.error || "Failed to send invitation");
+
+      if (response.success && response.data) {
+        toast.success(`Invitation sent to ${email.trim()}`);
+        setEmail("");
+        setAllowDirectSubmit(false);
+        fetchInvitations();
+
+        // sendEmail is a placeholder that only logs server-side (see
+        // PENDING.md) - surface the link here too so it can be shared
+        // directly until a real provider (Resend) is wired in.
+        const link = inviteLinkFor(response.data.token);
+        navigator.clipboard?.writeText(link).catch(() => {});
+        toast.message("Invite link copied to clipboard", {
+          description: link,
+          duration: 10000,
+        });
+      } else {
+        if (response.fieldErrors) {
+          setInviteErrors({
+            email: response.fieldErrors.email,
+            role: response.fieldErrors.role,
+          });
+        }
+        toast.error(response.error || "Failed to send invitation");
+      }
+    } catch {
+      toast.error("Could not send the invitation. Please try again.");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -215,15 +244,22 @@ export default function TeamPage() {
       >
         <div className="flex-1 w-full">
           <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-            Email address
+            Email address <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (inviteErrors.email) validateInvite(e.target.value, role);
+            }}
+            onBlur={() => email && validateInvite(email, role)}
             placeholder="colleague@company.com"
-            className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold transition-colors"
+            className={`w-full px-4 py-3 border text-sm focus:outline-none focus:border-luxury-gold transition-colors ${
+              inviteErrors.email ? "border-red-500 bg-red-50" : "border-gray-200"
+            }`}
           />
+          <p className="text-sm text-red-500 mt-0.5 min-h-5">{inviteErrors.email}</p>
         </div>
         <div className="w-full md:w-56">
           <Select

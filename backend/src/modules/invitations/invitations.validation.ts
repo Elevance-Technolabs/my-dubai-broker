@@ -10,13 +10,15 @@ export const INVITABLE_ROLES = [
 ] as const;
 
 export const createInvitationSchema = z.object({
-	email: z.string().email(),
-	role: z.enum(INVITABLE_ROLES),
+	email: z.string("Email is required").email("Enter a valid email address"),
+	role: z.enum(INVITABLE_ROLES, "Please choose a valid role"),
 	permissions: z.record(z.string(), z.any()).optional(),
 });
 
 export const acceptInvitationSchema = z.object({
-	name: z.string().min(1),
-	password: z.string().min(8),
+	name: z.string("Name is required").min(1, "Name is required"),
+	password: z
+		.string("Password is required")
+		.min(8, "Password must be at least 8 characters"),
 	phoneNumber: z.string().optional(),
 });

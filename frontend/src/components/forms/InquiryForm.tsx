@@ -15,6 +15,25 @@ import Input from "../ui/Input";
 import Textarea from "../ui/Textarea";
 import PhoneInput from "../ui/PhoneInput";
 import { LeadService } from "@/services/lead.service";
+import {
+  applyServerFieldErrors,
+  summarizeFieldErrors,
+} from "@/lib/utils/formErrors";
+
+// Backend lead field -> form field.
+const INQUIRY_FIELD_MAP: Record<string, string | null> = {
+  customerName: "fullName",
+  customerEmail: "email",
+  customerPhone: "phone",
+  message: "message",
+  listingId: null,
+};
+const INQUIRY_LABELS = {
+  fullName: "Full name",
+  email: "Email",
+  phone: "Phone number",
+  message: "Message",
+};
 
 interface InquiryFormProps {
   listingId: string;
@@ -24,30 +43,51 @@ export default function InquiryForm({ listingId }: InquiryFormProps) {
   const methods = useForm<InquiryFormData>({
     resolver: zodResolver(inquirySchema),
     defaultValues: defaultInquiryValues,
-    mode: "onBlur",
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const onSubmit = async (data: InquiryFormData) => {
     setIsSubmitting(true);
-    const response = await LeadService.create({
-      listingId,
-      customerName: data.fullName,
-      customerEmail: data.email,
-      customerPhone: data.phone || undefined,
-      message: data.message,
-      sourcePage: typeof window !== "undefined" ? window.location.pathname : undefined,
-      sourceForm: "listing_inquiry",
-    });
-    setIsSubmitting(false);
+    try {
+      const response = await LeadService.create({
+        listingId,
+        customerName: data.fullName,
+        customerEmail: data.email,
+        customerPhone: data.phone || undefined,
+        message: data.message,
+        sourcePage:
+          typeof window !== "undefined" ? window.location.pathname : undefined,
+        sourceForm: "listing_inquiry",
+      });
 
-    if (response.success) {
-      setSubmitted(true);
-      methods.reset(defaultInquiryValues);
-    } else {
-      toast.error(response.error || "Failed to send your enquiry. Please try again.");
+      if (response.success) {
+        toast.success("Enquiry sent. An agent will get back to you shortly.");
+        setSubmitted(true);
+        methods.reset(defaultInquiryValues);
+      } else {
+        const unmapped = applyServerFieldErrors(
+          methods.setError,
+          response.fieldErrors,
+          INQUIRY_FIELD_MAP,
+          Object.keys(defaultInquiryValues),
+        );
+        toast.error(
+          response.error || "Failed to send your enquiry. Please try again.",
+          { description: unmapped.length ? unmapped.join("; ") : undefined },
+        );
+      }
+    } catch {
+      toast.error("Failed to send your enquiry. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const onInvalid = (errors: Parameters<typeof summarizeFieldErrors>[0]) => {
+    toast.error(summarizeFieldErrors(errors, INQUIRY_LABELS));
   };
 
   if (submitted) {
@@ -66,7 +106,7 @@ export default function InquiryForm({ listingId }: InquiryFormProps) {
   return (
     <FormProvider {...methods}>
       <form
-        onSubmit={methods.handleSubmit(onSubmit)}
+        onSubmit={methods.handleSubmit(onSubmit, onInvalid)}
         className="flex flex-col gap-2 space-y-3"
       >
         <Input

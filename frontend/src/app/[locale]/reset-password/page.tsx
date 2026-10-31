@@ -1,6 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Input from "@/components/ui/Input";
+import {
+  resetPasswordSchema,
+  type ResetPasswordData,
+} from "@/lib/schemas/accountSchemas";
+import { summarizeFieldErrors } from "@/lib/utils/formErrors";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Button from "@/components/ui/Button";
@@ -12,35 +20,40 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const methods = useForm<ResetPasswordData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+    mode: "onTouched",
+    reValidateMode: "onChange",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: ResetPasswordData) => {
     if (!token) {
       toast.error("This reset link is invalid or has expired.");
       return;
     }
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
     setIsSubmitting(true);
-    const response = await FrontendAuthService.resetPassword(password, token);
-    setIsSubmitting(false);
-
-    if (response.success) {
-      toast.success("Password reset — please sign in.");
-      router.push(`/${locale}/login`);
-    } else {
-      toast.error(response.error || "Failed to reset password");
+    try {
+      const response = await FrontendAuthService.resetPassword(
+        data.password,
+        token,
+      );
+      if (response.success) {
+        toast.success("Password reset. Please sign in.");
+        router.push(`/${locale}/login`);
+      } else {
+        toast.error(response.error || "Failed to reset password");
+      }
+    } catch {
+      toast.error("Could not reach the server. Please try again in a moment.");
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const onInvalid = (errors: Parameters<typeof summarizeFieldErrors>[0]) => {
+    toast.error(summarizeFieldErrors(errors));
   };
 
   if (!token) {
@@ -61,34 +74,33 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center p-6 bg-white">
       <div className="max-w-md w-full">
         <h1 className="text-3xl font-serif text-luxury-black mb-3">Choose a new password</h1>
-        <form onSubmit={handleSubmit} className="space-y-5 mt-8">
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-              New password
-            </label>
-            <input
+        <FormProvider {...methods}>
+          <form
+            onSubmit={methods.handleSubmit(onSubmit, onInvalid)}
+            className="space-y-5 mt-8"
+            noValidate
+          >
+            <Input
+              id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold transition-colors"
-              autoFocus
+              label="New password"
+              isMandatory
+              register={methods.register}
+              labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
             />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">
-              Confirm password
-            </label>
-            <input
+            <Input
+              id="confirmPassword"
               type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 text-sm focus:outline-none focus:border-luxury-gold transition-colors"
+              label="Confirm password"
+              isMandatory
+              register={methods.register}
+              labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
             />
-          </div>
-          <Button type="submit" variant="dark" disabled={isSubmitting} className="w-full h-12">
-            {isSubmitting ? "Saving..." : "Reset Password"}
-          </Button>
-        </form>
+            <Button type="submit" variant="dark" disabled={isSubmitting} className="w-full h-12">
+              {isSubmitting ? "Saving..." : "Reset Password"}
+            </Button>
+          </form>
+        </FormProvider>
       </div>
     </div>
   );

@@ -1,12 +1,18 @@
 import { z } from "zod";
+import {
+  emailField,
+  passwordField,
+  phoneField,
+  requiredText,
+} from "./common";
 
 export const agentApplicationSchema = z.object({
-  fullName: z.string().min(2, "Full name is required"),
-  email: z.string().email("Invalid email address"),
-  phoneNumber: z.string().min(7, "Invalid phone number"),
-  agencyName: z.string().min(2, "Agency name is required"),
-  licenseNumber: z.string().min(2, "License number is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  fullName: requiredText("Full name", { min: 2, max: 100 }),
+  email: emailField("Email"),
+  phoneNumber: phoneField("Phone number"),
+  agencyName: requiredText("Agency name", { min: 2, max: 150 }),
+  licenseNumber: requiredText("License number", { min: 2 }),
+  password: passwordField(),
   agreeToTerms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions",
   }),

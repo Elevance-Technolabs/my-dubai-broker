@@ -15,6 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { toast } from "sonner";
+import { summarizeFieldErrors } from "@/lib/utils/formErrors";
 import { PLATFORM_STAFF_ROLES, UserRole } from "@/types/enums";
 
 // The credential check itself is identical to /login (better-auth resolves
@@ -32,41 +33,49 @@ export default function LoginPage() {
   const methods = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: defaultLoginValues,
-    mode: "onChange",
+    mode: "onTouched",
+    reValidateMode: "onChange",
   });
 
   const { register, handleSubmit } = methods;
 
   const [isLoading, setIsLoading] = React.useState(false);
 
+  const onInvalid = (errors: Parameters<typeof summarizeFieldErrors>[0]) => {
+    toast.error(summarizeFieldErrors(errors));
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    const response = await FrontendAuthService.login({
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      const response = await FrontendAuthService.login({
+        email: data.email,
+        password: data.password,
+      });
 
-    if (!response.success) {
+      if (!response.success) {
+        toast.error(
+          response.error || "Failed to sign in. Please check your credentials.",
+        );
+        return;
+      }
+
+      const role = response.data?.user?.role as UserRole | undefined;
+      if (!role || !PLATFORM_STAFF_ROLES.includes(role)) {
+        await FrontendAuthService.signOut();
+        toast.error(
+          "This sign-in is for platform administrators only. Use the regular login page instead.",
+        );
+        return;
+      }
+
+      toast.success("Signed in successfully!");
+      router.push(`/${locale}/dashboard`);
+    } catch {
+      toast.error("Could not reach the server. Please try again in a moment.");
+    } finally {
       setIsLoading(false);
-      toast.error(
-        response.error || "Failed to sign in. Please check your credentials.",
-      );
-      return;
     }
-
-    const role = response.data?.user?.role as UserRole | undefined;
-    if (!role || !PLATFORM_STAFF_ROLES.includes(role)) {
-      await FrontendAuthService.signOut();
-      setIsLoading(false);
-      toast.error(
-        "This sign-in is for platform administrators only. Use the regular login page instead.",
-      );
-      return;
-    }
-
-    setIsLoading(false);
-    toast.success("Signed in successfully!");
-    router.push(`/${locale}/dashboard`);
   };
 
   return (
@@ -115,7 +124,7 @@ export default function LoginPage() {
 
           {/* Form Inputs */}
           <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6">
               <div className="group space-y-1.5">
                 <label className="text-[10px] uppercase tracking-widest font-sans text-gray-500 font-bold ml-1 transition-colors group-focus-within:text-luxury-gold">
                   Email Credentials
