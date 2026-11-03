@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { Plus, Loader2, List, Contact } from "lucide-react";
 import Button from "@/components/ui/Button";
 import AssetCard from "@/components/dashboard/AssetCard";
 import { listingService } from "@/services/listing.service";
 import { LeadService } from "@/services/lead.service";
 import { useSession } from "@/lib/auth-client";
-import { COMPANY_MANAGEMENT_ROLES, UserRole } from "@/types/enums";
+import { COMPANY_MANAGEMENT_ROLES, PLATFORM_STAFF_ROLES, UserRole } from "@/types/enums";
 
 const formatPrice = (p?: {
   currency: string;
@@ -29,13 +30,21 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const userRole = (session?.user as any)?.role as UserRole | undefined;
   const canManageCompany = !!userRole && COMPANY_MANAGEMENT_ROLES.includes(userRole);
+  const isPlatformStaff = !!userRole && PLATFORM_STAFF_ROLES.includes(userRole);
+  const router = useRouter();
+  const { locale } = useParams();
 
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [myLeadsCount, setMyLeadsCount] = useState<number | null>(null);
 
+  // This is the company dashboard; platform staff have their own overview.
   useEffect(() => {
-    if (!userRole) return;
+    if (isPlatformStaff) router.replace(`/${locale}/admin`);
+  }, [isPlatformStaff, router, locale]);
+
+  useEffect(() => {
+    if (!userRole || isPlatformStaff) return;
 
     const fetchListings = async () => {
       try {
@@ -69,7 +78,9 @@ export default function DashboardPage() {
         }
       });
     }
-  }, [userRole, canManageCompany]);
+  }, [userRole, canManageCompany, isPlatformStaff]);
+
+  if (isPlatformStaff) return null;
 
   return (
     <div className="animate-fade-in-up">

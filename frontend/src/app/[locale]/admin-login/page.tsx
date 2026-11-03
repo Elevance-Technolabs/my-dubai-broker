@@ -70,7 +70,7 @@ export default function LoginPage() {
       }
 
       toast.success("Signed in successfully!");
-      router.push(`/${locale}/dashboard`);
+      router.push(`/${locale}/admin`);
     } catch {
       toast.error("Could not reach the server. Please try again in a moment.");
     } finally {
