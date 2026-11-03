@@ -266,7 +266,16 @@ export const addLeadActivity = async (
 };
 
 export const assignLead = async (id: string, assigneeId: string, requester: Requester) => {
-	await assertLeadAccess(id, requester);
+	const lead = await assertLeadAccess(id, requester);
+
+	// A lead (and the customer's contact details) must stay inside the company.
+	const assignee = await prisma.user.findUnique({
+		where: { id: assigneeId },
+		select: { companyId: true },
+	});
+	if (!assignee || assignee.companyId !== lead.companyId) {
+		throw new AppError("A lead can only be assigned to a member of the same company", 400);
+	}
 
 	return prisma.$transaction(async (tx) => {
 		const updated = await tx.lead.update({

@@ -3,6 +3,7 @@
 import { useSession } from "@/lib/auth-client";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
+import { COMPANY_ROLES, PLATFORM_STAFF_ROLES, UserRole } from "@/types/enums";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -22,14 +23,28 @@ export default function AuthGuard({
   // Platform-admin area -> admin login; everything else (company area) -> normal login.
   const isAdminArea = /^\/(ar\/)?admin(\/|$)/.test(pathname ?? "");
   const loginPath = redirectTo ?? (isAdminArea ? "/admin-login" : "/login");
+  const localePrefix = /^\/ar(\/|$)/.test(pathname ?? "") ? "/ar" : "";
 
   useEffect(() => {
     if (isPending) return;
 
-    if (!session || !session.user || !allowedRoles.includes(session.user.role)) {
+    if (!session || !session.user) {
       router.replace(loginPath);
+      return;
     }
-  }, [session, isPending, router, allowedRoles, loginPath]);
+
+    const role = session.user.role as UserRole;
+    if (!allowedRoles.includes(role)) {
+      // Signed in, but this page isn't for their role: send them to their
+      // own home rather than to a login page they don't need.
+      const home = PLATFORM_STAFF_ROLES.includes(role)
+        ? `${localePrefix}/admin`
+        : COMPANY_ROLES.includes(role)
+          ? `${localePrefix}/dashboard`
+          : loginPath;
+      router.replace(home);
+    }
+  }, [session, isPending, router, allowedRoles, loginPath, localePrefix]);
 
   if (isPending) {
     return (

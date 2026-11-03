@@ -34,7 +34,11 @@ export const getMyListingsHandler = async (req: Request, res: Response) => {
 
 export const getListingByIdHandler = async (req: Request, res: Response) => {
 	const id = req.params.id as string;
-	const listing = await listingsService.getListingById(id);
+	const listing = await listingsService.getListingById(id, {
+		userId: req.user.id,
+		companyId: req.user.companyId,
+		role: req.user.role,
+	});
 	if (!listing) throw new AppError("Listing not found", 404);
 	sendSuccess(res, listing);
 };
@@ -51,20 +55,36 @@ export const updateListingHandler = async (req: Request, res: Response) => {
 
 export const submitListingHandler = async (req: Request, res: Response) => {
 	const id = req.params.id as string;
-	const listing = await listingsService.submitListing(id, req.user.id);
+	const listing = await listingsService.submitListing(id, {
+		userId: req.user.id,
+		companyId: req.user.companyId,
+		role: req.user.role,
+	});
 	sendSuccess(res, listing, "Listing submitted for review");
 };
 
 export const pauseListingHandler = async (req: Request, res: Response) => {
 	const id = req.params.id as string;
-	await listingsService.pauseListing(id, req.user.id);
+	await listingsService.pauseListing(id, {
+		userId: req.user.id,
+		companyId: req.user.companyId,
+		role: req.user.role,
+	});
 	sendSuccess(res, null, "Listing paused");
 };
 
 export const archiveListingHandler = async (req: Request, res: Response) => {
 	const id = req.params.id as string;
 	const { reason } = req.body;
-	await listingsService.archiveListing(id, req.user.id, reason);
+	await listingsService.archiveListing(
+		id,
+		{
+			userId: req.user.id,
+			companyId: req.user.companyId,
+			role: req.user.role,
+		},
+		reason,
+	);
 	sendSuccess(res, null, "Listing archived");
 };
 

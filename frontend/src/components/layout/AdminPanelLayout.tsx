@@ -113,8 +113,64 @@ const CompanyStatusErrorView = ({
   </div>
 );
 
+// What a partner sees while their company is not approved. Only these three
+// statuses carry an admin reason; everything else is still awaiting review.
+const STATUS_SCREENS: Record<
+  string,
+  {
+    title: string;
+    message: (companyName: string) => string;
+    reasonLabel?: string;
+    nextStep: string;
+    tone: "danger" | "warning";
+    Icon: typeof Clock;
+  }
+> = {
+  [CompanyStatus.REJECTED]: {
+    title: "Application Rejected",
+    message: (name) =>
+      `Unfortunately, your company application for ${name} was not approved.`,
+    reasonLabel: "Reason for Rejection:",
+    nextStep:
+      "Please contact our support team to appeal this decision or provide further information.",
+    tone: "danger",
+    Icon: XCircle,
+  },
+  [CompanyStatus.CHANGES_REQUIRED]: {
+    title: "Changes Required",
+    message: (name) =>
+      `Our administrators reviewed your company application for ${name} and need some changes before it can be approved.`,
+    reasonLabel: "Changes Requested:",
+    nextStep:
+      "Please contact our support team with the requested changes. Your application will be reviewed again once they are received.",
+    tone: "warning",
+    Icon: AlertTriangle,
+  },
+  [CompanyStatus.SUSPENDED]: {
+    title: "Account Suspended",
+    message: (name) =>
+      `Your company account for ${name} has been suspended by our administrators.`,
+    reasonLabel: "Reason for Suspension:",
+    nextStep: "Please contact our support team to resolve this and restore access.",
+    tone: "danger",
+    Icon: XCircle,
+  },
+};
+
+const PENDING_SCREEN = {
+  title: "Pending Approval",
+  message: (name: string) =>
+    `Your company application for ${name} is currently under review by our administrators.`,
+  reasonLabel: undefined,
+  nextStep:
+    "You will regain access to your dashboard once your documents are verified and your account is approved.",
+  tone: "warning" as const,
+  Icon: Clock,
+};
+
 const CompanyStatusView = ({ company }: { company: any }) => {
-  const isRejected = company.status === CompanyStatus.REJECTED;
+  const screen = STATUS_SCREENS[company.status] ?? PENDING_SCREEN;
+  const isDanger = screen.tone === "danger";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
@@ -122,29 +178,38 @@ const CompanyStatusView = ({ company }: { company: any }) => {
         <div
           className={cn(
             "w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8",
-            isRejected
-              ? "bg-rose-50 text-rose-500"
-              : "bg-amber-50 text-amber-500",
+            isDanger ? "bg-rose-50 text-rose-500" : "bg-amber-50 text-amber-500",
           )}
         >
-          {isRejected ? <XCircle size={40} /> : <Clock size={40} />}
+          <screen.Icon size={40} />
         </div>
-        <h1 className="text-3xl font-canela text-slate-900 mb-4">
-          {isRejected ? "Application Rejected" : "Pending Approval"}
-        </h1>
+        <h1 className="text-3xl font-canela text-slate-900 mb-4">{screen.title}</h1>
         <p className="text-slate-500 font-satoshi mb-8 leading-relaxed">
-          {isRejected
-            ? `Unfortunately, your company application for ${company.name} was not approved.`
-            : `Your company application for ${company.name} is currently under review by our administrators.`}
+          {screen.message(company.name)}
         </p>
 
         <div className="space-y-4 pt-6 border-t border-slate-50">
-          {isRejected && company.rejectionReason && (
-            <div className="flex flex-col text-left p-4 bg-rose-50 rounded-2xl border border-rose-100 mb-4">
-              <span className="text-[10px] uppercase tracking-widest font-bold text-rose-600 mb-1">
-                Reason for Rejection:
+          {screen.reasonLabel && company.rejectionReason && (
+            <div
+              className={cn(
+                "flex flex-col text-left p-4 rounded-2xl border mb-4",
+                isDanger ? "bg-rose-50 border-rose-100" : "bg-amber-50 border-amber-100",
+              )}
+            >
+              <span
+                className={cn(
+                  "text-[10px] uppercase tracking-widest font-bold mb-1",
+                  isDanger ? "text-rose-600" : "text-amber-700",
+                )}
+              >
+                {screen.reasonLabel}
               </span>
-              <p className="text-sm text-rose-700 font-medium">
+              <p
+                className={cn(
+                  "text-sm font-medium",
+                  isDanger ? "text-rose-700" : "text-amber-800",
+                )}
+              >
                 {company.rejectionReason}
               </p>
             </div>
@@ -153,9 +218,7 @@ const CompanyStatusView = ({ company }: { company: any }) => {
           <div className="flex items-start gap-4 text-left p-4 bg-slate-50 rounded-2xl">
             <ShieldAlert className="text-gold shrink-0 mt-0.5" size={18} />
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              {isRejected
-                ? "Please contact our support team to appeal this decision or provide further information."
-                : "You will regain access to your dashboard once your documents are verified and your account is approved."}
+              {screen.nextStep}
             </p>
           </div>
 

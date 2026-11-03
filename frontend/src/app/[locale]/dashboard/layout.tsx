@@ -2,7 +2,7 @@
 
 import AdminPanelLayout from "@/components/layout/AdminPanelLayout";
 import React from "react";
-import { COMPANY_ROLES, PLATFORM_STAFF_ROLES } from "@/types/enums";
+import { COMPANY_ROLES } from "@/types/enums";
 
 export default function DashboardLayout({
   children,
@@ -10,7 +10,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AdminPanelLayout allowedRoles={[...COMPANY_ROLES, ...PLATFORM_STAFF_ROLES]}>
+    // Company workspace only; AuthGuard sends platform staff to /admin.
+    <AdminPanelLayout allowedRoles={COMPANY_ROLES}>
       {children}
     </AdminPanelLayout>
   );

@@ -28,6 +28,21 @@ export const COMPANY_ROLES: UserRole[] = [
   UserRole.VIEWER,
 ];
 
+// Company roles that can see leads (backend: leads.view_own / leads.view_all_company).
+export const LEAD_ROLES: UserRole[] = [
+  UserRole.COMPANY_OWNER,
+  UserRole.COMPANY_MANAGER,
+  UserRole.AGENT,
+];
+
+// Company roles that can create listing drafts (backend: listings.create_draft).
+export const LISTING_CREATE_ROLES: UserRole[] = [
+  UserRole.COMPANY_OWNER,
+  UserRole.COMPANY_MANAGER,
+  UserRole.AGENT,
+  UserRole.LISTING_COORDINATOR,
+];
+
 // Roles with platform-wide admin access (super_admin | platform_reviewer).
 export const PLATFORM_STAFF_ROLES: UserRole[] = [
   UserRole.SUPER_ADMIN,

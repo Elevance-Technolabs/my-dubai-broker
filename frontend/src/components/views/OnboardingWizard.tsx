@@ -396,7 +396,7 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
           id: loadingToast,
         });
         clearOnboardingDraft();
-        router.push(`/${locale}/admin-login`);
+        router.push(`/${locale}/login`);
       } else {
         const unmapped = applyServerFieldErrors(
           setError,

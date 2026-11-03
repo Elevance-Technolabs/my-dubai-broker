@@ -20,7 +20,14 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { useSession } from "@/lib/auth-client";
 import { FrontendAuthService } from "@/services/auth.service";
-import { UserRole, COMPANY_MANAGEMENT_ROLES, COMPANY_ROLES, PLATFORM_STAFF_ROLES } from "@/types/enums";
+import {
+  UserRole,
+  COMPANY_MANAGEMENT_ROLES,
+  COMPANY_ROLES,
+  LEAD_ROLES,
+  LISTING_CREATE_ROLES,
+  PLATFORM_STAFF_ROLES,
+} from "@/types/enums";
 
 const SidebarItem = ({
   icon: Icon,
@@ -67,6 +74,8 @@ export default function Sidebar() {
   const userRole = (session?.user as any)?.role as UserRole | undefined;
   const isCompanyRole = !!userRole && COMPANY_ROLES.includes(userRole);
   const canManageCompany = !!userRole && COMPANY_MANAGEMENT_ROLES.includes(userRole);
+  const canSeeLeads = !!userRole && LEAD_ROLES.includes(userRole);
+  const canCreateListing = !!userRole && LISTING_CREATE_ROLES.includes(userRole);
   const isSuperAdmin = userRole === UserRole.SUPER_ADMIN;
   const isPlatformStaff = !!userRole && PLATFORM_STAFF_ROLES.includes(userRole);
 
@@ -133,7 +142,7 @@ export default function Sidebar() {
             />
           )}
 
-          {isCompanyRole && (
+          {canCreateListing && (
             <SidebarItem
               icon={List}
               label="Listings"
@@ -143,7 +152,7 @@ export default function Sidebar() {
             />
           )}
 
-          {isCompanyRole && (
+          {canSeeLeads && (
             <SidebarItem
               icon={Contact}
               label="Leads"

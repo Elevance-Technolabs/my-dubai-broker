@@ -27,8 +27,9 @@ export default function proxy(request: NextRequest) {
     pathname.startsWith(`/${defaultLocale}/`) ||
     pathname === `/${defaultLocale}`
   ) {
-    const newPathname = pathname.replace(`/${defaultLocale}`, "");
-    const newUrl = new URL(newPathname || "/", request.url);
+    // clone() keeps the query string (e.g. a password-reset ?token=).
+    const newUrl = request.nextUrl.clone();
+    newUrl.pathname = pathname.replace(`/${defaultLocale}`, "") || "/";
     return NextResponse.redirect(newUrl);
   }
 
@@ -43,7 +44,8 @@ export default function proxy(request: NextRequest) {
   }
 
   // 3. If path has no locale (e.g., /about), rewrite to default locale (e.g., /en/about)
-  const newUrl = new URL(`/${defaultLocale}${pathname}`, request.url);
+  const newUrl = request.nextUrl.clone();
+  newUrl.pathname = `/${defaultLocale}${pathname}`;
   return NextResponse.rewrite(newUrl);
 }
 

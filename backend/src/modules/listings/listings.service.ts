@@ -228,6 +228,20 @@ interface Requester {
 	role?: string;
 }
 
+const isPlatformStaff = (role?: string) =>
+	role === "super_admin" || role === "platform_reviewer";
+
+// Company users may only read or act on their own company's listings.
+const assertListingAccess = (
+	listingCompanyId: string,
+	requester: Requester,
+	action: string,
+) => {
+	if (!isPlatformStaff(requester.role) && requester.companyId !== listingCompanyId) {
+		throw new AppError(`You do not have permission to ${action} this listing`, 403);
+	}
+};
+
 export const updateListing = async (
 	id: string,
 	data: UpdateListingData,
@@ -436,12 +450,13 @@ export const getAdminListings = async (
 	return getListings(page, limit, filters);
 };
 
-export const getListingById = async (id: string) => {
+export const getListingById = async (id: string, requester: Requester) => {
 	const listing = await prisma.listing.findUnique({
 		where: { id },
 		include: listingIncludes,
 	});
 	if (!listing) return null;
+	assertListingAccess(listing.companyId, requester, "view");
 	return mapToListing(listing);
 };
 
@@ -624,9 +639,11 @@ export const updateApprovalStatus = async (
 	return mapToListing(updated);
 };
 
-export const submitListing = async (listingId: string, actorId: string) => {
+export const submitListing = async (listingId: string, requester: Requester) => {
+	const actorId = requester.userId;
 	const listing = await prisma.listing.findUnique({ where: { id: listingId } });
 	if (!listing) throw new AppError("Listing not found", 404);
+	assertListingAccess(listing.companyId, requester, "submit");
 
 	if (listing.approvalStatus !== ApprovalStatus.DRAFT &&
 		listing.approvalStatus !== ApprovalStatus.CHANGES_REQUIRED) {
@@ -664,9 +681,11 @@ export const submitListing = async (listingId: string, actorId: string) => {
 	return mapToListing(updated);
 };
 
-export const pauseListing = async (listingId: string, actorId: string) => {
+export const pauseListing = async (listingId: string, requester: Requester) => {
+	const actorId = requester.userId;
 	const listing = await prisma.listing.findUnique({ where: { id: listingId } });
 	if (!listing) throw new AppError("Listing not found", 404);
+	assertListingAccess(listing.companyId, requester, "pause");
 
 	if (listing.publicationStatus !== PublicationStatus.LIVE) {
 		throw new AppError("Only live listings can be paused", 400);
@@ -689,9 +708,15 @@ export const pauseListing = async (listingId: string, actorId: string) => {
 	});
 };
 
-export const archiveListing = async (listingId: string, actorId: string, reason?: string) => {
+export const archiveListing = async (
+	listingId: string,
+	requester: Requester,
+	reason?: string,
+) => {
+	const actorId = requester.userId;
 	const listing = await prisma.listing.findUnique({ where: { id: listingId } });
 	if (!listing) throw new AppError("Listing not found", 404);
+	assertListingAccess(listing.companyId, requester, "archive");
 
 	await prisma.$transaction(async (tx) => {
 		await tx.listing.update({

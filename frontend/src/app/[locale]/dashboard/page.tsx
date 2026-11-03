@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 import { Plus, Loader2, List, Contact } from "lucide-react";
 import Button from "@/components/ui/Button";
 import AssetCard from "@/components/dashboard/AssetCard";
 import { listingService } from "@/services/listing.service";
 import { LeadService } from "@/services/lead.service";
 import { useSession } from "@/lib/auth-client";
-import { COMPANY_MANAGEMENT_ROLES, PLATFORM_STAFF_ROLES, UserRole } from "@/types/enums";
+import {
+  COMPANY_MANAGEMENT_ROLES,
+  LEAD_ROLES,
+  LISTING_CREATE_ROLES,
+  UserRole,
+} from "@/types/enums";
 
 const formatPrice = (p?: {
   currency: string;
@@ -30,21 +34,15 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const userRole = (session?.user as any)?.role as UserRole | undefined;
   const canManageCompany = !!userRole && COMPANY_MANAGEMENT_ROLES.includes(userRole);
-  const isPlatformStaff = !!userRole && PLATFORM_STAFF_ROLES.includes(userRole);
-  const router = useRouter();
-  const { locale } = useParams();
+  const canSeeLeads = !!userRole && LEAD_ROLES.includes(userRole);
+  const canCreateListing = !!userRole && LISTING_CREATE_ROLES.includes(userRole);
 
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [myLeadsCount, setMyLeadsCount] = useState<number | null>(null);
 
-  // This is the company dashboard; platform staff have their own overview.
   useEffect(() => {
-    if (isPlatformStaff) router.replace(`/${locale}/admin`);
-  }, [isPlatformStaff, router, locale]);
-
-  useEffect(() => {
-    if (!userRole || isPlatformStaff) return;
+    if (!userRole) return;
 
     const fetchListings = async () => {
       try {
@@ -71,16 +69,14 @@ export default function DashboardPage() {
 
     fetchListings();
 
-    if (!canManageCompany) {
+    if (!canManageCompany && canSeeLeads) {
       LeadService.getMyLeads().then((response) => {
         if (response?.success && response?.data) {
           setMyLeadsCount(response.data.pagination?.total ?? 0);
         }
       });
     }
-  }, [userRole, canManageCompany, isPlatformStaff]);
-
-  if (isPlatformStaff) return null;
+  }, [userRole, canManageCompany, canSeeLeads]);
 
   return (
     <div className="animate-fade-in-up">
@@ -97,21 +93,24 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <Link href="/listings">
-          <Button
-            variant="dark"
-            className="h-10 px-6 text-[10px] tracking-widest shadow-md hover:shadow-lg"
-          >
-            <Plus className="w-3 h-3 mr-2" /> NEW LISTING
-          </Button>
-        </Link>
+        {canCreateListing && (
+          <Link href="/listings">
+            <Button
+              variant="dark"
+              className="h-10 px-6 text-[10px] tracking-widest shadow-md hover:shadow-lg"
+            >
+              <Plus className="w-3 h-3 mr-2" /> NEW LISTING
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Personal stat strip — agents/viewers only */}
       {!canManageCompany && (
-        <div className="grid grid-cols-2 gap-6 mb-10">
+        <div className={`grid ${canSeeLeads ? "grid-cols-2" : "grid-cols-1"} gap-6 mb-10`}>
+          {/* /listings is the create form, so only link it for roles that can create */}
           <Link
-            href="/listings"
+            href={canCreateListing ? "/listings" : "/dashboard"}
             className="flex items-center gap-4 p-6 border border-gray-100 hover:border-luxury-gold transition-colors"
           >
             <List className="w-5 h-5 text-luxury-gold shrink-0" />
@@ -125,20 +124,22 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          <Link
-            href="/dashboard/leads"
-            className="flex items-center gap-4 p-6 border border-gray-100 hover:border-luxury-gold transition-colors"
-          >
-            <Contact className="w-5 h-5 text-luxury-gold shrink-0" />
-            <div>
-              <p className="text-2xl font-serif text-luxury-black">
-                {myLeadsCount === null ? "—" : myLeadsCount}
-              </p>
-              <p className="text-[10px] uppercase tracking-widest text-gray-400 mt-1">
-                My Leads
-              </p>
-            </div>
-          </Link>
+          {canSeeLeads && (
+            <Link
+              href="/dashboard/leads"
+              className="flex items-center gap-4 p-6 border border-gray-100 hover:border-luxury-gold transition-colors"
+            >
+              <Contact className="w-5 h-5 text-luxury-gold shrink-0" />
+              <div>
+                <p className="text-2xl font-serif text-luxury-black">
+                  {myLeadsCount === null ? "—" : myLeadsCount}
+                </p>
+                <p className="text-[10px] uppercase tracking-widest text-gray-400 mt-1">
+                  My Leads
+                </p>
+              </div>
+            </Link>
+          )}
         </div>
       )}
 
@@ -151,7 +152,9 @@ export default function DashboardPage() {
       ) : listings.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-gray-400 text-sm">
-            No listings found. Create your first listing!
+            {canCreateListing
+              ? "No listings found. Create your first listing!"
+              : "No listings found."}
           </p>
         </div>
       ) : (

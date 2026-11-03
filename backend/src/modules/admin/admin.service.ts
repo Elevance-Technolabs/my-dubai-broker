@@ -141,9 +141,11 @@ export const updateCompanyStatus = async (
 			where: { id },
 			data: {
 				status,
+				// Shown to the partner on their status screen.
 				rejectionReason:
 					status === CompanyStatus.REJECTED ||
-					status === CompanyStatus.CHANGES_REQUIRED
+					status === CompanyStatus.CHANGES_REQUIRED ||
+					status === CompanyStatus.SUSPENDED
 						? options.rejectionReason ?? options.reason ?? null
 						: company.rejectionReason,
 			},

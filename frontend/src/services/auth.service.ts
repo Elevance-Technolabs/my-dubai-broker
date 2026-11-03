@@ -17,11 +17,12 @@ export const FrontendAuthService = {
             return { success: false, error: error.message || "Login failed" };
         }
 
-        // Warm the shared session cache before the caller navigates —
-        // otherwise AuthGuard mounts on the destination page still
-        // `isPending`, re-fetches the session itself, and shows a second,
-        // separate full-page spinner right after this one.
-        await authClient.getSession();
+        // Refresh the shared session store that useSession/AuthGuard read
+        // before the caller navigates. A plain getSession() call does not
+        // update that store, so after a sign-out in the same tab it would
+        // still say "no session" and AuthGuard would bounce the user straight
+        // back to the login page.
+        await authClient.$store.atoms.session.get().refetch();
 
         return { success: true, data: authData as any };
     },

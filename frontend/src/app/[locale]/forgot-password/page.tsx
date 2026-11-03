@@ -9,7 +9,7 @@ import {
   type ForgotPasswordData,
 } from "@/lib/schemas/accountSchemas";
 import { summarizeFieldErrors } from "@/lib/utils/formErrors";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import Button from "@/components/ui/Button";
@@ -17,6 +17,9 @@ import { FrontendAuthService } from "@/services/auth.service";
 
 export default function ForgotPasswordPage() {
   const { locale } = useParams();
+  // Platform staff arrive here from /admin-login; send them back there.
+  const fromAdmin = useSearchParams().get("from") === "admin";
+  const loginPath = `/${locale}/${fromAdmin ? "admin-login" : "login"}`;
   const methods = useForm<ForgotPasswordData>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: "" },
@@ -30,9 +33,11 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: ForgotPasswordData) => {
     setIsSubmitting(true);
     try {
+      // Absolute URL: the backend resolves a relative one against its own
+      // domain, which would send the user to the API instead of this site.
       const response = await FrontendAuthService.forgotPassword(
         data.email.trim(),
-        `/${locale}/reset-password`,
+        `${window.location.origin}/${locale}/reset-password${fromAdmin ? "?from=admin" : ""}`,
       );
       if (response.success) {
         toast.success("If that email has an account, a reset link is on its way.");
@@ -93,7 +98,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <Link
-          href={`/${locale}/login`}
+          href={loginPath}
           className="block mt-8 text-[10px] uppercase tracking-widest text-gray-400 hover:text-luxury-black transition-colors"
         >
           Back to Sign In

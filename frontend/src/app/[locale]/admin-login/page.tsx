@@ -154,7 +154,7 @@ export default function LoginPage() {
                 />
                 <div className="text-right">
                   <Link
-                    href={`/${locale}/forgot-password`}
+                    href={`/${locale}/forgot-password?from=admin`}
                     className="text-[10px] uppercase tracking-widest text-gray-400 hover:text-luxury-gold transition-colors"
                   >
                     Forgot password?

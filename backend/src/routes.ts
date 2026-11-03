@@ -13,7 +13,6 @@ import profileRouter from "./modules/profile/profile.routes.js";
 import realEstateRouter from "./modules/real-estate/real-estate.routes.js";
 import uploadsRouter from "./modules/uploads/uploads.routes.js";
 import { adminRouter } from "./modules/admin/admin.routes.js";
-import usersRouter from "./modules/users/users.routes.js";
 import yachtsRouter from "./modules/yachts/yachts.routes.js";
 
 const router: Router = Router();
@@ -24,7 +23,6 @@ router.use("/companies", companiesRouter);
 // reset, email verification) goes through better-auth's own handler —
 // there is no custom wrapper around it.
 router.all(/^\/auth\/.*/, rateLimit(20, 15 * 60 * 1000), toNodeHandler(auth));
-router.use("/users", usersRouter);
 router.use("/invitations", invitationsRouter);
 router.use("/leads", leadsRouter);
 router.use("/profile", profileRouter);

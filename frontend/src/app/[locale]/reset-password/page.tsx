@@ -19,6 +19,7 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const loginPath = `/${locale}/${searchParams.get("from") === "admin" ? "admin-login" : "login"}`;
 
   const methods = useForm<ResetPasswordData>({
     resolver: zodResolver(resetPasswordSchema),
@@ -41,7 +42,7 @@ export default function ResetPasswordPage() {
       );
       if (response.success) {
         toast.success("Password reset. Please sign in.");
-        router.push(`/${locale}/login`);
+        router.push(loginPath);
       } else {
         toast.error(response.error || "Failed to reset password");
       }
