@@ -19,6 +19,7 @@ import { Locale } from "@/i18n/config";
 import { listingService } from "@/services/listing.service";
 import { AssetType } from "@/types/listing";
 import Button from "@/components/ui/Button";
+import { fromListingLocation, fromListingPhotos } from "@/lib/schemas/listingBase";
 
 type EditListingManagerProps = {
   carDict: CarListingDict;
@@ -31,7 +32,6 @@ type EditListingManagerProps = {
   listingId: string;
 };
 
-const toCommaString = (values?: string[] | null) => (values ?? []).join(", ");
 
 export default function EditListingManager({
   carDict,
@@ -105,104 +105,158 @@ export default function EditListingManager({
           p.charterRate ??
           0,
         currency: p.currency ?? "AED",
-        existingPhotoKeys: listing.media?.photos ?? [],
+        // Cover first, in the listing's order.
+        photos: fromListingPhotos(listing.media?.photos ?? []),
         videoUrl: listing.media?.video ?? "",
+        vrTourUrl: listing.media?.vrTour ?? "",
         // Not persisted by the backend; prefilled so the required field doesn't block saving.
         qualityNarrative: listing.description ?? "",
         internalReferenceCode: listing.internalRef ?? "",
         licenseNumber: listing.licenseNumber ?? "",
         primaryEmail: listing.contact?.email ?? "",
         primaryPhone: listing.contact?.phone ?? "",
+        ...fromListingLocation(listing),
       };
+      const text = (v: unknown) => (v == null ? "" : String(v));
+      const list = (v: unknown) => (Array.isArray(v) ? (v as string[]) : []);
+      const dateOnly = (v: unknown) => (v ? String(v).slice(0, 10) : "");
+      const isCharter = p.offeringType === "CHARTER";
+      const rateBasis = p.dailyRate != null && p.charterRate == null ? "DAY" : "HOUR";
 
       if (type === AssetType.CAR) {
         setInitialData({
           ...common,
+          offeringType: ["SHORT_TERM_RENT", "LONG_TERM_RENT"].includes(p.offeringType) ? p.offeringType : "SALE",
           brand: d.make ?? "",
           bodyType: listing.assetType ?? "",
           model: d.model ?? "",
           year: d.year,
-          variant: d.variant ?? "",
+          variant: text(d.variant),
           mileage: d.mileage ?? 0,
           condition: d.condition ?? "",
           transmission: d.transmission ?? "",
-          engineSize: d.engineSize ?? "",
-          horsepower: d.horsepower ?? 0,
+          fuelType: text(d.fuelType),
+          engineSize: text(d.engineSize),
+          horsepower: d.horsepower ?? undefined,
           color: d.exteriorColor ?? "",
-          interiorColor: d.interiorColor ?? "",
+          interiorColor: text(d.interiorColor),
+          doors: d.doors ?? undefined,
+          seats: d.seats ?? undefined,
+          regionalSpec: text(d.regionalSpec),
+          registrationYear: d.registrationYear ?? undefined,
+          plateNumber: text(d.plateNumber),
+          chassisNumber: text(d.chassisNumber),
           warranty: !!d.warranty,
-          options: d.options ?? [],
+          serviceHistory: !!d.serviceHistory,
+          options: list(d.options),
+          rentalTerms: text(d.rentalTerms),
           negotiable: !!p.negotiable,
         });
       } else if (type === AssetType.JET) {
         setInitialData({
           ...common,
-          offeringType: p.offeringType === "CHARTER" ? "CHARTER" : "SALE",
-          rateBasis:
-            p.dailyRate != null && p.charterRate == null ? "DAY" : "HOUR",
+          offeringType: isCharter ? "CHARTER" : "SALE",
+          rateBasis,
           manufacturer: d.manufacturer ?? "",
           model: d.model ?? "",
           year: d.year,
+          serialNumber: text(d.serialNumber),
+          registrationTail: text(d.registrationTail),
           totalHours: d.totalHours,
+          engineHours: d.engineHours ?? undefined,
           passengerCapacity: d.passengerCapacity,
           range: d.rangeNm,
-          interiorDetails: d.interiorDetails ?? "",
-          avionics: d.avionics ?? "",
-          maintenanceHistory: d.maintenanceHistory ?? "",
+          interiorConfig: text(d.interiorConfig),
+          interiorDetails: text(d.interiorDetails),
+          avionics: text(d.avionics),
+          maintenanceHistory: text(d.maintenanceHistory),
+          lastInspectionDate: dateOnly(d.lastInspectionDate),
+          amenities: list(d.amenities),
         });
       } else if (type === AssetType.HELICOPTER) {
         setInitialData({
           ...common,
-          offeringType: p.offeringType === "CHARTER" ? "CHARTER" : "SALE",
-          rateBasis:
-            p.dailyRate != null && p.charterRate == null ? "DAY" : "HOUR",
+          offeringType: isCharter ? "CHARTER" : "SALE",
+          rateBasis,
           manufacturer: d.manufacturer ?? "",
           model: d.model ?? "",
           year: d.year,
+          serialNumber: text(d.serialNumber),
+          registrationTail: text(d.registrationTail),
+          totalHours: d.totalHours ?? undefined,
           rotorHours: d.engineHours,
+          engineModel: text(d.engineModel),
           seating: d.passengerCapacity,
-          interiorDetails: d.interiorDetails ?? "",
-          avionics: d.avionics ?? "",
-          maintenance: d.maintenanceHistory ?? "",
+          range: d.rangeNm ?? undefined,
+          interiorConfig: text(d.interiorConfig),
+          interiorDetails: text(d.interiorDetails),
+          avionics: text(d.avionics),
+          maintenance: text(d.maintenanceHistory),
+          lastInspectionDate: dateOnly(d.lastInspectionDate),
+          amenities: list(d.amenities),
         });
       } else if (type === AssetType.YACHT) {
         setInitialData({
           ...common,
+          // Older yachts kept the home port only in their details.
+          operatingBase: common.operatingBase || text(d.homePort),
+          offeringType: isCharter ? "CHARTER" : "SALE",
+          rateBasis: p.charterRate != null ? "HOUR" : "DAY",
           yachtType: listing.assetType ?? "",
           make: d.builder ?? "",
+          model: text(d.model),
           year: d.year,
           length: d.lengthFt,
           beam: d.beamFt,
-          engineHours: d.engineHours,
-          cabins: d.cabins,
-          materials: d.hullMaterial ?? "",
-          navigation: d.navigation ?? [],
+          draft: d.draftFt ?? undefined,
+          engineHours: d.engineHours ?? undefined,
+          engines: text(d.engines),
+          cabins: d.cabins ?? undefined,
+          guestCapacity: d.guestCapacity ?? undefined,
+          crewCapacity: d.crewCapacity ?? undefined,
+          crewIncluded: !!d.crewIncluded,
+          materials: text(d.hullMaterial),
+          flag: text(d.flag),
+          registrationNumber: text(d.registrationNumber),
+          classification: text(d.classification),
+          charterAvailability: text(d.charterAvailability),
+          navigation: list(d.navigation),
+          amenities: list(d.amenities),
         });
       } else {
         setInitialData({
           ...common,
-          propertyType: d.propertyType ?? "",
           status:
-            p.offeringType === "LONG_TERM_RENT"
-              ? "RENT"
-              : p.offeringType === "OFF_PLAN"
-                ? "OFF_PLAN"
-                : "SALE",
-          permitNumber: d.permitNumber ?? "",
+            p.offeringType === "OFF_PLAN"
+              ? "OFF_PLAN"
+              : p.offeringType === "SHORT_TERM_RENT"
+                ? "SHORT_TERM"
+                : p.offeringType === "LONG_TERM_RENT"
+                  ? p.monthlyRent != null && p.annualRent == null
+                    ? "RENT_MONTHLY"
+                    : "RENT_YEARLY"
+                  : "SALE",
+          propertyType: listing.assetType ?? "",
+          permitNumber: text(d.permitNumber),
+          building: text(d.building),
           bedrooms: d.bedrooms,
           bathrooms: d.bathrooms,
           builtUpArea: d.builtUpArea,
-          plotArea: d.plotArea,
-          floor: d.floor,
-          parking: d.parking,
-          developer: d.developer ?? "",
+          plotArea: d.plotArea ?? undefined,
+          floor: d.floor ?? undefined,
+          totalFloors: d.totalFloors ?? undefined,
+          parking: d.parking ?? undefined,
+          developer: text(d.developer),
+          completionStatus: text(d.completionStatus),
+          serviceCharge: d.serviceCharge != null ? Number(d.serviceCharge) : undefined,
           furnished: !!d.furnished,
-          paymentPlan: d.paymentPlan ?? "",
-          views: toCommaString(d.views),
-          outdoor: toCommaString(d.outdoor),
-          indoor: toCommaString(d.indoor),
-          community: toCommaString(d.communityFeatures),
-          propertyTags: toCommaString(d.propertyTags),
+          paymentPlan: text(d.paymentPlan),
+          views: list(d.views),
+          outdoor: list(d.outdoor),
+          indoor: list(d.indoor),
+          communityFeatures: list(d.communityFeatures),
+          amenities: list(d.amenities),
+          propertyTags: list(d.propertyTags),
         });
       }
 

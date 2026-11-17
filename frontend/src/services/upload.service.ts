@@ -12,6 +12,7 @@ import {
   validateImageFile,
 } from "@/lib/utils/r2Upload";
 import { optimizeImage, type ImagePreset } from "@/lib/utils/imageOptimize";
+import type { ListingPhoto } from "@/lib/schemas/listingBase";
 
 interface UploadImageOptions {
   onProgress?: (percent: number) => void;
@@ -130,14 +131,26 @@ export const UploadService = {
     files: File[],
     context?: UploadContext,
   ): Promise<UploadResult[]> {
-    const settled = await Promise.allSettled(
-      files.map((file) => UploadService.uploadImage(file, { context })),
-    );
+    // At most 4 at a time: a listing can have 30 photos, and 30 uploads at
+    // once on a phone connection would all crawl (and some time out).
+    const results: PromiseSettledResult<UploadResult>[] = new Array(files.length);
+    let next = 0;
+    const worker = async () => {
+      while (next < files.length) {
+        const index = next++;
+        try {
+          results[index] = { status: "fulfilled", value: await UploadService.uploadImage(files[index]!, { context }) };
+        } catch (reason) {
+          results[index] = { status: "rejected", reason };
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(4, files.length) }, worker));
 
-    const uploaded = settled.flatMap((result) =>
+    const uploaded = results.flatMap((result) =>
       result.status === "fulfilled" ? [result.value] : [],
     );
-    const failure = settled.find((result) => result.status === "rejected");
+    const failure = results.find((result) => result.status === "rejected");
 
     if (failure) {
       await Promise.all(
@@ -149,16 +162,26 @@ export const UploadService = {
     return uploaded;
   },
 
+  /**
+   * Saves a listing with its photos in the order shown in the form (the first
+   * is the cover). New photos are uploaded first; the API then gets which
+   * existing photos to keep, the new uploads, and the full order.
+   */
   async sendWithPhotos(
     endpoint: string,
     method: "POST" | "PUT",
-    { photoFiles, ...rest }: { photoFiles?: File[] } & Record<string, any>,
+    { photos, ...rest }: { photos?: ListingPhoto[] } & Record<string, any>,
   ): Promise<ApiResponse<any>> {
+    const items = photos ?? [];
+    const newItems = items.filter((photo) => photo.file);
     let uploads: UploadResult[] = [];
 
-    if (photoFiles?.length) {
+    if (newItems.length) {
       try {
-        uploads = await UploadService.uploadImages(photoFiles, "listing-photo");
+        uploads = await UploadService.uploadImages(
+          newItems.map((photo) => photo.file!),
+          "listing-photo",
+        );
       } catch (error) {
         return {
           success: false,
@@ -167,14 +190,22 @@ export const UploadService = {
       }
     }
 
+    const uploadIdFor = new Map(newItems.map((photo, i) => [photo.id, uploads[i]!.uploadId]));
+    const photoFields = photos
+      ? {
+          photoUploadIds: uploads.map((upload) => upload.uploadId),
+          ...(method === "PUT"
+            ? { existingPhotoKeys: items.filter((p) => !p.file && p.url).map((p) => p.url!) }
+            : {}),
+          photoOrder: items.map((photo) =>
+            photo.file ? `upload:${uploadIdFor.get(photo.id)}` : photo.url!,
+          ),
+        }
+      : {};
+
     const response = await apiRequest(endpoint, {
       method,
-      body: JSON.stringify({
-        ...rest,
-        ...(uploads.length
-          ? { photoUploadIds: uploads.map((upload) => upload.uploadId) }
-          : {}),
-      }),
+      body: JSON.stringify({ ...rest, ...photoFields }),
     });
 
     if (!response.success) {

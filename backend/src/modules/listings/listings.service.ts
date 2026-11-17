@@ -8,7 +8,13 @@ import {
 	Prisma,
 } from "../../../generated/prisma/client.js";
 import { prisma } from "../../prisma/client.js";
-import { withAttachedUploads, withMergedListingPhotos } from "../uploads/uploads.service.js";
+import {
+	assertPhotoCount,
+	orderPhotoKeys,
+	withAttachedUploads,
+	withMergedListingPhotos,
+} from "../uploads/uploads.service.js";
+import { MAX_LISTING_PHOTOS, MIN_LISTING_PHOTOS } from "../uploads/uploads.validation.js";
 import { mapToListing } from "./listings.mapper.js";
 import { AppError } from "../../utils/AppError.js";
 import { sendEmail, emailTemplates } from "../../lib/email.js";
@@ -103,8 +109,8 @@ export interface CreateListingData {
 	area?: string;
 	address?: string;
 	hideExactLocation?: boolean;
-	latitude?: number;
-	longitude?: number;
+	latitude?: number | null;
+	longitude?: number | null;
 	operatingBase?: string;
 
 	// Contact
@@ -113,6 +119,8 @@ export interface CreateListingData {
 
 	// Media
 	photoUploadIds: string[];
+	/** Display order of the photos (first = cover); see orderPhotoKeys. */
+	photoOrder?: string[];
 	videoUrl?: string;
 	vrTourUrl?: string;
 
@@ -144,6 +152,8 @@ export const createListing = async (
 
 	const companyId = user.companyId;
 	assertAssetTypeFits(data.category, data.assetType);
+	assertPhotoCount(data.photoUploadIds?.length ?? 0, { min: MIN_LISTING_PHOTOS, max: MAX_LISTING_PHOTOS });
+	const details = data.details ? cleanCategoryDetails(data.category, data.details) : undefined;
 
 	const create = () => withAttachedUploads(userId, data.photoUploadIds, async (tx, photoKeys) => {
 		const safeSlug = slug(data.title);
@@ -160,7 +170,7 @@ export const createListing = async (
 			currency: (data.currency as any) ?? "AED",
 			priceOnRequest: data.priceOnRequest ?? false,
 			negotiable: data.negotiable ?? false,
-			photoUrls: photoKeys,
+			photoUrls: orderPhotoKeys(data.photoOrder, [], data.photoUploadIds ?? [], photoKeys),
 			videoUrl: data.videoUrl,
 			vrTourUrl: data.vrTourUrl,
 			country: data.country,
@@ -195,8 +205,8 @@ export const createListing = async (
 		});
 
 		// Attach category-specific sub-record if details were provided
-		if (data.details && Object.keys(data.details).length > 0) {
-			await attachCategoryDetails(tx, listing.id, data.category, data.details);
+		if (details && Object.keys(details).length > 0) {
+			await attachCategoryDetails(tx, listing.id, data.category, details);
 		}
 
 		// Record status history
@@ -212,7 +222,9 @@ export const createListing = async (
 			},
 		});
 
-		return mapToListing(listing);
+		// Read it back so the response includes the category details just added.
+		const saved = await tx.listing.findUniqueOrThrow({ where: { id: listing.id }, include: listingIncludes });
+		return mapToListing(saved);
 	});
 
 	try {
@@ -225,6 +237,46 @@ export const createListing = async (
 	}
 };
 
+// ─── Category details ────────────────────────────────────────
+
+// The columns each category's detail record has (generated from the schema).
+const DETAIL_FIELDS: Record<CompanyCategory, Set<string>> = {
+	REAL_ESTATE: new Set(Object.values(Prisma.RealEstateListingScalarFieldEnum)),
+	CARS: new Set(Object.values(Prisma.CarListingScalarFieldEnum)),
+	YACHTS: new Set(Object.values(Prisma.YachtListingScalarFieldEnum)),
+	PRIVATE_AVIATION: new Set(Object.values(Prisma.PrivateAviationListingScalarFieldEnum)),
+	COLLECTIBLES: new Set(Object.values(Prisma.CollectibleListingScalarFieldEnum)),
+};
+const DETAIL_DATE_FIELDS = new Set(["lastInspectionDate"]);
+
+/**
+ * Keeps only real detail columns for the category and tidies values:
+ * empty text becomes empty, dates become dates, lists lose blanks and
+ * duplicates. An unknown field would otherwise fail the whole save.
+ */
+const cleanCategoryDetails = (category: CompanyCategory, details: Record<string, any>) => {
+	const allowed = DETAIL_FIELDS[category];
+	const clean: Record<string, any> = {};
+	for (const [key, raw] of Object.entries(details ?? {})) {
+		if (!allowed?.has(key) || key === "id" || key === "listingId" || raw === undefined) continue;
+		let value = raw;
+		if (typeof value === "string") {
+			value = value.trim();
+			if (value === "") value = null;
+		}
+		if (Array.isArray(value)) {
+			value = [...new Set(value.map((v) => String(v).trim()).filter(Boolean))];
+		}
+		if (DETAIL_DATE_FIELDS.has(key) && value !== null) {
+			const date = new Date(value);
+			if (Number.isNaN(date.getTime())) throw new AppError(`${key} is not a valid date`, 400);
+			value = date;
+		}
+		clean[key] = value;
+	}
+	return clean;
+};
+
 // Attaches the category-specific sub-record in the same transaction
 async function attachCategoryDetails(
 	tx: Prisma.TransactionClient,
@@ -234,6 +286,7 @@ async function attachCategoryDetails(
 ) {
 	// Category-specific details are validated by the caller (dynamic per-category
 	// schema, see plan Section 10) — Prisma's required-field typing can't express that here.
+	details = cleanCategoryDetails(category, details);
 	switch (category) {
 		case CompanyCategory.REAL_ESTATE:
 			await tx.realEstateListing.create({ data: { listingId, ...details } as Prisma.RealEstateListingUncheckedCreateInput });
@@ -255,7 +308,8 @@ async function attachCategoryDetails(
 
 // ─── UPDATE ──────────────────────────────────────────────────
 
-export interface UpdateListingData extends Partial<Omit<CreateListingData, "photoUploadIds">> {
+export interface UpdateListingData extends Partial<Omit<CreateListingData, "photoUploadIds" | "photoOrder">> {
+	photoOrder?: string[];
 	existingPhotoKeys?: string[];
 	photoUploadIds?: string[];
 }
@@ -362,11 +416,17 @@ export const updateListing = async (id: string, data: UpdateListingData, request
 
 	const holdForReview = existing.approvalStatus === ApprovalStatus.APPROVED && !isPlatformStaff(requester.role);
 	if (holdForReview) buildListingUpdate(existing.category, data); // validate now, apply on approval
+	if (data.details) data = { ...data, details: cleanCategoryDetails(existing.category, data.details) };
 
-	const result = await withMergedListingPhotos(requester.userId, existing.photoUrls, data, async (tx, photoKeys) => {
+	// The edit form shows the photos as they will be once pending changes are
+	// approved, so photos from an earlier pending edit can be kept too.
+	const previousPending = (existing.pendingChanges as PendingChanges | null) ?? null;
+	const currentPhotos = [...new Set([...existing.photoUrls, ...(previousPending?.photoKeys ?? [])])];
+
+	const result = await withMergedListingPhotos(requester.userId, currentPhotos, data, async (tx, photoKeys) => {
 		if (holdForReview) {
-			const previous = (existing.pendingChanges as PendingChanges | null) ?? null;
-			const { existingPhotoKeys: _keep, photoUploadIds: _new, details, ...fields } = data;
+			const previous = previousPending;
+			const { existingPhotoKeys: _keep, photoUploadIds: _new, photoOrder: _order, details, ...fields } = data;
 			const next: PendingChanges = {
 				data: {
 					...(previous?.data ?? {}),
@@ -406,7 +466,7 @@ export const updateListing = async (id: string, data: UpdateListingData, request
 		}
 		const updated = await tx.listing.findUniqueOrThrow({ where: { id }, include: listingIncludes });
 		return mapToListing(updated);
-	});
+	}, { min: MIN_LISTING_PHOTOS, max: MAX_LISTING_PHOTOS });
 
 	if (holdForReview) {
 		await notifyReviewers(existing, "changes", requester.userId).catch((error) =>
@@ -438,6 +498,7 @@ async function upsertCategoryDetails(
 		create: (args: any) => Promise<unknown>;
 	};
 	if (!model) return;
+	details = cleanCategoryDetails(category, details);
 	const existing = await model.findUnique({ where: { listingId }, select: { id: true } });
 	if (existing) await model.update({ where: { listingId }, data: details });
 	else await model.create({ data: { listingId, ...details } });
@@ -488,7 +549,7 @@ export const getListings = async (
 	]);
 
 	return {
-		listings: listings.map(mapToListing),
+		listings: listings.map((l) => mapToListing(l)),
 		pagination: {
 			total,
 			page,
@@ -572,7 +633,7 @@ export const getPublicListings = async (
 	]);
 
 	return {
-		listings: listings.map(mapToListing),
+		listings: listings.map((l) => mapToListing(l, { forPublic: true })),
 		pagination: {
 			total,
 			page,
@@ -592,7 +653,7 @@ export const getPublicListingById = async (id: string) => {
 		include: listingIncludes,
 	});
 	if (!listing) return null;
-	return mapToListing(listing);
+	return mapToListing(listing, { forPublic: true });
 };
 
 // ─── STATUS TRANSITIONS ──────────────────────────────────────

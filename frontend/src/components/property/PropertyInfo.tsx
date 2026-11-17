@@ -2,6 +2,14 @@ import { Bed, Bath, Move, MapPin, Check, Car, Gauge, Ruler, Users } from "lucide
 import PropertyAgent from "./PropertyAgent";
 import { formatPrice } from "@/lib/utils/formatPrice";
 import { Listing } from "@/types/listing";
+import { isDirectVideoFile, toVideoEmbed } from "@/lib/utils/videoEmbed";
+
+const videoSource = (link?: string | null): { kind: "embed" | "file"; src: string } | null => {
+  if (!link) return null;
+  const embed = toVideoEmbed(link);
+  if (embed) return { kind: "embed", src: embed.embedUrl };
+  return isDirectVideoFile(link) ? { kind: "file", src: link } : null;
+};
 
 interface PropertyInfoProps {
   listing: Listing;
@@ -51,15 +59,18 @@ const getFeatures = (listing: Listing): string[] => {
     case "CAR":
       return listing.options || [];
     case "YACHT":
-      return listing.navigation || [];
+      return [...(listing.navigation || []), ...((listing as any).amenities || [])];
     default:
-      return [];
+      // Jets and helicopters: cabin features.
+      return (listing as any).amenities || [];
   }
 };
 
 const PropertyInfo = ({ listing }: PropertyInfoProps) => {
   const stats = getKeyStats(listing);
   const features = getFeatures(listing);
+  // Any YouTube / Vimeo / Drive link the owner pasted, turned into its playable form.
+  const video = videoSource(listing.media?.video);
 
   return (
     <div className="w-full">
@@ -113,18 +124,25 @@ const PropertyInfo = ({ listing }: PropertyInfoProps) => {
       </div>
 
       {/* Video Tour */}
-      {listing.media.video && (
+      {video && (
         <div className="mb-12">
           <h2 className="text-3xl font-canela text-slate-900 mb-9">
             <span className="font-bold border-b-2 pb-2 border-b-gold">Asset</span> Tour
           </h2>
-          <div className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer shadow-xl bg-black">
-            <iframe
-              src={listing.media.video}
-              title="Asset video tour"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              className="w-full h-full"
-            ></iframe>
+          <div className="relative aspect-video rounded-lg overflow-hidden shadow-xl bg-black">
+            {video.kind === "file" ? (
+              <video src={video.src} controls playsInline preload="metadata" className="w-full h-full" />
+            ) : (
+              <iframe
+                src={video.src}
+                title="Asset video tour"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+                loading="lazy"
+                className="w-full h-full"
+              ></iframe>
+            )}
           </div>
         </div>
       )}

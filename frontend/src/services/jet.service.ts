@@ -1,47 +1,32 @@
 import { JetFormData } from "@/lib/schemas/jetSchema";
+import { toCommonPayload } from "@/lib/schemas/listingBase";
 import { apiRequest, ApiResponse } from "../core/api";
 import { UploadService } from "@/services/upload.service";
 
-// The dedicated /jets endpoint is deprecated (410 Gone) — jets are now
-// PRIVATE_AVIATION listings (assetType JET) created through the unified
-// /listings API. See mydubai-broker-backend/src/modules/jets/jets.controller.ts.
-const toListingPayload = ({
-  price,
-  offeringType,
-  rateBasis,
-  currency,
-  qualityNarrative,
-  manufacturer,
-  model,
-  year,
-  totalHours,
-  passengerCapacity,
-  range,
-  interiorDetails,
-  avionics,
-  maintenanceHistory,
-  ...rest
-}: JetFormData) => ({
-  ...rest,
+// Jets are PRIVATE_AVIATION listings (asset type JET) on the unified /listings API.
+const toListingPayload = (data: JetFormData) => ({
+  ...toCommonPayload(data),
   category: "PRIVATE_AVIATION",
   assetType: "JET",
-  ...(offeringType === "CHARTER"
-    ? {
-        offeringType: "CHARTER",
-        ...(rateBasis === "DAY" ? { dailyRate: price } : { charterRate: price }),
-      }
-    : { offeringType: "SALE", salePrice: price }),
-  currency,
+  ...(data.offeringType === "CHARTER"
+    ? { offeringType: "CHARTER", ...(data.rateBasis === "DAY" ? { dailyRate: data.price } : { charterRate: data.price }) }
+    : { offeringType: "SALE", salePrice: data.price }),
   details: {
-    manufacturer,
-    model,
-    year,
-    totalHours,
-    passengerCapacity,
-    rangeNm: range,
-    interiorDetails,
-    avionics,
-    maintenanceHistory,
+    manufacturer: data.manufacturer,
+    model: data.model,
+    year: data.year,
+    serialNumber: data.serialNumber ?? "",
+    registrationTail: data.registrationTail ?? "",
+    totalHours: data.totalHours,
+    engineHours: data.engineHours ?? null,
+    passengerCapacity: data.passengerCapacity,
+    rangeNm: data.range,
+    interiorConfig: data.interiorConfig ?? "",
+    interiorDetails: data.interiorDetails ?? "",
+    avionics: data.avionics ?? "",
+    maintenanceHistory: data.maintenanceHistory ?? "",
+    lastInspectionDate: data.lastInspectionDate || null,
+    amenities: data.amenities,
   },
 });
 

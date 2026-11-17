@@ -114,6 +114,10 @@ const Input: React.FC<InputProps> = ({
           }
           autoComplete="off"
           disabled={disabled}
+          // Number boxes take decimals (e.g. 88.6 ft); whole-number fields are
+          // checked by the form's own rules. Without this the browser blocks
+          // the save with its own "nearest valid values are 5 and 6" bubble.
+          step={type === "number" ? "any" : undefined}
           {...props}
         />
 

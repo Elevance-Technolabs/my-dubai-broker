@@ -10,6 +10,7 @@ import {
 	PublicationStatus,
 	Currency,
 } from "../../../generated/prisma/enums.js";
+import { MAX_LISTING_PHOTOS } from "../uploads/uploads.validation.js";
 
 const enumValues = <T extends Record<string, string>>(e: T) =>
 	Object.values(e) as [string, ...string[]];
@@ -69,8 +70,8 @@ export const createListingSchema = z.object({
 	area: z.string().optional(),
 	address: z.string().optional(),
 	hideExactLocation: z.boolean().default(false),
-	latitude: z.number().optional(),
-	longitude: z.number().optional(),
+	latitude: z.number().min(-90, "Latitude must be between -90 and 90").max(90, "Latitude must be between -90 and 90").nullable().optional(),
+	longitude: z.number().min(-180, "Longitude must be between -180 and 180").max(180, "Longitude must be between -180 and 180").nullable().optional(),
 	operatingBase: z.string().optional(),
 
 	// Contact
@@ -78,7 +79,17 @@ export const createListingSchema = z.object({
 	primaryPhone: z.string().optional(),
 
 	// Media
-	photoUploadIds: z.array(z.string()).default([]),
+	photoUploadIds: z
+		.array(z.string())
+		.max(MAX_LISTING_PHOTOS, `A listing can have at most ${MAX_LISTING_PHOTOS} photos`)
+		.default([]),
+	// Edits: the current photos to keep.
+	existingPhotoKeys: z.array(z.string()).max(MAX_LISTING_PHOTOS).optional(),
+	// Display order of all photos (first = cover): `upload:<id>` or an existing photo URL.
+	photoOrder: z
+		.array(z.string().min(1))
+		.max(MAX_LISTING_PHOTOS, `A listing can have at most ${MAX_LISTING_PHOTOS} photos`)
+		.optional(),
 	videoUrl: z.preprocess(
 		emptyToUndefined,
 		z.string().url("Video link must be a valid URL (including https://)").optional(),

@@ -56,4 +56,8 @@ export const presignDocumentUploadSchema = createPresignSchema(
 	"Only JPEG, PNG, WebP images and PDF files are allowed",
 );
 
+/** Every listing needs at least this many photos (the first one is the cover). */
+export const MIN_LISTING_PHOTOS = 5;
+export const MAX_LISTING_PHOTOS = 30;
+
 export const photoUploadIdsSchema = z.array(z.string().uuid()).min(1).max(10);

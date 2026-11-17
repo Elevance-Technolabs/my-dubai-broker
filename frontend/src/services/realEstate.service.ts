@@ -1,75 +1,57 @@
-import { RealEstateFormData } from "@/lib/schemas/realEstateSchema";
+import { PROPERTY_TYPES, RealEstateFormData } from "@/lib/schemas/realEstateSchema";
+import { toCommonPayload } from "@/lib/schemas/listingBase";
 import { apiRequest, ApiResponse } from "../core/api";
 import { UploadService } from "@/services/upload.service";
 
-// The dedicated /real-estate endpoint is legacy — real estate is now a
-// REAL_ESTATE-category listing created through the unified /listings API
-// (matches the jet/helicopter migration; see
-// mydubai-broker-backend/src/modules/listings).
+const EMIRATES = ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Umm Al Quwain", "Ras Al Khaimah", "Fujairah"];
 
-// The form's `status` field is really a leftover PropertyListingType value
-// (SALE/RENT/OFF_PLAN/NEW/PRE_OWNED), which only partially maps onto the
-// backend's OfferingType enum (SALE/LONG_TERM_RENT/SHORT_TERM_RENT/OFF_PLAN/
-// CHARTER/PRICE_ON_REQUEST) — NEW/PRE_OWNED read as a property *condition*,
-// not a commercial offering, and both fall back to SALE here. This whole
-// field needs a real redesign (a proper offeringType selector, separate from
-// completion/condition) — tracked in PENDING.md, not fixed in this pass.
-const OFFERING_TYPE_MAP: Record<string, string> = {
-  SALE: "SALE",
-  RENT: "LONG_TERM_RENT",
-  OFF_PLAN: "OFF_PLAN",
-  NEW: "SALE",
-  PRE_OWNED: "SALE",
+// The listing type decides the offering and which price field is set.
+const OFFERING: Record<RealEstateFormData["status"], { offeringType: string; priceField: string }> = {
+  SALE: { offeringType: "SALE", priceField: "salePrice" },
+  OFF_PLAN: { offeringType: "OFF_PLAN", priceField: "salePrice" },
+  RENT_YEARLY: { offeringType: "LONG_TERM_RENT", priceField: "annualRent" },
+  RENT_MONTHLY: { offeringType: "LONG_TERM_RENT", priceField: "monthlyRent" },
+  SHORT_TERM: { offeringType: "SHORT_TERM_RENT", priceField: "dailyRate" },
 };
 
-const toListingPayload = ({
-  price,
-  currency,
-  qualityNarrative,
-  propertyType,
-  status,
-  permitNumber,
-  bedrooms,
-  bathrooms,
-  builtUpArea,
-  plotArea,
-  floor,
-  parking,
-  developer,
-  furnished,
-  paymentPlan,
-  views,
-  outdoor,
-  indoor,
-  community,
-  propertyTags,
-  ...rest
-}: RealEstateFormData) => ({
-  ...rest,
-  category: "REAL_ESTATE",
-  assetType: "VILLA", // default — the form's propertyType is free text, not the AssetType enum
-  offeringType: OFFERING_TYPE_MAP[status] ?? "SALE",
-  salePrice: price,
-  currency,
-  details: {
-    propertyType,
-    permitNumber,
-    bedrooms,
-    bathrooms,
-    builtUpArea,
-    plotArea,
-    floor,
-    parking,
-    developer,
-    furnished,
-    paymentPlan,
-    views,
-    outdoor,
-    indoor,
-    communityFeatures: community,
-    propertyTags,
-  },
-});
+// Real estate is a REAL_ESTATE-category listing on the unified /listings API.
+const toListingPayload = (data: RealEstateFormData) => {
+  const offering = OFFERING[data.status];
+  const city = data.city?.trim() ?? "";
+  return {
+    ...toCommonPayload(data),
+    category: "REAL_ESTATE",
+    assetType: data.propertyType || "VILLA",
+    offeringType: offering.offeringType,
+    [offering.priceField]: data.price,
+    details: {
+      propertyType: PROPERTY_TYPES.find((t) => t.value === data.propertyType)?.label ?? data.propertyType,
+      // Kept in step with the Location section.
+      emirate: EMIRATES.find((e) => e.toLowerCase() === city.toLowerCase()) ?? "",
+      community: data.area?.trim() ?? "",
+      building: data.building ?? "",
+      permitNumber: data.permitNumber ?? "",
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      builtUpArea: data.builtUpArea,
+      plotArea: data.plotArea ?? null,
+      floor: data.floor ?? null,
+      totalFloors: data.totalFloors ?? null,
+      parking: data.parking ?? null,
+      furnished: !!data.furnished,
+      completionStatus: data.completionStatus ?? "",
+      developer: data.developer ?? "",
+      paymentPlan: data.paymentPlan ?? "",
+      serviceCharge: data.serviceCharge ?? null,
+      views: data.views,
+      outdoor: data.outdoor,
+      indoor: data.indoor,
+      communityFeatures: data.communityFeatures,
+      amenities: data.amenities,
+      propertyTags: data.propertyTags,
+    },
+  };
+};
 
 export const realEstateService = {
   createRealEstate: async (

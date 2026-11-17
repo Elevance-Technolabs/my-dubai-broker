@@ -2,11 +2,12 @@ import { z } from "zod";
 import {
   enumField,
   numberField,
+  optionalNumberField,
   optionalText,
   requiredText,
   yearField,
 } from "./common";
-import { listingBaseShape, validateListingPhotos } from "./listingBase";
+import { defaultLocationValues, listingBaseShape, validateListingPhotos } from "./listingBase";
 
 export const helicopterSchema = z
   .object({
@@ -17,12 +18,19 @@ export const helicopterSchema = z
     manufacturer: requiredText("Manufacturer"),
     model: requiredText("Model"),
     year: yearField(),
-    rotorHours: numberField("Rotor hours", { min: 0 }),
+    rotorHours: numberField("Rotor hours", { min: 0, int: true }),
     seating: numberField("Seating capacity", { min: 1, int: true }),
     engineModel: requiredText("Engine model"),
     interiorDetails: optionalText("Interior details"),
     avionics: optionalText("Avionics"),
     maintenance: optionalText("Maintenance"),
+    serialNumber: optionalText("Serial number", 50),
+    registrationTail: optionalText("Registration (tail number)", 20),
+    totalHours: optionalNumberField("Airframe hours", { min: 0, int: true }),
+    range: optionalNumberField("Range", { gt: 0, int: true }),
+    interiorConfig: optionalText("Cabin layout", 200),
+    lastInspectionDate: optionalText("Last inspection date"),
+    amenities: z.array(z.string()),
   })
   .superRefine((data, ctx) => {
     validateListingPhotos(data, ctx);
@@ -47,9 +55,9 @@ export const defaultHelicopterValues: Partial<HelicopterFormData> = {
   offeringType: "SALE",
   rateBasis: "HOUR",
   currency: "USD",
-  photoFiles: [],
-  existingPhotoKeys: [],
+  photos: [],
   videoUrl: "",
+  vrTourUrl: "",
   qualityNarrative: "",
   primaryEmail: "",
   primaryPhone: "",
@@ -64,4 +72,10 @@ export const defaultHelicopterValues: Partial<HelicopterFormData> = {
   interiorDetails: "",
   avionics: "",
   maintenance: "",
+  ...defaultLocationValues,
+  serialNumber: "",
+  registrationTail: "",
+  interiorConfig: "",
+  lastInspectionDate: "",
+  amenities: [],
 };

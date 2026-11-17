@@ -21,20 +21,21 @@ import Button from "@/components/ui/Button";
 import ImageWithLoader from "@/components/ui/ImageWithLoader";
 import { CarListingDict } from "@/types/dictionary";
 import { Locale } from "@/i18n/config";
-import {
-  ArrowLeft,
-  ChevronRight,
-  ImageIcon,
-  Plus,
-  X as XIcon,
-} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { carService } from "@/services/car.service";
 import { toast } from "sonner";
 import { afterListingSaved } from "@/lib/listingSaved";
-import { validateImageFile } from "@/lib/utils/r2Upload";
+import ListingPhotosField from "@/components/forms/listing/ListingPhotosField";
+import {
+  CheckboxField,
+  FeaturePicker,
+  LABEL,
+  ListingExtrasFields,
+  LocationFields,
+  SectionTitle,
+} from "@/components/forms/listing/ListingSections";
 import {
   applyServerFieldErrors,
   summarizeFieldErrors,
@@ -83,23 +84,6 @@ export default function CarListingForm({
   } = methods;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePreviews, setImagePreviews] = useState<(string | null)[]>([
-    null,
-    null,
-    null,
-    null,
-    null,
-  ]);
-  const existingPhotoKeys = methods.watch("existingPhotoKeys") ?? [];
-
-  const removeExistingPhoto = (key: string) => {
-    methods.setValue(
-      "existingPhotoKeys",
-      existingPhotoKeys.filter((k) => k !== key),
-      { shouldValidate: true },
-    );
-  };
-
   const onSubmit: SubmitHandler<CarFormData> = async (data) => {
     setIsSubmitting(true);
     try {
@@ -128,54 +112,16 @@ export default function CarListingForm({
   };
 
   const onError: SubmitErrorHandler<CarFormInput> = (errors) => {
-    if (errors.photoFiles) {
-      toast.error("Please select a cover image before submitting.");
+    if (errors.photos) {
+      toast.error(String(errors.photos.message ?? "Please check the photos"));
+      document.getElementById("photos")?.scrollIntoView({ behavior: "smooth", block: "center" });
     } else {
       toast.error(summarizeFieldErrors(errors));
     }
   };
 
-  const handleImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number,
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const problem = validateImageFile(file);
-      if (problem) {
-        toast.error(problem);
-        e.target.value = "";
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newPreviews = [...imagePreviews];
-        newPreviews[index] = reader.result as string;
-        setImagePreviews(newPreviews);
-
-        // Update RHF state
-        const currentUrls = methods.getValues("photoFiles") || [];
-        const updatedUrls = [...currentUrls];
-        updatedUrls[index] = file;
-        methods.setValue("photoFiles", updatedUrls.filter(Boolean) as File[], {
-          shouldValidate: true,
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = (index: number) => {
-    const newPreviews = [...imagePreviews];
-    newPreviews[index] = null;
-    setImagePreviews(newPreviews);
-
-    const currentUrls = methods.getValues("photoFiles") || [];
-    const updatedUrls = currentUrls.filter((_, i) => i !== index);
-    methods.setValue("photoFiles", updatedUrls, { shouldValidate: true });
-  };
-
   const t = dict.form;
+  const offering = methods.watch("offeringType");
 
   return (
     <FormProvider {...methods}>
@@ -211,7 +157,7 @@ export default function CarListingForm({
                   labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
                   id="price"
                   type="number"
-                  label={t.fields.price}
+                  label={offering === "SHORT_TERM_RENT" ? "Rent per day" : offering === "LONG_TERM_RENT" ? "Rent per month" : t.fields.price}
                   placeholder={t.placeholders.price}
                   register={methods.register}
                   isMandatory
@@ -229,6 +175,18 @@ export default function CarListingForm({
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Select
+                  id="offeringType"
+                  label="Listing type"
+                  options={[
+                    { label: "For sale", value: "SALE" },
+                    { label: "For rent, per day", value: "SHORT_TERM_RENT" },
+                    { label: "For rent, per month", value: "LONG_TERM_RENT" },
+                  ]}
+                  register={methods.register}
+                  isMandatory
+                  labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
+                />
                 <Select
                   id="currency"
                   label={t.fields.currency}
@@ -427,6 +385,73 @@ export default function CarListingForm({
               />
             </div>
 
+            {/* More vehicle details */}
+            <div className="space-y-8">
+              <SectionTitle>More vehicle details</SectionTitle>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Select
+                  id="fuelType"
+                  label="Fuel type"
+                  options={["Petrol", "Diesel", "Hybrid", "Plug-in hybrid", "Electric"].map((v) => ({ label: v, value: v }))}
+                  register={methods.register}
+                  labelClassName={LABEL}
+                />
+                <Select
+                  id="regionalSpec"
+                  label="Regional specs"
+                  options={["GCC", "American", "European", "Japanese", "Canadian", "Korean", "Other"].map((v) => ({ label: v, value: v }))}
+                  register={methods.register}
+                  labelClassName={LABEL}
+                />
+                <Input labelClassName={LABEL} id="doors" type="number" label="Doors" register={methods.register} />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Input labelClassName={LABEL} id="seats" type="number" label="Seats" register={methods.register} />
+                <Input labelClassName={LABEL} id="registrationYear" type="number" label="Registration year" register={methods.register} />
+                <Input labelClassName={LABEL} id="plateNumber" label="Plate number" placeholder="Optional" register={methods.register} />
+              </div>
+              <Input labelClassName={LABEL} id="chassisNumber" label="Chassis number (VIN)" placeholder="Optional, not shown publicly in full" register={methods.register} />
+              <CheckboxField id="serviceHistory" label="Full service history" />
+              {offering !== "SALE" && (
+                <Textarea
+                  id="rentalTerms"
+                  label="Rental terms"
+                  placeholder="Deposit, minimum age, mileage limit, insurance, delivery..."
+                  register={methods.register}
+                  rows={3}
+                  labelClassName={LABEL}
+                />
+              )}
+            </div>
+
+            {/* Features */}
+            <div className="space-y-8">
+              <SectionTitle>Features</SectionTitle>
+              <FeaturePicker
+                name="options"
+                label="Options & equipment"
+                suggestions={[
+                  "Panoramic roof",
+                  "Leather seats",
+                  "Ventilated seats",
+                  "Massage seats",
+                  "360° camera",
+                  "Adaptive cruise control",
+                  "Head-up display",
+                  "Premium sound system",
+                  "Night vision",
+                  "Carbon ceramic brakes",
+                  "Apple CarPlay / Android Auto",
+                  "Soft-close doors",
+                  "Paint protection film",
+                  "Ceramic coating",
+                ]}
+              />
+            </div>
+
+            <LocationFields />
+            <ListingExtrasFields />
+
             {/* Contact Information */}
             <div className="space-y-8">
               <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold border-b border-gray-50 pb-2">
@@ -462,151 +487,7 @@ export default function CarListingForm({
             </h3>
 
             <div className="space-y-4 mb-auto">
-              {existingPhotoKeys.length > 0 && (
-                <div className="space-y-2 pb-4 border-b border-gray-200">
-                  <span className="text-[9px] uppercase tracking-widest text-gray-400">
-                    Current Photos
-                  </span>
-                  <div className="grid grid-cols-3 gap-3">
-                    {existingPhotoKeys.map((key) => (
-                      <div
-                        key={key}
-                        className="relative aspect-square border border-gray-200 bg-white p-1"
-                      >
-                        <ImageWithLoader
-                          src={key}
-                          alt="Existing photo"
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeExistingPhoto(key)}
-                          className="absolute -top-2 -right-2 bg-white text-luxury-black border border-gray-200 p-1 hover:text-red-600 shadow-sm z-20 rounded-full transition-colors"
-                        >
-                          <XIcon size={10} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {errors.photoFiles && (
-                <p className="text-sm text-red-500">
-                  {errors.photoFiles.message as string}
-                </p>
-              )}
-
-              {/* Main Cover Image */}
-              <div className="relative group cursor-pointer w-full aspect-4/3">
-                <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer">
-                  {imagePreviews[0] ? (
-                    <div className="w-full h-full relative border border-gray-200 shadow-sm bg-white p-2">
-                      <div className="w-full h-full relative overflow-hidden">
-                        <ImageWithLoader
-                          src={imagePreviews[0]}
-                          alt="Cover Preview"
-                          className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col items-center justify-center z-10">
-                          <p className="text-[10px] uppercase tracking-widest text-luxury-black">
-                            Replace Cover
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full h-full bg-white border border-gray-300 flex flex-col items-center justify-center transition-all duration-500 group-hover:border-luxury-gold group-hover:shadow-lg">
-                      <div className="mb-6 p-4 rounded-full bg-gray-50 group-hover:bg-luxury-gold/10 transition-colors">
-                        <ImageIcon
-                          size={24}
-                          className="text-luxury-charcoal group-hover:text-luxury-gold transition-colors"
-                          strokeWidth={1}
-                        />
-                      </div>
-                      <span className="uppercase tracking-widest text-[10px] font-semibold text-luxury-black mb-2">
-                        Cover Image
-                      </span>
-                      <span className="text-[10px] font-serif text-gray-400 italic">
-                        Required
-                      </span>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) => handleImageChange(e, 0)}
-                  />
-                </label>
-                {imagePreviews[0] && (
-                  <button
-                    type="button"
-                    onClick={() => removeImage(0)}
-                    className="absolute -top-2 -right-2 bg-white text-luxury-black border border-gray-200 p-1.5 hover:text-red-600 shadow-sm z-20 rounded-full transition-colors"
-                  >
-                    <XIcon size={12} />
-                  </button>
-                )}
-              </div>
-
-              {/* Additional Images Grid */}
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                {imagePreviews.slice(1).map((preview, i) => {
-                  const actualIndex = i + 1;
-                  return (
-                    <div
-                      key={actualIndex}
-                      className="relative group cursor-pointer w-full aspect-square"
-                    >
-                      <label className="flex flex-col items-center justify-center h-full w-full cursor-pointer">
-                        {preview ? (
-                          <div className="w-full h-full relative border border-gray-200 shadow-sm bg-white p-1.5">
-                            <div className="w-full h-full relative overflow-hidden">
-                              <ImageWithLoader
-                                src={preview}
-                                alt={`Gallery ${actualIndex}`}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                              />
-                              <div className="absolute inset-0 bg-white/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center z-10">
-                                <p className="text-[8px] uppercase tracking-widest text-luxury-black">
-                                  Replace
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="w-full h-full bg-white border border-dashed border-gray-200 flex flex-col items-center justify-center transition-all duration-300 hover:border-luxury-gold hover:bg-gray-50">
-                            <Plus
-                              size={20}
-                              className="text-gray-300 group-hover:text-luxury-gold transition-colors"
-                              strokeWidth={1.5}
-                            />
-                            <span className="text-[9px] uppercase tracking-widest text-gray-400 mt-2 group-hover:text-luxury-gold transition-colors">
-                              Add Photo
-                            </span>
-                          </div>
-                        )}
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) => handleImageChange(e, actualIndex)}
-                        />
-                      </label>
-                      {preview && (
-                        <button
-                          type="button"
-                          onClick={() => removeImage(actualIndex)}
-                          className="absolute -top-2 -right-2 bg-white text-luxury-black border border-gray-200 p-1 hover:text-red-600 shadow-sm z-20 rounded-full transition-colors"
-                        >
-                          <XIcon size={10} />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              <ListingPhotosField />
             </div>
 
             <div className="mt-12 pt-8 border-t border-gray-200">
@@ -626,7 +507,7 @@ export default function CarListingForm({
               </Button>
               <p className="text-center text-[9px] text-gray-300 uppercase tracking-widest mt-4">
                 {mode === "edit"
-                  ? "Changes are saved immediately"
+                  ? "Changes to a live listing go live after review"
                   : "Listing pending admin verification"}
               </p>
             </div>

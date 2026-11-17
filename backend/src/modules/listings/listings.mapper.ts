@@ -149,7 +149,14 @@ type PrismaListing = Listing & {
 
 // ─── Mapper ──────────────────────────────────────────────────
 
-export const mapToListing = (listing: PrismaListing) => {
+/**
+ * `forPublic`: the version shown on the website. When the company chose to
+ * hide the exact location, the address is left out and the map pin is
+ * rounded to about 1 km, so the area shows but not the building.
+ */
+export const mapToListing = (listing: PrismaListing, { forPublic = false }: { forPublic?: boolean } = {}) => {
+	const hideExact = forPublic && listing.hideExactLocation;
+	const approx = (n: number | null) => (n == null ? n : hideExact ? Math.round(n * 100) / 100 : n);
 	// Build category-specific details
 	let details: Record<string, any> = {};
 
@@ -215,10 +222,11 @@ export const mapToListing = (listing: PrismaListing) => {
 			country: listing.country,
 			city: listing.city,
 			area: listing.area,
-			address: listing.hideExactLocation ? undefined : listing.address,
-			lat: listing.latitude,
-			lng: listing.longitude,
+			address: hideExact ? undefined : listing.address,
+			lat: approx(listing.latitude),
+			lng: approx(listing.longitude),
 			operatingBase: listing.operatingBase,
+			hideExactLocation: listing.hideExactLocation,
 		},
 
 		// Media

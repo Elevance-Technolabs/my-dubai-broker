@@ -724,10 +724,14 @@ model PrivateAviationListing {
   rangeNm           Int? // nautical miles
 
   avionics           String?
+  engineModel        String? // e.g. Safran Arriel 2D (helicopters)
   interiorConfig     String? // e.g. 8-seat club config
   interiorDetails    String?
   maintenanceHistory String?
   lastInspectionDate DateTime?
+
+  // Features shown on the public page (cabin, connectivity, equipment).
+  amenities String[]
 
   @@index([manufacturer, model])
   @@map("private_aviation_listings")

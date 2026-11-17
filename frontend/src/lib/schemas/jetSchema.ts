@@ -2,11 +2,12 @@ import { z } from "zod";
 import {
   enumField,
   numberField,
+  optionalNumberField,
   optionalText,
   requiredText,
   yearField,
 } from "./common";
-import { listingBaseShape, validateListingPhotos } from "./listingBase";
+import { defaultLocationValues, listingBaseShape, validateListingPhotos } from "./listingBase";
 
 export const jetSchema = z
   .object({
@@ -17,12 +18,18 @@ export const jetSchema = z
     manufacturer: requiredText("Manufacturer"),
     model: requiredText("Model"),
     year: yearField(),
-    totalHours: numberField("Total hours", { min: 0 }),
+    totalHours: numberField("Total hours", { min: 0, int: true }),
     passengerCapacity: numberField("Passenger capacity", { min: 1, int: true }),
     range: numberField("Range", { gt: 0, int: true }),
     interiorDetails: optionalText("Interior details"),
     avionics: optionalText("Avionics"),
     maintenanceHistory: optionalText("Maintenance history"),
+    serialNumber: optionalText("Serial number", 50),
+    registrationTail: optionalText("Registration (tail number)", 20),
+    engineHours: optionalNumberField("Engine hours", { min: 0, int: true }),
+    interiorConfig: optionalText("Cabin layout", 200),
+    lastInspectionDate: optionalText("Last inspection date"),
+    amenities: z.array(z.string()),
   })
   .superRefine((data, ctx) => {
     validateListingPhotos(data, ctx);
@@ -47,9 +54,9 @@ export const defaultJetValues: Partial<JetFormData> = {
   offeringType: "SALE",
   rateBasis: "HOUR",
   currency: "USD", // Jets commonly priced in USD
-  photoFiles: [],
-  existingPhotoKeys: [],
+  photos: [],
   videoUrl: "",
+  vrTourUrl: "",
   qualityNarrative: "",
   primaryEmail: "",
   primaryPhone: "",
@@ -64,4 +71,10 @@ export const defaultJetValues: Partial<JetFormData> = {
   interiorDetails: "",
   avionics: "",
   maintenanceHistory: "",
+  ...defaultLocationValues,
+  serialNumber: "",
+  registrationTail: "",
+  interiorConfig: "",
+  lastInspectionDate: "",
+  amenities: [],
 };

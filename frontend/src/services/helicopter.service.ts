@@ -1,49 +1,33 @@
 import { HelicopterFormData } from "@/lib/schemas/helicopterSchema";
+import { toCommonPayload } from "@/lib/schemas/listingBase";
 import { apiRequest, ApiResponse } from "../core/api";
 import { UploadService } from "@/services/upload.service";
 
-// The dedicated /helicopters endpoint is deprecated (410 Gone) — helicopters
-// are now PRIVATE_AVIATION listings (assetType HELICOPTER) created through
-// the unified /listings API. See
-// mydubai-broker-backend/src/modules/helicopters/helicopters.controller.ts.
-// Note: engineModel has no equivalent column on PrivateAviationListing yet
-// and is currently dropped — see the pending-work doc.
-const toListingPayload = ({
-  price,
-  offeringType,
-  rateBasis,
-  currency,
-  qualityNarrative,
-  manufacturer,
-  model,
-  year,
-  rotorHours,
-  seating,
-  engineModel,
-  interiorDetails,
-  avionics,
-  maintenance,
-  ...rest
-}: HelicopterFormData) => ({
-  ...rest,
+// Helicopters are PRIVATE_AVIATION listings (asset type HELICOPTER) on the unified /listings API.
+const toListingPayload = (data: HelicopterFormData) => ({
+  ...toCommonPayload(data),
   category: "PRIVATE_AVIATION",
   assetType: "HELICOPTER",
-  ...(offeringType === "CHARTER"
-    ? {
-        offeringType: "CHARTER",
-        ...(rateBasis === "DAY" ? { dailyRate: price } : { charterRate: price }),
-      }
-    : { offeringType: "SALE", salePrice: price }),
-  currency,
+  ...(data.offeringType === "CHARTER"
+    ? { offeringType: "CHARTER", ...(data.rateBasis === "DAY" ? { dailyRate: data.price } : { charterRate: data.price }) }
+    : { offeringType: "SALE", salePrice: data.price }),
   details: {
-    manufacturer,
-    model,
-    year,
-    engineHours: rotorHours,
-    passengerCapacity: seating,
-    interiorDetails,
-    avionics,
-    maintenanceHistory: maintenance,
+    manufacturer: data.manufacturer,
+    model: data.model,
+    year: data.year,
+    serialNumber: data.serialNumber ?? "",
+    registrationTail: data.registrationTail ?? "",
+    totalHours: data.totalHours ?? null,
+    engineHours: data.rotorHours,
+    engineModel: data.engineModel,
+    passengerCapacity: data.seating,
+    rangeNm: data.range ?? null,
+    interiorConfig: data.interiorConfig ?? "",
+    interiorDetails: data.interiorDetails ?? "",
+    avionics: data.avionics ?? "",
+    maintenanceHistory: data.maintenance ?? "",
+    lastInspectionDate: data.lastInspectionDate || null,
+    amenities: data.amenities,
   },
 });
 

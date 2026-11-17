@@ -1,43 +1,39 @@
 import { YachtFormData } from "@/lib/schemas/yachtSchema";
+import { toCommonPayload } from "@/lib/schemas/listingBase";
 import { apiRequest, ApiResponse } from "../core/api";
 import { UploadService } from "@/services/upload.service";
 
-// The dedicated /yachts endpoint is legacy — yachts are now YACHTS-category
-// listings created through the unified /listings API (matches the
-// jet/helicopter migration; see mydubai-broker-backend/src/modules/listings).
-// yachtType is the listing's asset type; crewInfo has no column on
-// YachtListing yet and is dropped.
-const toListingPayload = ({
-  price,
-  currency,
-  qualityNarrative,
-  yachtType,
-  year,
-  make,
-  length,
-  beam,
-  crewInfo,
-  engineHours,
-  cabins,
-  materials,
-  navigation,
-  ...rest
-}: YachtFormData) => ({
-  ...rest,
+// Yachts are YACHTS-category listings on the unified /listings API.
+// Sale -> sale price; charter -> rate per hour or per day.
+const toListingPayload = (data: YachtFormData) => ({
+  ...toCommonPayload(data),
   category: "YACHTS",
-  assetType: yachtType || "MOTOR_YACHT",
-  offeringType: "SALE",
-  salePrice: price,
-  currency,
+  assetType: data.yachtType || "MOTOR_YACHT",
+  ...(data.offeringType === "CHARTER"
+    ? { offeringType: "CHARTER", ...(data.rateBasis === "DAY" ? { dailyRate: data.price } : { charterRate: data.price }) }
+    : { offeringType: "SALE", salePrice: data.price }),
   details: {
-    builder: make,
-    year,
-    lengthFt: length,
-    beamFt: beam,
-    engineHours,
-    cabins,
-    hullMaterial: materials,
-    navigation,
+    builder: data.make,
+    model: data.model ?? "",
+    year: data.year,
+    lengthFt: data.length,
+    beamFt: data.beam,
+    draftFt: data.draft ?? null,
+    hullMaterial: data.materials ?? "",
+    cabins: data.cabins ?? null,
+    guestCapacity: data.guestCapacity ?? null,
+    crewCapacity: data.crewCapacity ?? null,
+    crewIncluded: !!data.crewIncluded,
+    engineHours: data.engineHours ?? null,
+    engines: data.engines ?? "",
+    flag: data.flag ?? "",
+    registrationNumber: data.registrationNumber ?? "",
+    classification: data.classification ?? "",
+    navigation: data.navigation,
+    amenities: data.amenities,
+    charterAvailability: data.charterAvailability ?? "",
+    // The marina in the Location section is also the yacht's home port.
+    homePort: data.operatingBase ?? "",
   },
 });
 

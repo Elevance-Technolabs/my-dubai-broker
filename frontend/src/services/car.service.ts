@@ -1,52 +1,45 @@
 import { CarFormData } from "@/lib/schemas/carSchema";
+import { toCommonPayload } from "@/lib/schemas/listingBase";
 import { apiRequest, ApiResponse } from "../core/api";
 import { UploadService } from "@/services/upload.service";
 
-// The dedicated /cars endpoint is legacy — cars are now CARS-category
-// listings created through the unified /listings API (matches the
-// jet/helicopter migration; see mydubai-broker-backend/src/modules/listings).
-const toListingPayload = ({
-  price,
-  currency,
-  qualityNarrative,
-  brand,
-  model,
-  bodyType,
-  year,
-  variant,
-  mileage,
-  condition,
-  transmission,
-  engineSize,
-  horsepower,
-  color,
-  interiorColor,
-  warranty,
-  options,
-  negotiable,
-  ...rest
-}: CarFormData) => ({
-  ...rest,
+// Cars are CARS-category listings on the unified /listings API.
+// Sale -> sale price; rent per day -> daily rate; rent per month -> monthly rent.
+const toListingPayload = (data: CarFormData) => ({
+  ...toCommonPayload(data),
   category: "CARS",
-  assetType: bodyType || "SEDAN",
-  offeringType: "SALE",
-  salePrice: price,
-  currency,
-  negotiable,
+  assetType: data.bodyType || "SEDAN",
+  offeringType: data.offeringType,
+  ...(data.offeringType === "SHORT_TERM_RENT"
+    ? { dailyRate: data.price }
+    : data.offeringType === "LONG_TERM_RENT"
+      ? { monthlyRent: data.price }
+      : { salePrice: data.price }),
+  negotiable: data.negotiable,
   details: {
-    make: brand,
-    model,
-    year,
-    variant,
-    mileage,
-    condition,
-    transmission,
-    engineSize,
-    horsepower,
-    exteriorColor: color,
-    interiorColor,
-    warranty,
-    options,
+    make: data.brand,
+    model: data.model,
+    variant: data.variant ?? "",
+    year: data.year,
+    mileage: data.mileage,
+    condition: data.condition,
+    bodyType: data.bodyType,
+    transmission: data.transmission,
+    fuelType: data.fuelType ?? "",
+    engineSize: data.engineSize ?? "",
+    horsepower: data.horsepower ?? null,
+    exteriorColor: data.color,
+    interiorColor: data.interiorColor ?? "",
+    doors: data.doors ?? null,
+    seats: data.seats ?? null,
+    regionalSpec: data.regionalSpec ?? "",
+    warranty: data.warranty,
+    serviceHistory: !!data.serviceHistory,
+    registrationYear: data.registrationYear ?? null,
+    plateNumber: data.plateNumber ?? "",
+    chassisNumber: data.chassisNumber ?? "",
+    options: data.options,
+    rentalTerms: data.offeringType === "SALE" ? "" : (data.rentalTerms ?? ""),
   },
 });
 

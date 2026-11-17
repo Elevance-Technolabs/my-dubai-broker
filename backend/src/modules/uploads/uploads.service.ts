@@ -18,7 +18,8 @@ import {
 	type UploadContext,
 } from "./uploads.validation.js";
 
-const MAX_PENDING_UPLOADS_PER_USER = 20;
+// A listing can have up to 30 photos, uploaded in one go.
+const MAX_PENDING_UPLOADS_PER_USER = 40;
 const MAX_PENDING_ANONYMOUS_UPLOADS = 200;
 const ANONYMOUS_KEY_PREFIX = "onboarding";
 const PENDING_UPLOAD_TTL_MS = 60 * 60 * 1000;
@@ -223,7 +224,60 @@ export const withAttachedUploads = async <T>(
 interface PhotoUpdateData {
 	existingPhotoKeys?: string[];
 	photoUploadIds?: string[];
+	/**
+	 * The full photo list in display order (the first is the cover). Each entry
+	 * is `upload:<uploadId>` for a new photo, or an existing photo's key or
+	 * public URL. Without it, kept photos come first, then new ones.
+	 */
+	photoOrder?: string[];
 }
+
+/** `upload:<id>` in a photo order names a newly uploaded photo. */
+const UPLOAD_REF = "upload:";
+
+/**
+ * Puts photo keys in the order the client asked for. Every entry must name
+ * one of the kept or newly uploaded photos; any photo the order leaves out
+ * keeps its place after the named ones.
+ */
+export const orderPhotoKeys = (
+	order: string[] | undefined,
+	keptKeys: string[],
+	uploadIds: string[],
+	newKeys: string[],
+): string[] => {
+	if (!order?.length) return [...keptKeys, ...newKeys];
+	const result: string[] = [];
+	for (const entry of order) {
+		let key: string | undefined;
+		if (entry.startsWith(UPLOAD_REF)) {
+			const index = uploadIds.indexOf(entry.slice(UPLOAD_REF.length));
+			key = index >= 0 ? newKeys[index] : undefined;
+		} else {
+			key = keptKeys.find((k) => k === entry || toPublicUrl(k) === entry);
+		}
+		if (!key) {
+			throw new AppError("The photo order includes a photo that is not part of this listing.", 400);
+		}
+		if (!result.includes(key)) result.push(key);
+	}
+	for (const key of [...keptKeys, ...newKeys]) if (!result.includes(key)) result.push(key);
+	return result;
+};
+
+export const assertPhotoCount = (count: number, { min = 1, max }: { min?: number; max?: number } = {}) => {
+	if (count < min) {
+		throw new AppError(
+			min === 1
+				? "A listing must have at least one photo"
+				: `A listing needs at least ${min} photos (a cover and ${min - 1} more). It has ${count}.`,
+			400,
+		);
+	}
+	if (max !== undefined && count > max) {
+		throw new AppError(`A listing can have at most ${max} photos. It has ${count}.`, 400);
+	}
+};
 
 // Used when updating a listing: merges the photo keys the client wants to
 // keep (verified against the listing's current photoUrls, so a client can
@@ -238,14 +292,21 @@ export const withMergedListingPhotos = async <T>(
 		tx: Prisma.TransactionClient,
 		photoUrls: string[] | undefined,
 	) => Promise<T>,
+	limits: { min?: number; max?: number } = {},
 ): Promise<T> => {
 	const touchingPhotos =
-		data.existingPhotoKeys !== undefined || data.photoUploadIds !== undefined;
+		data.existingPhotoKeys !== undefined ||
+		data.photoUploadIds !== undefined ||
+		data.photoOrder !== undefined;
 
 	// The client only ever sees public URLs (from any listing GET response),
 	// never the raw R2 key, so accept either form when matching against what
 	// this listing actually has.
-	const requestedKeep = new Set(data.existingPhotoKeys ?? []);
+	// Photos to keep: the ones listed, or else the existing ones the order names.
+	const requestedKeep = new Set(
+		data.existingPhotoKeys ??
+			(data.photoOrder ?? []).filter((entry) => !entry.startsWith(UPLOAD_REF)),
+	);
 	const keptKeys = currentPhotoUrls.filter(
 		(key) => requestedKeep.has(key) || requestedKeep.has(toPublicUrl(key)),
 	);
@@ -256,10 +317,8 @@ export const withMergedListingPhotos = async <T>(
 		async (tx, newKeys) => {
 			if (!touchingPhotos) return run(tx, undefined);
 
-			const merged = [...keptKeys, ...newKeys];
-			if (merged.length === 0) {
-				throw new AppError("A listing must have at least one photo", 400);
-			}
+			const merged = orderPhotoKeys(data.photoOrder, keptKeys, data.photoUploadIds ?? [], newKeys);
+			assertPhotoCount(merged.length, limits);
 
 			return run(tx, merged);
 		},

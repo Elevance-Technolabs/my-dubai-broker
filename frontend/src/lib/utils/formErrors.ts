@@ -97,7 +97,9 @@ const LISTING_BASE_MAP: Record<string, string> = {
   dailyRate: "price",
   monthlyRent: "price",
   annualRent: "price",
-  photoUploadIds: "photoFiles",
+  photoUploadIds: "photos",
+  photoOrder: "photos",
+  existingPhotoKeys: "photos",
 };
 
 export const carFieldMap: Record<string, string> = {
@@ -112,11 +114,12 @@ export const yachtFieldMap: Record<string, string> = {
   "details.lengthFt": "length",
   "details.beamFt": "beam",
   "details.hullMaterial": "materials",
+  "details.draftFt": "draft",
 };
 
 export const realEstateFieldMap: Record<string, string> = {
   ...LISTING_BASE_MAP,
-  "details.communityFeatures": "community",
+  "details.communityFeatures": "communityFeatures",
 };
 
 export const jetFieldMap: Record<string, string> = {
