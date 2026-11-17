@@ -66,7 +66,7 @@ export default function AdminAuditLogView() {
     {
       header: "Action",
       render: (entry) => (
-        <span className="text-sm font-bold text-slate-900">{entry.action}</span>
+        <span className="text-sm font-medium text-luxury-black">{entry.action}</span>
       ),
     },
     {
@@ -85,7 +85,7 @@ export default function AdminAuditLogView() {
       header: "Actor",
       render: (entry) => (
         <div>
-          <p className="text-xs font-bold text-slate-900">
+          <p className="text-xs font-medium text-luxury-black">
             {entry.actor?.name || "Unknown"}
           </p>
           <p className="text-[10px] text-slate-400">{entry.actor?.email}</p>
@@ -104,22 +104,22 @@ export default function AdminAuditLogView() {
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-canela text-slate-900 mb-2">Audit Log</h1>
+          <h1 className="text-3xl font-serif text-slate-900 mb-2">Audit Log</h1>
           <p className="text-slate-500 font-satoshi">
             Every recorded platform action, most recent first
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="flex bg-slate-100 p-1 border border-gray-200">
             {ENTITY_TYPE_FILTERS.map((f) => (
               <button
                 key={f}
                 onClick={() => setEntityType(f)}
                 className={cn(
-                  "px-4 py-2 text-[10px] font-bold tracking-widest uppercase rounded-lg transition-all",
+                  "px-4 py-2 text-[10px] font-bold tracking-widest uppercase transition-all",
                   entityType === f
-                    ? "bg-white text-slate-900 shadow-sm"
+                    ? "bg-white text-slate-900"
                     : "text-slate-500 hover:text-slate-700",
                 )}
               >

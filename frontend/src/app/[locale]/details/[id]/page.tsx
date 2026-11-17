@@ -12,6 +12,7 @@ import { Locale, LocaleParams } from "@/i18n/config";
 import SeeMoreProperties from "@/components/property/SeeMoreProperties";
 import Newsletter from "@/components/newsletter/Newsletter";
 import { listingService } from "@/services/listing.service";
+import { TrackListingView } from "@/components/tracking/TrackListing";
 
 export default async function PropertyDetailsPage({
   params,
@@ -41,6 +42,7 @@ export default async function PropertyDetailsPage({
 
   return (
     <>
+      <TrackListingView listingId={listing.id} />
       <Navbar
         t={t.home}
         wrapperClassName="bg-[#FFFFFF] shadow-sm"

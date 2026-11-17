@@ -43,9 +43,10 @@ export interface CreateLeadInput {
 export const createLead = async (data: CreateLeadInput) => {
 	const listing = await prisma.listing.findUnique({
 		where: { id: data.listingId },
-		select: { id: true, companyId: true, creatorId: true, title: true },
+		select: { id: true, companyId: true, creatorId: true, title: true, publicationStatus: true },
 	});
 	if (!listing) throw new AppError("Listing not found", 404);
+	if (listing.publicationStatus === "DELETED") throw new AppError("This listing is no longer available.", 410);
 
 	// Lightweight duplicate detection — same listing, same contact info,
 	// not already flagged as a duplicate itself. Flagged, not blocked: the
@@ -90,6 +91,21 @@ export const createLead = async (data: CreateLeadInput) => {
 		include: leadIncludes,
 	});
 
+	// Counted in listing performance (enquiry conversion), duplicates excluded.
+	if (!existing) {
+		await prisma.performanceEvent.create({
+			data: {
+				listingId: listing.id,
+				companyId: listing.companyId,
+				eventType: "ENQUIRY_SUBMITTED",
+				sourcePage: data.sourcePage,
+				utmSource: data.utmSource,
+				utmMedium: data.utmMedium,
+				utmCampaign: data.utmCampaign,
+			},
+		});
+	}
+
 	await prisma.notification.create({
 		data: {
 			userId: listing.creatorId,
@@ -97,7 +113,7 @@ export const createLead = async (data: CreateLeadInput) => {
 			type: "lead_received",
 			title: "New Enquiry",
 			body: `${data.customerName} enquired about "${listing.title}"`,
-			actionUrl: `/leads/${lead.id}`,
+			actionUrl: "/dashboard/leads",
 		},
 	});
 
@@ -220,6 +236,11 @@ export const updateLeadStage = async (
 				stage: stage as any,
 				lastActivityAt: new Date(),
 				...(stage === "WON" || stage === "LOST" ? { outcome: stage.toLowerCase() } : {}),
+				// Moving a lead on from "New" is the team's first response; it
+				// drives response time, the SLA and the response rate.
+				...(!lead.firstRespondedAt && previousStage === "NEW" && stage !== "NEW"
+					? { firstRespondedAt: new Date() }
+					: {}),
 			},
 			include: leadIncludes,
 		});

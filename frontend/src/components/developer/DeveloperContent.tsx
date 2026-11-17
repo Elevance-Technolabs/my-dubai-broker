@@ -100,7 +100,7 @@ export default function DeveloperContent({
             >
               <div className="absolute inset-0 flex items-center justify-center p-20">
                 <div className="text-2xl font-sans font-bold tracking-widest mb-6">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src="/images/logo/light-logo.svg"
                     className="w-70"
                     alt="Logo"

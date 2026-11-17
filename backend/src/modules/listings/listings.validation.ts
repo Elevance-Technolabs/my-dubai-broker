@@ -101,8 +101,7 @@ export type CreateListingInput = z.infer<typeof createListingSchema>;
 // ─── Update Listing ──────────────────────────────────────────
 
 export const updateListingSchema = createListingSchema.partial().omit({
-	category: true, // category cannot change after creation
-	assetType: true,
+	category: true, // category cannot change after creation (asset type can, within the category)
 });
 
 // ─── Approval Status Update (Admin) ──────────────────────────
@@ -112,6 +111,25 @@ export const updateApprovalStatusSchema = z.object({
 	rejectionReason: z.string().optional(),
 	internalNote: z.string().optional(),
 	reason: z.string().optional(),
+});
+
+// ─── Admin review (reviewer assignment, notes) ───────────────
+
+export const setReviewerSchema = z.object({
+	reviewerId: z.string().min(1).nullable(),
+});
+
+export const addReviewNoteSchema = z.object({
+	body: z
+		.string({ error: "Note is required" })
+		.trim()
+		.min(2, "Note must be at least 2 characters")
+		.max(2000, "Note must be at most 2000 characters"),
+	isInternal: z.boolean().optional(),
+});
+
+export const confirmAvailabilitySchema = z.object({
+	isAvailable: z.boolean().optional(),
 });
 
 // ─── List Listings (Query Params) ────────────────────────────

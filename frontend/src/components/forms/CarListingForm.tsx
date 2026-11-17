@@ -33,6 +33,7 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { carService } from "@/services/car.service";
 import { toast } from "sonner";
+import { afterListingSaved } from "@/lib/listingSaved";
 import { validateImageFile } from "@/lib/utils/r2Upload";
 import {
   applyServerFieldErrors,
@@ -107,12 +108,7 @@ export default function CarListingForm({
           ? await carService.updateCar(listingId, data)
           : await carService.createCar(data);
       if (response.success) {
-        toast.success(
-          mode === "edit"
-            ? "Car listing updated successfully!"
-            : "Car listing published successfully!",
-        );
-        router.push("/dashboard");
+        afterListingSaved(mode, listingId, response, router, "Car listing published successfully!");
       } else {
         const unmapped = applyServerFieldErrors(
           methods.setError,
@@ -294,6 +290,22 @@ export default function CarListingForm({
                   placeholder={t.placeholders.mileage}
                   register={methods.register}
                   isMandatory
+                />
+                <Select
+                  id="bodyType"
+                  label="Body type"
+                  options={[
+                    { label: "Sedan", value: "SEDAN" },
+                    { label: "SUV", value: "SUV" },
+                    { label: "Sports car", value: "SPORTS_CAR" },
+                    { label: "Convertible", value: "CONVERTIBLE" },
+                    { label: "Truck", value: "TRUCK" },
+                    { label: "Van", value: "VAN" },
+                    { label: "Motorcycle", value: "MOTORCYCLE" },
+                  ]}
+                  register={methods.register}
+                  isMandatory
+                  labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
                 />
                 <Select
                   id="condition"

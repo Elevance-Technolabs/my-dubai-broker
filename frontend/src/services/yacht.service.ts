@@ -5,8 +5,8 @@ import { UploadService } from "@/services/upload.service";
 // The dedicated /yachts endpoint is legacy — yachts are now YACHTS-category
 // listings created through the unified /listings API (matches the
 // jet/helicopter migration; see mydubai-broker-backend/src/modules/listings).
-// Note: yachtType and crewInfo have no equivalent column on YachtListing yet
-// and are currently dropped — see the pending-work doc.
+// yachtType is the listing's asset type; crewInfo has no column on
+// YachtListing yet and is dropped.
 const toListingPayload = ({
   price,
   currency,
@@ -25,7 +25,7 @@ const toListingPayload = ({
 }: YachtFormData) => ({
   ...rest,
   category: "YACHTS",
-  assetType: "MOTOR_YACHT", // default — the form's yachtType is free text, not the AssetType enum
+  assetType: yachtType || "MOTOR_YACHT",
   offeringType: "SALE",
   salePrice: price,
   currency,
@@ -62,10 +62,10 @@ export const yachtService = {
       toListingPayload(data),
     );
   },
-  // Listings are archived, not hard-deleted, under the unified API.
+  // Deleting keeps the listing on record as history (see listing.service).
   deleteYatch: async (id: string): Promise<ApiResponse<any>> => {
-    return apiRequest(`/listings/${id}/archive`, {
-      method: "POST",
+    return apiRequest(`/listings/${id}`, {
+      method: "DELETE",
     });
   },
 };

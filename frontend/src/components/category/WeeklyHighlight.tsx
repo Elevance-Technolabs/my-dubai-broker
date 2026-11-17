@@ -58,7 +58,7 @@ const WeeklyHighlight = ({ type = "realEstate" }: WeeklyHighlightProps) => {
 
           {/* Right Side: Image */}
           <div className="w-full lg:w-1/2 h-[400px] lg:h-[500px] relative overflow-hidden">
-            <img
+            <img loading="lazy" decoding="async"
               src={data.image}
               alt="Weekly Highlight Property"
               className="w-full h-full object-cover ease-in-out transition-all duration-400 group-hover:scale-102"

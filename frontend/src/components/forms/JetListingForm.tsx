@@ -27,6 +27,7 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { jetService } from "@/services/jet.service";
 import { toast } from "sonner";
+import { afterListingSaved } from "@/lib/listingSaved";
 import { validateImageFile } from "@/lib/utils/r2Upload";
 import {
   applyServerFieldErrors,
@@ -101,12 +102,7 @@ export default function JetListingForm({
           ? await jetService.updateJet(listingId, data)
           : await jetService.createJet(data);
       if (response.success) {
-        toast.success(
-          mode === "edit"
-            ? "Jet listing updated successfully!"
-            : "Jet listing published successfully!",
-        );
-        router.push("/dashboard");
+        afterListingSaved(mode, listingId, response, router, "Jet listing published successfully!");
       } else {
         const unmapped = applyServerFieldErrors(
           methods.setError,

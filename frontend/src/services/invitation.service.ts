@@ -17,6 +17,7 @@ export interface InvitationPreview {
   email: string;
   role: UserRole;
   companyName: string;
+  isPlatformTeam?: boolean;
   expiresAt: string;
 }
 

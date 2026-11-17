@@ -10,7 +10,9 @@ import { prisma } from "../src/prisma/client.js";
 async function main() {
 	console.log("🌱 Starting database seeding...");
 
-	// 1. Create the platform's own company workspace
+	// 1. Create the platform's own company workspace. Platform staff (super
+	// admin, reviewer) are deliberately NOT members of it: staff are kept
+	// separate from partner companies.
 	const companyName = "My Dubai Broker";
 	const company = await prisma.company.upsert({
 		where: { name: companyName },
@@ -51,7 +53,6 @@ async function main() {
 			email: adminEmail,
 			emailVerified: true,
 			role: UserRole.super_admin,
-			companyId: company.id,
 		},
 	});
 	console.log(`✅ Super Admin created/found: ${user.email}`);
@@ -96,7 +97,6 @@ async function main() {
 			email: reviewerEmail,
 			emailVerified: true,
 			role: UserRole.platform_reviewer,
-			companyId: company.id,
 		},
 	});
 	console.log(`✅ Reviewer created/found: ${reviewer.email}`);

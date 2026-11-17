@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  selectField,
   numberField,
   optionalNumberField,
   optionalText,
@@ -12,7 +13,7 @@ export const yachtSchema = z
   .object({
     ...listingBaseShape,
     // Yacht Specific Fields
-    yachtType: requiredText("Yacht type"),
+    yachtType: selectField("Yacht type"),
     year: yearField(),
     make: requiredText("Make"),
     length: numberField("Length", { gt: 0 }),

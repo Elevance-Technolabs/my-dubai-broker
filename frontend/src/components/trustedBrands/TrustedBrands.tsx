@@ -42,7 +42,7 @@ const TrustedBrands = ({ t }: TrustedBrandsProps) => {
                     key={`logo-${setIndex}-${index}`}
                     className="h-12 md:h-15"
                   >
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={logo.src}
                       alt={logo.alt}
                       className="h-full w-auto"

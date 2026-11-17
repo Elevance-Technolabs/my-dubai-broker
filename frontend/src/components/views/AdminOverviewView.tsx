@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { AdminService } from "@/services/admin.service";
+import { useSession } from "@/lib/auth-client";
 
 type PlatformStats = {
   companies: { total: number; pendingReview: number };
@@ -37,15 +38,15 @@ function StatTile({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-6 flex items-center gap-4">
+    <div className="bg-white border border-gray-100 p-6 flex items-center gap-4">
       <div
-        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${toneClasses[tone]}`}
+        className={`w-12 h-12 flex items-center justify-center shrink-0 ${toneClasses[tone]}`}
       >
         <Icon size={20} />
       </div>
       <div>
-        <p className="text-2xl font-canela text-slate-900">{value}</p>
-        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mt-1">
+        <p className="text-2xl font-serif text-slate-900">{value}</p>
+        <p className="text-[10px] uppercase tracking-widest font-medium text-slate-400 mt-1">
           {label}
         </p>
       </div>
@@ -71,6 +72,9 @@ function StatSection({
 }
 
 export default function AdminOverviewView() {
+  // A reviewer's overview counts only what is assigned to them.
+  const { data: session } = useSession();
+  const isSuperAdmin = (session?.user as any)?.role === "super_admin";
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -91,11 +95,13 @@ export default function AdminOverviewView() {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-10">
-        <h1 className="text-3xl font-canela text-slate-900 mb-2">
-          Platform Overview
+        <h1 className="text-3xl font-serif text-slate-900 mb-2">
+          {isSuperAdmin ? "Platform Overview" : "Your Overview"}
         </h1>
         <p className="text-slate-500 font-satoshi">
-          Live snapshot of companies, listings, and leads across the platform
+          {isSuperAdmin
+            ? "Live snapshot of companies, listings, and leads across the platform"
+            : "Companies and listings assigned to you for review"}
         </p>
       </div>
 
@@ -140,6 +146,7 @@ export default function AdminOverviewView() {
             />
           </StatSection>
 
+          {isSuperAdmin && (
           <StatSection title="Leads">
             <StatTile icon={Contact} label="Total" value={stats.leads.total} />
             <StatTile
@@ -149,6 +156,7 @@ export default function AdminOverviewView() {
               tone="rose"
             />
           </StatSection>
+          )}
         </>
       )}
     </div>

@@ -34,7 +34,7 @@ const JetEditorChoice = ({ dict }: JetEditorChoiceProps) => {
 
                 {/* Featured Content */}
                 <div className="relative aspect-21/9 w-full group overflow-hidden rounded-sm cursor-pointer">
-                    <img
+                    <img loading="lazy" decoding="async"
                         src={image}
                         alt={featuredTitle}
                         className="w-full h-full object-cover ease-in-out transition-all duration-400 group-hover:scale-102"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -16,7 +16,12 @@ import {
   UserCircle,
   History,
   UserCog,
+  ClipboardCheck,
+  BarChart3,
+  Settings2,
+  Bell,
 } from "lucide-react";
+import { NotificationService, type SidebarBadges } from "@/services/notification.service";
 import { cn } from "@/lib/utils/cn";
 import { useSession } from "@/lib/auth-client";
 import { FrontendAuthService } from "@/services/auth.service";
@@ -35,12 +40,14 @@ const SidebarItem = ({
   href,
   isActive,
   onClick,
+  badge,
 }: {
   icon: any;
   label: string;
   href: string;
   isActive: boolean;
   onClick?: () => void;
+  badge?: number;
 }) => (
   <Link
     href={href}
@@ -61,8 +68,20 @@ const SidebarItem = ({
       )}
     />
     <span>{label}</span>
+    {!!badge && (
+      <span
+        className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-luxury-gold text-white text-[10px] font-bold flex items-center justify-center"
+        aria-label={`${badge} waiting`}
+      >
+        {/* One digit at most: 10 or more shows as 9+. */}
+        {badge > 9 ? "9+" : badge}
+      </span>
+    )}
   </Link>
 );
+
+// Badge counts kept between page changes so they show at once.
+let badgesCache: SidebarBadges = { notifications: 0 };
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -87,6 +106,41 @@ export default function Sidebar() {
   };
 
   const closeSidebar = () => setIsOpen(false);
+
+  const [badges, setBadges] = useState<SidebarBadges>(badgesCache);
+  const sessionUserId = session?.user?.id;
+  useEffect(() => {
+    if (!sessionUserId) return;
+    let cancelled = false;
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const refresh = () =>
+      NotificationService.badges().then((res) => {
+        if (!cancelled && res.success && res.data) {
+          badgesCache = res.data;
+          setBadges(res.data);
+        }
+      });
+    // Several changes in a row (e.g. a few approvals) refresh once.
+    const refreshSoon = () => {
+      if (pending) clearTimeout(pending);
+      pending = setTimeout(refresh, 600);
+    };
+    refresh();
+    const timer = setInterval(refresh, 60_000);
+    window.addEventListener("notifications:changed", refresh);
+    window.addEventListener("api:changed", refreshSoon);
+    window.addEventListener("focus", refreshSoon);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+      if (pending) clearTimeout(pending);
+      window.removeEventListener("notifications:changed", refresh);
+      window.removeEventListener("api:changed", refreshSoon);
+      window.removeEventListener("focus", refreshSoon);
+    };
+    // Not on every page change: the counts are kept between pages, refreshed
+    // every minute, on returning to the window and after any change you make.
+  }, [sessionUserId]);
 
   return (
     <>
@@ -146,9 +200,10 @@ export default function Sidebar() {
             <SidebarItem
               icon={List}
               label="Listings"
-              href="/listings"
-              isActive={pathname?.startsWith("/listings")}
+              href="/dashboard/listings"
+              isActive={pathname?.startsWith("/dashboard/listings") || pathname?.startsWith("/listings")}
               onClick={closeSidebar}
+              badge={badges.listings}
             />
           )}
 
@@ -159,6 +214,7 @@ export default function Sidebar() {
               href="/dashboard/leads"
               isActive={pathname?.startsWith("/dashboard/leads")}
               onClick={closeSidebar}
+              badge={badges.leads}
             />
           )}
 
@@ -195,19 +251,41 @@ export default function Sidebar() {
           {isPlatformStaff && (
             <SidebarItem
               icon={Building2}
-              label="Companies"
+              label="Company Approvals"
               href="/admin/companies"
               isActive={pathname?.startsWith("/admin/companies")}
               onClick={closeSidebar}
+              badge={badges.companyApprovals}
+            />
+          )}
+
+          {isPlatformStaff && (
+            <SidebarItem
+              icon={ClipboardCheck}
+              label="Listing Approvals"
+              href="/admin/listing-approvals"
+              isActive={pathname?.startsWith("/admin/listing-approvals")}
+              onClick={closeSidebar}
+              badge={badges.listingApprovals}
             />
           )}
 
           {isPlatformStaff && (
             <SidebarItem
               icon={BadgeCheck}
-              label="Listings"
+              label="All Listings"
               href="/admin/listings"
               isActive={pathname?.startsWith("/admin/listings")}
+              onClick={closeSidebar}
+            />
+          )}
+
+          {isSuperAdmin && (
+            <SidebarItem
+              icon={Contact}
+              label="Leads"
+              href="/admin/leads"
+              isActive={pathname?.startsWith("/admin/leads")}
               onClick={closeSidebar}
             />
           )}
@@ -224,11 +302,42 @@ export default function Sidebar() {
 
           {isSuperAdmin && (
             <SidebarItem
+              icon={BarChart3}
+              label="Reports"
+              href="/admin/reports"
+              isActive={pathname?.startsWith("/admin/reports")}
+              onClick={closeSidebar}
+            />
+          )}
+
+          {isSuperAdmin && (
+            <SidebarItem
+              icon={Settings2}
+              label="Configuration"
+              href="/admin/configuration"
+              isActive={pathname?.startsWith("/admin/configuration")}
+              onClick={closeSidebar}
+            />
+          )}
+
+          {isSuperAdmin && (
+            <SidebarItem
               icon={History}
               label="Audit Log"
               href="/admin/audit-log"
               isActive={pathname?.startsWith("/admin/audit-log")}
               onClick={closeSidebar}
+            />
+          )}
+
+          {!!userRole && (
+            <SidebarItem
+              icon={Bell}
+              label="Notifications"
+              href="/notifications"
+              isActive={pathname?.startsWith("/notifications")}
+              onClick={closeSidebar}
+              badge={badges.notifications}
             />
           )}
         </nav>

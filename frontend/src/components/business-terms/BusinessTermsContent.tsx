@@ -100,7 +100,7 @@ export default function BusinessTermsContent({ t, locale }: BusinessTermsContent
             <PageHero
                 title={t.businessTerms.hero.title}
                 subtitle={t.businessTerms.hero.subtitle}
-                backgroundImage="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop"
+                backgroundImage="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920&auto=format&fit=crop"
                 imageAlt="Business Terms"
             />
 

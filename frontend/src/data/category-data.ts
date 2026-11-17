@@ -162,7 +162,7 @@ export const REAL_ESTATE_HERO = {
   subtitle:
     "Discover the finest properties in Dubai's most prestigious communities.",
   backgroundImage:
-    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2600&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1920&auto=format&fit=crop",
 };
 
 export const YACHTS_HERO = {

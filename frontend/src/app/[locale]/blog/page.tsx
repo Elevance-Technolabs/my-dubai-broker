@@ -12,8 +12,8 @@ const BlogHero = ({ t }: { t: BlogDict }) => {
     <div className="relative h-[60vh] min-h-[400px] w-full overflow-hidden bg-slate-900">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img
-          src="https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=2670&auto=format&fit=crop"
+        <img loading="lazy" decoding="async"
+          src="https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=1920&auto=format&fit=crop"
           alt="The View"
           className="w-full h-full object-cover"
         />
@@ -69,7 +69,7 @@ export default async function BlogPage({
             >
               {/* Image */}
               <div className="aspect-4/3 overflow-hidden mb-6 w-full">
-                <img
+                <img loading="lazy" decoding="async"
                   src={article.image}
                   alt={article.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"

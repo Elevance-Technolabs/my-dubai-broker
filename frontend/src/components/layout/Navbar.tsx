@@ -46,17 +46,35 @@ const Navbar = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Fetch the (small) mega-menu pictures once the page is idle, so the first
+  // hover shows its picture at once instead of waiting for a download.
+  useEffect(() => {
+    const urls = Object.values((t.navbar.megaMenu as any) ?? {})
+      .map((m: any) => m?.featured?.image)
+      .filter(Boolean) as string[];
+    const preload = () => urls.forEach((url) => { const img = new Image(); img.decoding = "async"; img.src = url; });
+    const w = window as any;
+    const handle = w.requestIdleCallback ? w.requestIdleCallback(preload, { timeout: 3000 }) : setTimeout(preload, 1500);
+    return () => (w.cancelIdleCallback ? w.cancelIdleCallback(handle) : clearTimeout(handle));
+  }, [t]);
+
   // Prevent scroll when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "unset";
   }, [mobileMenuOpen]);
 
-  const navClasses = scrolled || hoveredItem || mobileMenuOpen
-    ? cn("bg-white py-4 shadow-md", scrollWrapperClassName)
-    : cn("bg-transparent py-6", navClassName);
+  // Hovering only changes colours (background, shadow, text); the height
+  // changes only on scroll. Animating the height on hover made the whole
+  // header re-layout on every frame, which is what felt laggy.
+  const solid = scrolled || !!hoveredItem || mobileMenuOpen;
+  const navClasses = cn(
+    solid ? "bg-white shadow-md" : "bg-transparent shadow-none",
+    scrolled || mobileMenuOpen ? "py-4" : "py-6",
+    solid ? scrollWrapperClassName : navClassName,
+  );
 
-  const textClasses = scrolled || hoveredItem || mobileMenuOpen
+  const textClasses = solid
     ? cn("text-slate-900", scrollTextClassName, textClassName)
     : cn("text-white", textClassName);
 
@@ -74,25 +92,25 @@ const Navbar = ({
 
   return (
     <nav
-      className={cn("fixed px-3 w-full z-50 transition-all duration-300", navClasses, wrapperClassName)}
+      className={cn("fixed px-3 w-full z-50 transition-[background-color,box-shadow,padding] duration-300 ease-out", navClasses, wrapperClassName)}
       onMouseLeave={() => setHoveredItem(null)}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className="container mx-auto px-6 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-11 space-x-8 xl:space-x-16 rtl:space-x-reverse">
-          <Link href={`/${locale}`} className={cn("font-canela font-bold tracking-widest leading-none text-xs md:text-sm", textClasses)}>
+          <Link href={`/${locale}`} className={cn("font-canela font-bold tracking-widest leading-none text-xs md:text-sm transition-colors duration-300", textClasses)}>
             <div className="block">MY</div>
             <div className="block">DUBAI</div>
             <div className="block">BROKER.</div>
           </Link>
 
           {/* Desktop Menu */}
-          <div className={cn("hidden font-satoshi xl:flex items-center space-x-6 xl:space-x-10 text-sm font-semibold tracking-wide rtl:space-x-reverse", textClasses)}>
+          <div className={cn("hidden font-satoshi xl:flex items-center space-x-6 xl:space-x-10 text-sm font-semibold tracking-wide rtl:space-x-reverse transition-colors duration-300", textClasses)}>
             {menuItems.map((item) => (
               <div key={item.key} className="relative py-4" onMouseEnter={() => setHoveredItem(item.key)}>
                 <Link
                   href={item.key === "theView" ? `/${locale}/the-view` : `/${locale}/category/${item.key}`}
-                  className={cn("transition-colors hover:text-gold tracking-wider font-medium uppercase text-[11px]", hoveredItem === item.key ? "text-gold" : "")}
+                  className={cn("transition-colors duration-300 hover:text-gold tracking-wider font-medium uppercase text-[11px]", hoveredItem === item.key ? "text-gold" : "")}
                 >
                   {item.label}
                 </Link>
@@ -102,16 +120,16 @@ const Navbar = ({
         </div>
 
         {/* Desktop Buttons */}
-        <div className={cn("hidden xl:flex items-center space-x-6 rtl:space-x-reverse", textClasses)}>
+        <div className={cn("hidden xl:flex items-center space-x-6 rtl:space-x-reverse transition-colors duration-300", textClasses)}>
           <Link href={`/${locale}/onboarding`}>
-            <Button variant="ghost" className={cn("h-10 px-6 text-[10px] font-bold tracking-[0.2em] uppercase", (scrolled || hoveredItem) ? "text-black/90" : "text-white", sellWithUsClassName)}>
+            <Button variant="ghost" className={cn("h-10 px-6 text-[10px] font-bold tracking-[0.2em] uppercase", solid ? "text-black/90" : "text-white", sellWithUsClassName)}>
               {t.navbar.cta.sellWithUs}
             </Button>
           </Link>
           {false ? (
             <Button
               variant="outline"
-              className={cn("h-9 px-8 text-[10px] rounded-full font-bold tracking-[0.2em] uppercase border", (scrolled || hoveredItem) ? "text-black border-slate-200" : "text-white border-white/30", loginBtnClasses)}
+              className={cn("h-9 px-8 text-[10px] rounded-full font-bold tracking-[0.2em] uppercase border", solid ? "text-black border-slate-200" : "text-white border-white/30", loginBtnClasses)}
               onClick={async () => {
                 const response = await FrontendAuthService.signOut();
                 if (response.success) {
@@ -123,7 +141,7 @@ const Navbar = ({
             </Button>
           ) : (
             <Link href={`/${locale}/login`}>
-              <Button variant="outline" className={cn("h-9 px-8 text-[10px] rounded-full font-bold tracking-[0.2em] uppercase border", (scrolled || hoveredItem) ? "text-black border-slate-200" : "text-white border-white/30", loginBtnClasses)}>
+              <Button variant="outline" className={cn("h-9 px-8 text-[10px] rounded-full font-bold tracking-[0.2em] uppercase border", solid ? "text-black border-slate-200" : "text-white border-white/30", loginBtnClasses)}>
                 {t.navbar.cta.login}
               </Button>
             </Link>
@@ -138,7 +156,7 @@ const Navbar = ({
 
       {/* --- DESKTOP MEGA MENU --- */}
       {megaMenuContent && (
-        <div className="absolute top-full left-0 w-full bg-white border-t border-slate-100 shadow-2xl py-14 animate-in fade-in slide-in-from-top-2 duration-300 z-10 hidden xl:block">
+        <div className="absolute top-full left-0 w-full bg-white border-t border-slate-100 shadow-2xl py-14 animate-mega-in z-10 hidden xl:block">
           <div className="container max-w-7xl mx-auto px-6">
             <div className="grid grid-cols-12 gap-4 items-start">
               <div className="col-span-6 grid grid-cols-3 gap-8">
@@ -165,7 +183,7 @@ const Navbar = ({
               </div>
               <div className="col-span-3 px-4">
                 <div className="relative aspect-4/3 overflow-hidden rounded-sm shadow-sm">
-                  <img src={megaMenuContent.featured.image} alt="" className="w-full h-full object-cover" />
+                  <img src={megaMenuContent.featured.image} alt="" width={640} height={480} decoding="async" className="w-full h-full object-cover" />
                 </div>
               </div>
               <div className="col-span-3 flex flex-col justify-center pl-6 rtl:pl-0 rtl:pr-6">

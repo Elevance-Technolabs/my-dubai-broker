@@ -13,6 +13,9 @@ const DOCUMENT_FIELDS = [
 	"boatDealerCertificateUrl",
 	"aviationDealerLicenseUrl",
 	"aocOperatorDocumentUrl",
+	"carTradeLicenseUrl",
+	"collectiblesTradeLicenseUrl",
+	"consignmentAuthorityUrl",
 ];
 
 const toCamel = (s: string) =>
@@ -42,6 +45,15 @@ export const mapCompanyMedia = async <T extends object>(
 
 	for (const field of IMAGE_FIELDS) {
 		if (mapped[field]) mapped[field] = toPublicUrl(mapped[field]);
+	}
+
+	if (Array.isArray(mapped.documents)) {
+		mapped.documents = await Promise.all(
+			mapped.documents.map(async (doc: any) => ({
+				...doc,
+				viewUrl: doc?.fileUrl ? await createPresignedGetUrl(doc.fileUrl) : null,
+			})),
+		);
 	}
 
 	await Promise.all(

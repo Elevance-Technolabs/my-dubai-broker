@@ -5,8 +5,11 @@
 // ============================================================
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  // Load included relations in the same SQL query (JOINs) instead of one
+  // query per relation: the database is remote, so each query is a round trip.
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -93,7 +96,8 @@ enum PublicationStatus {
   LIVE
   PAUSED
   EXPIRED
-  ARCHIVED
+  DELETED
+  SOLD_OUT
 }
 
 /// Company lifecycle. SUSPENDED is a post-approval state.
@@ -229,34 +233,38 @@ model User {
   banExpires DateTime?
 
   // Relations
-  uploads           Upload[]
-  agentProfile      AgentProfile?
-  sentInvitations   Invitation[]        @relation("InvitationSender")
-  listings          Listing[]           @relation("ListingCreator")
-  secondaryListings Listing[]           @relation("ListingSecondaryAgents")
-  approvalReviews   ApprovalReview[]
-  leadActivities    LeadActivity[]
-  assignedLeads     Lead[]              @relation("LeadAssignee")
-  auditLogs         AuditLog[]
-  fileAccessLogs    FileAccessLog[]
-  notifications     Notification[]
-  followUps         FollowUp[]
+  uploads            Upload[]
+  agentProfile       AgentProfile?
+  sentInvitations    Invitation[]     @relation("InvitationSender")
+  listings           Listing[]        @relation("ListingCreator")
+  secondaryListings  Listing[]        @relation("ListingSecondaryAgents")
+  approvalReviews    ApprovalReview[]
+  leadActivities     LeadActivity[]
+  assignedLeads      Lead[]           @relation("LeadAssignee")
+  auditLogs          AuditLog[]
+  fileAccessLogs     FileAccessLog[]
+  notifications      Notification[]
+  followUps          FollowUp[]
+  reviewingCompanies Company[]        @relation("CompanyReviewer")
+  reviewingListings  Listing[]        @relation("ListingReviewer")
+  deletedListings    Listing[]        @relation("ListingDeletedBy")
+  reviewNotes        ReviewNote[]
 
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      String?
-  companyId String?
+  id             String   @id
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String?
+  companyId      String?
   // Required by better-auth's admin() plugin (impersonation feature) — see
   // src/lib/auth.ts. Not something this app's own code reads/writes.
   impersonatedBy String?
@@ -318,8 +326,8 @@ model Company {
   categories CompanyCategory[]
 
   // Profile
-  name           String  @unique
-  slug           String? @unique
+  name           String   @unique
+  slug           String?  @unique
   description    String?
   address        String?
   contactEmail   String?
@@ -330,7 +338,7 @@ model Company {
   coverImageUrl  String?
   listingLogoUrl String?
   languages      String[]
-  leadApiKey     String? @unique
+  leadApiKey     String?  @unique
 
   // Response settings (for lead SLA)
   officeHoursStart String? // "09:00"
@@ -339,12 +347,17 @@ model Company {
   leadSlaMinutes   Int     @default(60)
 
   // Relations
-  users       User[]
-  listings    Listing[]
-  documents   CompanyDocument[]
-  invitations Invitation[]
-  leads       Lead[]
-  statusHistory StatusHistory[] @relation("CompanyStatusHistory")
+  users         User[]
+  listings      Listing[]
+  documents     CompanyDocument[]
+  invitations   Invitation[]
+  leads         Lead[]
+  statusHistory StatusHistory[]   @relation("CompanyStatusHistory")
+
+  // Platform review assignment and notes
+  assignedReviewerId String?
+  assignedReviewer   User?        @relation("CompanyReviewer", fields: [assignedReviewerId], references: [id])
+  reviewNotes        ReviewNote[]
 
   @@map("companies")
 }
@@ -355,27 +368,27 @@ model CompanyDocument {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  companyId    String
-  company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   // Classification
   category     CompanyCategory? // null = applies to all categories
-  documentType String           // "trade_license" | "rera_license" | "emirates_id" | etc.
+  documentType String // "trade_license" | "rera_license" | "emirates_id" | etc.
 
   // File
   fileUrl String
   status  DocumentStatus @default(UPLOADED)
 
   // Document metadata
-  documentNumber    String?
-  issuingAuthority  String?
-  issueDate         DateTime?
-  expiryDate        DateTime?
+  documentNumber   String?
+  issuingAuthority String?
+  issueDate        DateTime?
+  expiryDate       DateTime?
 
   // Review
-  reviewNote       String?
-  reviewedAt       DateTime?
-  reviewedById     String?
+  reviewNote   String?
+  reviewedAt   DateTime?
+  reviewedById String?
 
   @@index([companyId, documentType])
   @@index([status, expiryDate])
@@ -409,28 +422,29 @@ model AgentProfile {
   credentials Json? // [{ category, credentialType, credentialNumber, expiryDate }]
 
   // Contact preferences
-  showPhone     Boolean @default(true)
-  showWhatsapp  Boolean @default(true)
-  showEmail     Boolean @default(false)
+  showPhone    Boolean @default(true)
+  showWhatsapp Boolean @default(true)
+  showEmail    Boolean @default(false)
 
   @@map("agent_profiles")
 }
 
-/// Pending invitation to join a company workspace.
+/// Pending invitation to join a company workspace, or the platform team
+/// (super admins and reviewers) when companyId is empty.
 model Invitation {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   expiresAt DateTime
 
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  email     String
-  role      UserRole
-  token     String   @unique
+  email String
+  role  UserRole
+  token String   @unique
 
-  sentById  String
-  sentBy    User   @relation("InvitationSender", fields: [sentById], references: [id])
+  sentById String
+  sentBy   User   @relation("InvitationSender", fields: [sentById], references: [id])
 
   acceptedAt DateTime?
   revokedAt  DateTime?
@@ -453,10 +467,10 @@ model Listing {
   updatedAt DateTime @updatedAt
 
   // Identity
-  title        String
-  slug         String @unique
-  publicRef    String @unique // e.g. MDB-RE-00001 — human-readable reference
-  description  String @db.Text
+  title       String
+  slug        String @unique
+  publicRef   String @unique // e.g. MDB-RE-00001 — human-readable reference
+  description String @db.Text
 
   // Classification
   category     CompanyCategory
@@ -464,24 +478,24 @@ model Listing {
   offeringType OfferingType
 
   // Pricing (flexible per offering type)
-  salePrice     Decimal?  @db.Decimal(15, 2)
-  annualRent    Decimal?  @db.Decimal(15, 2)
-  monthlyRent   Decimal?  @db.Decimal(15, 2)
-  dailyRate     Decimal?  @db.Decimal(15, 2)
-  charterRate   Decimal?  @db.Decimal(15, 2)
-  currency      Currency  @default(AED)
+  salePrice      Decimal? @db.Decimal(15, 2)
+  annualRent     Decimal? @db.Decimal(15, 2)
+  monthlyRent    Decimal? @db.Decimal(15, 2)
+  dailyRate      Decimal? @db.Decimal(15, 2)
+  charterRate    Decimal? @db.Decimal(15, 2)
+  currency       Currency @default(AED)
   priceOnRequest Boolean  @default(false)
-  negotiable    Boolean   @default(false)
+  negotiable     Boolean  @default(false)
 
   // Location
-  country       String?
-  city          String?
-  area          String?
-  address       String?
+  country           String?
+  city              String?
+  area              String?
+  address           String?
   hideExactLocation Boolean @default(false)
-  latitude      Float?
-  longitude     Float?
-  operatingBase String? // For aviation/yachts
+  latitude          Float?
+  longitude         Float?
+  operatingBase     String? // For aviation/yachts
 
   // Media
   coverImageUrl String?
@@ -507,8 +521,8 @@ model Listing {
   internalReferenceCode String? // company internal ref
 
   // Lead routing contact
-  primaryEmail    String?
-  primaryPhone    String?
+  primaryEmail String?
+  primaryPhone String?
 
   // Ownership
   companyId String
@@ -519,22 +533,37 @@ model Listing {
   secondaryAgents User[] @relation("ListingSecondaryAgents")
 
   // Reviewer
-  reviewedById String?
+  reviewedById       String?
+  assignedReviewerId String?
+  assignedReviewer   User?   @relation("ListingReviewer", fields: [assignedReviewerId], references: [id])
+
+  // Set when the company deletes the listing. Deleted listings leave the
+  // website and every active list, but stay on record as history.
+  deletedAt   DateTime?
+  deletedById String?
+  deletedBy   User?     @relation("ListingDeletedBy", fields: [deletedById], references: [id])
+
+  // Edits to an approved listing wait here for review; the live version is
+  // unchanged until a reviewer approves them. Shape: { data, photoKeys? }.
+  pendingChanges     Json?
+  pendingChangesAt   DateTime?
+  pendingChangesById String?
+  reviewNotes        ReviewNote[]
 
   // Category-specific sub-tables
-  realEstateListing     RealEstateListing?
-  carListing            CarListing?
-  yachtListing          YachtListing?
+  realEstateListing      RealEstateListing?
+  carListing             CarListing?
+  yachtListing           YachtListing?
   privateAviationListing PrivateAviationListing?
-  collectibleListing    CollectibleListing?
+  collectibleListing     CollectibleListing?
 
   // Related records
-  availability    Availability?
-  approvalReviews ApprovalReview[]
-  statusHistory   StatusHistory[]  @relation("ListingStatusHistory")
-  qualitySnapshot QualitySnapshot?
-  rankSnapshot    RankSnapshot?
-  leads           Lead[]
+  availability      Availability?
+  approvalReviews   ApprovalReview[]
+  statusHistory     StatusHistory[]    @relation("ListingStatusHistory")
+  qualitySnapshot   QualitySnapshot?
+  rankSnapshot      RankSnapshot?
+  leads             Lead[]
   performanceEvents PerformanceEvent[]
 
   @@index([companyId])
@@ -548,11 +577,11 @@ model Availability {
   id        String   @id @default(cuid())
   updatedAt DateTime @updatedAt
 
-  listingId    String   @unique
-  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String  @unique
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
-  isAvailable      Boolean  @default(true)
-  confirmedAt      DateTime @default(now())
+  isAvailable      Boolean   @default(true)
+  confirmedAt      DateTime  @default(now())
   nextConfirmDue   DateTime // set to confirmedAt + 30 days typically
   unavailableUntil DateTime?
   notes            String?
@@ -567,33 +596,33 @@ model RealEstateListing {
   listingId String  @unique
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
-  propertyType  String   // apartment, villa, etc. (duplicates AssetType for granularity)
-  emirate       String?
-  community     String?
-  building      String?
-  permitNumber  String?
+  propertyType String // apartment, villa, etc. (duplicates AssetType for granularity)
+  emirate      String?
+  community    String?
+  building     String?
+  permitNumber String?
 
   bedrooms    Int?
   bathrooms   Int?
-  builtUpArea Float?   // sqft
-  plotArea    Float?   // sqft
+  builtUpArea Float? // sqft
+  plotArea    Float? // sqft
   floor       Int?
   totalFloors Int?
   parking     Int?
 
-  furnished     Boolean @default(false)
+  furnished        Boolean  @default(false)
   completionStatus String? // ready | off-plan | under-construction
-  developer     String?
-  paymentPlan   String?
-  serviceCharge Decimal? @db.Decimal(10, 2)
+  developer        String?
+  paymentPlan      String?
+  serviceCharge    Decimal? @db.Decimal(10, 2)
 
   // Features
-  views            String[]
-  outdoor          String[]
-  indoor           String[]
+  views             String[]
+  outdoor           String[]
+  indoor            String[]
   communityFeatures String[]
-  amenities        String[]
-  propertyTags     String[]
+  amenities         String[]
+  propertyTags      String[]
 
   @@index([propertyType])
   @@map("real_estate_listings")
@@ -611,7 +640,7 @@ model CarListing {
   variant       String?
   year          Int
   mileage       Int?
-  condition     String  // new | used | certified-pre-owned
+  condition     String // new | used | certified-pre-owned
   bodyType      String?
   transmission  String?
   fuelType      String?
@@ -629,10 +658,10 @@ model CarListing {
   plateNumber      String?
   chassisNumber    String?
 
-  options      String[]
+  options String[]
 
   // Rental-specific
-  rentalTerms  String?
+  rentalTerms String?
 
   @@index([make, model])
   @@map("car_listings")
@@ -645,31 +674,31 @@ model YachtListing {
   listingId String  @unique
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
-  builder     String?
-  model       String?
-  year        Int?
-  lengthFt    Float?
-  beamFt      Float?
-  draftFt     Float?
+  builder      String?
+  model        String?
+  year         Int?
+  lengthFt     Float?
+  beamFt       Float?
+  draftFt      Float?
   hullMaterial String?
 
-  cabins      Int?
+  cabins        Int?
   guestCapacity Int?
   crewCapacity  Int?
   crewIncluded  Boolean @default(false)
-  engineHours Int?
-  engines     String?
+  engineHours   Int?
+  engines       String?
 
-  flag            String?
+  flag               String?
   registrationNumber String?
-  classification  String?
+  classification     String?
 
-  navigation   String[]
-  amenities    String[]
+  navigation String[]
+  amenities  String[]
 
   // Charter
   charterAvailability String? // year-round | seasonal
-  homePort    String?
+  homePort            String?
 
   @@index([builder, model])
   @@map("yacht_listings")
@@ -683,20 +712,20 @@ model PrivateAviationListing {
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   // assetType on parent Listing distinguishes JET / HELICOPTER / TURBOPROP
-  manufacturer      String
-  model             String
-  year              Int?
-  serialNumber      String?
-  registrationTail  String? // e.g. A6-MDB
+  manufacturer     String
+  model            String
+  year             Int?
+  serialNumber     String?
+  registrationTail String? // e.g. A6-MDB
 
   totalHours        Int?
   engineHours       Int?
   passengerCapacity Int?
-  rangeNm           Int?    // nautical miles
+  rangeNm           Int? // nautical miles
 
-  avionics          String?
-  interiorConfig    String? // e.g. 8-seat club config
-  interiorDetails   String?
+  avionics           String?
+  interiorConfig     String? // e.g. 8-seat club config
+  interiorDetails    String?
   maintenanceHistory String?
   lastInspectionDate DateTime?
 
@@ -712,13 +741,13 @@ model CollectibleListing {
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   // assetType on parent Listing classifies WATCH / ART / JEWELLERY / etc.
-  makerOrArtist String?
+  makerOrArtist   String?
   referenceNumber String?
-  year          Int?
-  condition     String?
-  dimensions    String?
-  edition       String?
-  serialNumber  String?
+  year            Int?
+  condition       String?
+  dimensions      String?
+  edition         String?
+  serialNumber    String?
 
   // Authenticity & provenance
   certificateOfAuthenticity Boolean @default(false)
@@ -726,11 +755,11 @@ model CollectibleListing {
   custodyDetails            String?
 
   // For watches specifically
-  movement      String?
-  caseMaterial  String?
-  caseSizeMm    Float?
-  dialColor     String?
-  strapMaterial String?
+  movement        String?
+  caseMaterial    String?
+  caseSizeMm      Float?
+  dialColor       String?
+  strapMaterial   String?
   waterResistance String?
 
   @@map("collectible_listings")
@@ -753,9 +782,9 @@ model ApprovalReview {
   reviewer   User   @relation(fields: [reviewerId], references: [id])
 
   // Decision
-  decision       ApprovalStatus // APPROVED | REJECTED | CHANGES_REQUIRED
-  internalNote   String?        // never shown to partner
-  partnerReason  String?        // shown to partner on rejection/changes
+  decision      ApprovalStatus // APPROVED | REJECTED | CHANGES_REQUIRED
+  internalNote  String? // never shown to partner
+  partnerReason String? // shown to partner on rejection/changes
 
   submittedVersion Json? // snapshot of listing data at time of submission
 
@@ -773,7 +802,7 @@ model ReviewComment {
   reviewId String
   review   ApprovalReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
-  field              String  // the specific field or section the comment is about
+  field              String // the specific field or section the comment is about
   comment            String
   isVisibleToPartner Boolean @default(true)
 
@@ -815,18 +844,18 @@ model QualityRule {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  category    CompanyCategory?
-  assetType   AssetType?
+  category     CompanyCategory?
+  assetType    AssetType?
   offeringType OfferingType?
 
-  component   String  // "required_details" | "media" | "verification" | "title_description" | "location_specs" | "freshness_availability"
-  maxPoints   Int
-  weight      Float   // proportion of total
-  isActive    Boolean @default(true)
-  version     Int     @default(1)
+  component String // "required_details" | "media" | "verification" | "title_description" | "location_specs" | "freshness_availability"
+  maxPoints Int
+  weight    Float // proportion of total
+  isActive  Boolean @default(true)
+  version   Int     @default(1)
 
   // Configurable check definitions (JSON array of rule objects)
-  checks      Json
+  checks Json
 
   @@unique([category, component, version])
   @@map("quality_rules")
@@ -834,16 +863,16 @@ model QualityRule {
 
 /// Point-in-time snapshot of a listing's quality score.
 model QualitySnapshot {
-  id          String   @id @default(cuid())
+  id           String   @id @default(cuid())
   calculatedAt DateTime @default(now())
 
   listingId String  @unique
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
-  score     Int   // 0–100
-  rating    String // "excellent" | "good" | "needs_attention" | "incomplete"
+  score  Int // 0–100
+  rating String // "excellent" | "good" | "needs_attention" | "incomplete"
 
-  breakdown Json  // { component: { score, maxPoints, failedChecks: [], actions: [] } }
+  breakdown     Json // { component: { score, maxPoints, failedChecks: [], actions: [] } }
   previousScore Int?
   ruleVersion   Int?
 
@@ -859,13 +888,13 @@ model RankRule {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  category    CompanyCategory?
+  category     CompanyCategory?
   offeringType OfferingType?
 
-  component   String  // "relevance" | "quality" | "freshness" | "response" | "engagement" | "price_context"
-  weight      Float
-  isActive    Boolean @default(true)
-  version     Int     @default(1)
+  component String // "relevance" | "quality" | "freshness" | "response" | "engagement" | "price_context"
+  weight    Float
+  isActive  Boolean @default(true)
+  version   Int     @default(1)
 
   @@unique([category, component, version])
   @@map("rank_rules")
@@ -879,19 +908,19 @@ model RankSnapshot {
   listingId String  @unique
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
-  visibilityLevel String  // "high" | "medium" | "low" | "not_eligible"
-  percentile      Float?  // 0–100
+  visibilityLevel String // "high" | "medium" | "low" | "not_eligible"
+  percentile      Float? // 0–100
   rank            Int?
   totalCompeting  Int?
 
   // Top 3 reasons affecting visibility
-  reasons     Json  // [{ component, description, impact: "positive"|"negative"|"neutral" }]
-  breakdown   Json  // { component: { score, weight, rawValue } }
+  reasons   Json // [{ component, description, impact: "positive"|"negative"|"neutral" }]
+  breakdown Json // { component: { score, weight, rawValue } }
 
-  eligibilityPassed Boolean @default(false)
+  eligibilityPassed  Boolean @default(false)
   eligibilityReasons Json? // why not eligible (if applicable)
 
-  ruleVersion   Int?
+  ruleVersion Int?
 
   @@map("rank_snapshots")
 }
@@ -901,9 +930,9 @@ model RankSnapshot {
 // ============================================================
 
 model Lead {
-  id        String    @id @default(cuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Listing & company context
   listingId String
@@ -919,22 +948,22 @@ model Lead {
   stage LeadStage @default(NEW)
 
   // Customer details
-  customerName    String
-  customerPhone   String?
-  customerEmail   String?
-  customerCountry String?
+  customerName     String
+  customerPhone    String?
+  customerEmail    String?
+  customerCountry  String?
   preferredContact String? // "call" | "whatsapp" | "email"
-  consentRecorded Boolean  @default(false)
-  message         String?  @db.Text // free-text enquiry message from the capture form
+  consentRecorded  Boolean @default(false)
+  message          String? @db.Text // free-text enquiry message from the capture form
 
   // Source tracking
-  sourcePage    String?
-  sourceForm    String?
-  utmSource     String?
-  utmMedium     String?
-  utmCampaign   String?
-  utmContent    String?
-  deviceType    String?
+  sourcePage          String?
+  sourceForm          String?
+  utmSource           String?
+  utmMedium           String?
+  utmCampaign         String?
+  utmContent          String?
+  deviceType          String?
   customerCountryCode String?
 
   // Timing (SLA tracking)
@@ -944,15 +973,15 @@ model Lead {
   nextFollowUpAt   DateTime?
 
   // Qualification
-  budget    Decimal? @db.Decimal(15, 2)
-  currency  Currency @default(AED)
-  timeframe String?
-  intent    String?  // "buy" | "rent" | "invest" | "charter"
-  outcome   String?  // "won" | "lost" | "archived"
+  budget      Decimal? @db.Decimal(15, 2)
+  currency    Currency @default(AED)
+  timeframe   String?
+  intent      String? // "buy" | "rent" | "invest" | "charter"
+  outcome     String? // "won" | "lost" | "archived"
   outcomeNote String?
 
   // Duplicate detection
-  isDuplicate Boolean @default(false)
+  isDuplicate   Boolean @default(false)
   duplicateOfId String?
 
   activities LeadActivity[]
@@ -975,8 +1004,8 @@ model LeadActivity {
   actorId String
   actor   User   @relation(fields: [actorId], references: [id])
 
-  type    LeadActivityType
-  note    String?
+  type     LeadActivityType
+  note     String?
   metadata Json?
 
   @@index([leadId])
@@ -993,10 +1022,10 @@ model FollowUp {
   createdById String
   createdBy   User   @relation(fields: [createdById], references: [id])
 
-  scheduledAt  DateTime
-  note         String?
-  completedAt  DateTime?
-  cancelled    Boolean @default(false)
+  scheduledAt DateTime
+  note        String?
+  completedAt DateTime?
+  cancelled   Boolean   @default(false)
 
   @@index([leadId])
   @@index([scheduledAt])
@@ -1019,7 +1048,7 @@ model PerformanceEvent {
   eventType PerformanceEventType
 
   // Session / identity (anonymised)
-  sessionRef String?
+  sessionRef      String?
   isAuthenticated Boolean @default(false)
 
   // Context
@@ -1031,12 +1060,12 @@ model PerformanceEvent {
   utmCampaign   String?
 
   // Device / location (privacy-policy-controlled)
-  deviceType    String?
-  countryCode   String?
+  deviceType  String?
+  countryCode String?
 
   // Exclusion flags
-  isStaff       Boolean @default(false)
-  isSuspicious  Boolean @default(false)
+  isStaff      Boolean @default(false)
+  isSuspicious Boolean @default(false)
 
   @@index([listingId, eventType])
   @@index([companyId, createdAt])
@@ -1052,17 +1081,17 @@ model DailyRollup {
   listingId String
   companyId String
 
-  impressions Int @default(0)
-  views       Int @default(0)
-  phoneReveals Int @default(0)
-  callClicks  Int @default(0)
+  impressions    Int @default(0)
+  views          Int @default(0)
+  phoneReveals   Int @default(0)
+  callClicks     Int @default(0)
   whatsappClicks Int @default(0)
-  emailClicks Int @default(0)
-  enquiries   Int @default(0)
-  favourites  Int @default(0)
+  emailClicks    Int @default(0)
+  enquiries      Int @default(0)
+  favourites     Int @default(0)
 
   // Calculated
-  clickThroughRate  Float? // views / impressions
+  clickThroughRate      Float? // views / impressions
   enquiryConversionRate Float? // enquiries / views
 
   @@unique([date, listingId])
@@ -1079,11 +1108,11 @@ model ReportExport {
   requestedById String
   companyId     String?
 
-  reportType  String  // "listings" | "company" | "leads" | "performance"
-  filters     Json
-  status      String  @default("pending") // pending | processing | ready | failed
-  fileUrl     String?
-  expiresAt   DateTime?
+  reportType   String // "listings" | "company" | "leads" | "performance"
+  filters      Json
+  status       String    @default("pending") // pending | processing | ready | failed
+  fileUrl      String?
+  expiresAt    DateTime?
   errorMessage String?
 
   @@index([requestedById])
@@ -1102,13 +1131,13 @@ model Notification {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   priority  NotificationPriority
-  type      String  // "listing_approved" | "lead_new" | "document_expiring" | etc.
+  type      String // "listing_approved" | "lead_new" | "document_expiring" | etc.
   title     String
   body      String
   actionUrl String?
 
-  readAt   DateTime?
-  sentAt   DateTime?
+  readAt DateTime?
+  sentAt DateTime?
 
   // Delivery channels
   deliveredInApp Boolean @default(false)
@@ -1124,7 +1153,7 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   actorId   String
-  actor     User   @relation(fields: [actorId], references: [id])
+  actor     User    @relation(fields: [actorId], references: [id])
   companyId String?
 
   action     String // "listing.status.changed" | "company.suspended" | "user.deactivated" etc.
@@ -1136,8 +1165,8 @@ model AuditLog {
   reason        String?
 
   // Technical metadata
-  requestRef  String? // request ID for tracing
-  ipAddress   String?
+  requestRef String? // request ID for tracing
+  ipAddress  String?
 
   @@index([entityType, entityId])
   @@index([actorId])
@@ -1180,4 +1209,26 @@ model Upload {
   @@index([userId, status])
   @@index([status, createdAt])
   @@map("uploads")
+}
+
+// Reviewer notes on a company application or a listing. Internal notes are
+// only visible to platform staff; the rest are shown to the partner.
+model ReviewNote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  entityType String // "company" | "listing"
+  companyId  String?
+  company    Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  listingId  String?
+  listing    Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  authorId   String
+  author     User    @relation(fields: [authorId], references: [id])
+  body       String  @db.Text
+  isInternal Boolean @default(true)
+
+  @@index([companyId])
+  @@index([listingId])
+  @@map("review_notes")
 }

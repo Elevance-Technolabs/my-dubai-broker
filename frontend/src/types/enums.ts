@@ -138,7 +138,8 @@ export const CATEGORY_LABEL_TO_ENUM = {
   "Real Estate": CompanyCategory.REAL_ESTATE,
   Cars: CompanyCategory.CARS,
   Yachts: CompanyCategory.YACHTS,
-  "Private Jets / Helicopters": CompanyCategory.PRIVATE_AVIATION,
+  "Private Aviation": CompanyCategory.PRIVATE_AVIATION,
+  Collectibles: CompanyCategory.COLLECTIBLES,
 } as const;
 
 export const CATEGORY_LABELS = Object.keys(

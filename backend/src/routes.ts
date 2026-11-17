@@ -1,4 +1,5 @@
 import { toNodeHandler } from "better-auth/node";
+import { forgetSessionKey, sessionKeyOf } from "./lib/accessCache.js";
 import { Router } from "express";
 import { auth } from "./lib/auth.js";
 import { rateLimit } from "./middleware/rateLimit.js";
@@ -14,6 +15,8 @@ import realEstateRouter from "./modules/real-estate/real-estate.routes.js";
 import uploadsRouter from "./modules/uploads/uploads.routes.js";
 import { adminRouter } from "./modules/admin/admin.routes.js";
 import yachtsRouter from "./modules/yachts/yachts.routes.js";
+import eventsRouter from "./modules/events/events.routes.js";
+import notificationsRouter from "./modules/notifications/notifications.routes.js";
 
 const router: Router = Router();
 
@@ -22,7 +25,16 @@ router.use("/companies", companiesRouter);
 // All /auth/* traffic (sign-in, sign-up, sign-out, session, password
 // reset, email verification) goes through better-auth's own handler —
 // there is no custom wrapper around it.
-router.all(/^\/auth\/.*/, rateLimit(20, 15 * 60 * 1000), toNodeHandler(auth));
+router.all(
+	/^\/auth\/.*/,
+	rateLimit(20, 15 * 60 * 1000),
+	// Sign-out, revoking sessions, password changes: forget the cached session.
+	(req, _res, next) => {
+		if (req.method !== "GET") forgetSessionKey(sessionKeyOf(req.headers));
+		next();
+	},
+	toNodeHandler(auth),
+);
 router.use("/invitations", invitationsRouter);
 router.use("/leads", leadsRouter);
 router.use("/profile", profileRouter);
@@ -33,5 +45,7 @@ router.use("/helicopters", helicoptersRouter);
 router.use("/real-estate", realEstateRouter);
 router.use("/yachts", yachtsRouter);
 router.use("/uploads", uploadsRouter);
+router.use("/events", eventsRouter);
+router.use("/notifications", notificationsRouter);
 
 export default router;

@@ -41,7 +41,7 @@ const JetSignature = ({ dict }: JetSignatureProps) => {
                         <div key={item.id} className="group flex flex-col">
                             {/* Image Container with Indicator */}
                             <div className="relative aspect-16/10 overflow-hidden mb-6">
-                                <img
+                                <img loading="lazy" decoding="async"
                                     src={item.image}
                                     alt={item.title}
                                     className="w-full h-full object-cover ease-in-out transition-all duration-400 group-hover:scale-102"

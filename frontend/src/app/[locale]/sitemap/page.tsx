@@ -60,7 +60,7 @@ export default async function SitemapPage({
       <PageHero
         title={t.sitemap.hero.title}
         subtitle={t.sitemap.hero.subtitle}
-        backgroundImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2670&auto=format&fit=crop"
+        backgroundImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1920&auto=format&fit=crop"
         imageAlt="Sitemap Hero"
       />
 

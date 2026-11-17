@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { AppError } from "../../utils/AppError.js";
 import { sendSuccess } from "../../utils/response.js";
 import * as companiesService from "./companies.service.js";
+import { getCompanyDashboard } from "./companies.dashboard.js";
 import { mapCompanyMedia } from "./companies.mapper.js";
 
 export const updateOnboardingHandler = async (req: Request, res: Response) => {
@@ -38,6 +39,11 @@ export const getMyCompanyHandler = async (req: Request, res: Response) => {
 		await mapCompanyMedia(company),
 		"Company retrieved successfully",
 	);
+};
+
+export const resubmitRegistrationHandler = async (req: Request, res: Response) => {
+	const company = await companiesService.resubmitRegistration(req.user.id, req.body);
+	sendSuccess(res, company ? await mapCompanyMedia(company) : null, "Registration resubmitted for review");
 };
 
 // ─── Team management ────────────────────────────────────────────
@@ -85,4 +91,24 @@ export const reactivateUserHandler = async (req: Request, res: Response) => {
 
 	await companiesService.reactivateUser(companyId, userId, req.user.id);
 	sendSuccess(res, null, "User reactivated");
+};
+
+// ─── Dashboard ──────────────────────────────────────────────────
+
+export const getCompanyDashboardHandler = async (req: Request, res: Response) => {
+	const date = (key: string, endOfDay = false) => {
+		const v = typeof req.query[key] === "string" ? (req.query[key] as string) : "";
+		if (!v) return undefined;
+		const d = new Date(endOfDay && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T23:59:59.999Z` : v);
+		return Number.isNaN(d.getTime()) ? undefined : d;
+	};
+	const dashboard = await getCompanyDashboard(
+		{ userId: req.user.id, companyId: req.user.companyId, role: req.user.role },
+		{
+			from: date("from"),
+			to: date("to", true),
+			category: typeof req.query.category === "string" && req.query.category ? req.query.category : undefined,
+		},
+	);
+	sendSuccess(res, dashboard);
 };

@@ -34,8 +34,8 @@ const OFFERING_LABELS: Record<string, string> = {
 
 const APPROVAL_LABELS: Record<string, string> = {
 	DRAFT: "Draft",
-	SUBMITTED: "Submitted",
-	PENDING_REVIEW: "Pending Review",
+	SUBMITTED: "Pending review",
+	PENDING_REVIEW: "In review",
 	CHANGES_REQUIRED: "Changes Required",
 	APPROVED: "Approved",
 	REJECTED: "Rejected",
@@ -47,7 +47,89 @@ const PUBLICATION_LABELS: Record<string, string> = {
 	LIVE: "Live",
 	PAUSED: "Paused",
 	EXPIRED: "Expired",
-	ARCHIVED: "Archived",
+	DELETED: "Deleted",
+	SOLD_OUT: "Sold out",
+};
+
+// ─── Pending changes (edits to an approved listing awaiting review) ──
+
+const FIELD_LABELS: Record<string, string> = {
+	title: "Title",
+	description: "Description",
+	assetType: "Asset type",
+	offeringType: "Offering",
+	currency: "Currency",
+	priceOnRequest: "Price on request",
+	negotiable: "Negotiable",
+	salePrice: "Sale price",
+	annualRent: "Annual rent",
+	monthlyRent: "Monthly rent",
+	dailyRate: "Daily rate",
+	charterRate: "Charter rate",
+	country: "Country",
+	city: "City",
+	area: "Area",
+	address: "Address",
+	hideExactLocation: "Hide exact location",
+	latitude: "Latitude",
+	longitude: "Longitude",
+	operatingBase: "Operating base",
+	primaryEmail: "Contact email",
+	primaryPhone: "Contact phone",
+	videoUrl: "Video",
+	vrTourUrl: "Virtual tour",
+	licenseNumber: "Permit / licence",
+	internalReferenceCode: "Internal reference",
+};
+
+const labelFor = (key: string) =>
+	FIELD_LABELS[key] ??
+	key
+		.replace(/([A-Z])/g, " $1")
+		.toLowerCase()
+		.replace(/^./, (c) => c.toUpperCase());
+
+const showValue = (v: unknown): string => {
+	if (v === null || v === undefined || v === "") return "—";
+	if (v instanceof Date) return v.toISOString().slice(0, 10);
+	if (Array.isArray(v)) return v.length ? v.map(showValue).join(", ") : "—";
+	if (typeof v === "boolean") return v ? "Yes" : "No";
+	const s = String(v);
+	return /^\d{4}-\d{2}-\d{2}T/.test(s) ? s.slice(0, 10) : s;
+};
+
+/** What a pending edit would change, field by field (old → new). */
+const pendingSummary = (listing: PrismaListing, details: Record<string, any>) => {
+	const pending = (listing as any).pendingChanges as { data?: Record<string, any>; photoKeys?: string[] } | null;
+	if (!pending || !(listing as any).pendingChangesAt) return null;
+	const changes: { field: string; label: string; from: string; to: string }[] = [];
+	const { details: newDetails, ...fields } = pending.data ?? {};
+	const PRICE_KEYS = ["salePrice", "annualRent", "monthlyRent", "dailyRate", "charterRate"];
+	const money = (v: unknown) => (v === null || v === undefined || v === "" ? "—" : Number(v).toLocaleString("en-US"));
+	for (const [key, value] of Object.entries(fields)) {
+		const isPrice = PRICE_KEYS.includes(key);
+		const from = isPrice ? money((listing as any)[key]) : showValue((listing as any)[key]);
+		const to = isPrice ? money(value) : showValue(value);
+		if (from !== to) changes.push({ field: key, label: labelFor(key), from, to });
+	}
+	for (const [key, value] of Object.entries(newDetails ?? {})) {
+		const from = showValue(details[key]);
+		const to = showValue(value);
+		if (from !== to) changes.push({ field: `details.${key}`, label: labelFor(key), from, to });
+	}
+	if (pending.photoKeys) {
+		const before = listing.photoUrls ?? [];
+		const same = before.length === pending.photoKeys.length && before.every((k, i) => k === pending.photoKeys![i]);
+		if (!same) {
+			changes.push({
+				field: "photos",
+				label: "Photos",
+				from: `${before.length} photo${before.length === 1 ? "" : "s"}`,
+				to: `${pending.photoKeys.length} photo${pending.photoKeys.length === 1 ? "" : "s"}`,
+			});
+		}
+	}
+	return { at: (listing as any).pendingChangesAt as Date, changes };
 };
 
 // ─── Types ───────────────────────────────────────────────────
@@ -209,7 +291,17 @@ export const mapToListing = (listing: PrismaListing) => {
 			reviewedAt: listing.reviewedAt,
 			publishedAt: listing.publishedAt,
 			expiresAt: listing.expiresAt,
+			deletedAt: listing.deletedAt,
 		},
+
+		// Set once the company deletes the listing (kept as history).
+		deleted: listing.deletedAt
+			? { at: listing.deletedAt, byName: (listing as any).deletedBy?.name ?? null }
+			: null,
+
+		// Edits to this approved listing that are waiting for review (the
+		// version above is still the live one).
+		pendingChanges: pendingSummary(listing, details),
 
 		// Category-specific details
 		details,

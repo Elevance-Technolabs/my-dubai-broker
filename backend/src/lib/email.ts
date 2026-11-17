@@ -56,10 +56,12 @@ export const emailTemplates = {
 		`,
 	}),
 
-	invitation: (params: { companyName: string; role: string; inviteUrl: string }) => ({
-		subject: `You're invited to join ${params.companyName} on My Dubai Broker`,
+	invitation: (params: { companyName: string; role: string; inviteUrl: string; platformTeam?: boolean }) => ({
+		subject: params.platformTeam
+			? "You're invited to join the My Dubai Broker platform team"
+			: `You're invited to join ${params.companyName} on My Dubai Broker`,
 		html: `
-			<p>You've been invited to join <strong>${params.companyName}</strong> on My Dubai Broker as a <strong>${params.role.replace("_", " ")}</strong>.</p>
+			<p>You've been invited to join <strong>${params.platformTeam ? "the My Dubai Broker platform team" : params.companyName}</strong>${params.platformTeam ? "" : " on My Dubai Broker"} as a <strong>${params.role.replace(/_/g, " ")}</strong>.</p>
 			<p><a href="${params.inviteUrl}">Accept your invitation</a> to set up your account.</p>
 			<p>This link expires in 7 days.</p>
 		`,

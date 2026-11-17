@@ -40,7 +40,7 @@ const ServiceFeature = ({
         <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-32 last:mb-0", reversed ? "" : "")}>
             <div className={cn("relative group", reversed ? "lg:order-2" : "lg:order-1")}>
                 <div className="relative overflow-hidden aspect-4/5 md:aspect-square">
-                    <img
+                    <img loading="lazy" decoding="async"
                         src={image}
                         alt={title}
                         className="w-full h-full object-cover"
@@ -132,7 +132,7 @@ export default function TrustedJourneysView({ dict }: TrustedJourneysViewProps) 
                         quote={dict.sellers.quote}
                         additionalText={dict.sellers.additionalText}
                         cta={dict.sellers.cta}
-                        image="https://images.unsplash.com/photo-1637979910686-ef82f715361b"
+                        image="https://images.unsplash.com/photo-1637979910686-ef82f715361b?q=75&w=1600&auto=format&fit=crop"
                         imageLabel="FOR SELLERS"
                     />
 

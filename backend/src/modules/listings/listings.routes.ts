@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../../middleware/auth.middleware.js";
 import {
 	requireCapability,
+	requireAssignedToReviewer,
 	requirePlatformStaff,
 	requireCompanyMembership,
 } from "../../middleware/permissions.js";
@@ -15,11 +16,21 @@ import {
 	getListingByIdHandler,
 	submitListingHandler,
 	pauseListingHandler,
-	archiveListingHandler,
+	deleteListingHandler,
+	unpublishListingHandler,
+	soldOutListingHandler,
+	republishListingHandler,
+	approvePendingChangesHandler,
+	rejectPendingChangesHandler,
 	getAdminListingsHandler,
 	updateApprovalStatusHandler,
 	getPublicListingsHandler,
 	getPublicListingByIdHandler,
+	exportAdminListingsHandler,
+	setListingReviewerHandler,
+	addListingNoteHandler,
+	getListingInsightsHandler,
+	confirmAvailabilityHandler,
 	// Aliases
 	getListingsHandler,
 	getSellerListingsHandler,
@@ -31,6 +42,9 @@ import {
 	updateApprovalStatusSchema,
 	getListingsQuerySchema,
 	getPublicListingsQuerySchema,
+	setReviewerSchema,
+	addReviewNoteSchema,
+	confirmAvailabilitySchema,
 } from "./listings.validation.js";
 
 const router: Router = Router();
@@ -90,27 +104,46 @@ router.post(
 router.post(
 	"/:id/pause",
 	requireAuth,
-	requireCapability("listings.pause_archive"),
+	requireCapability("listings.pause"),
 	asyncHandler(pauseListingHandler),
 );
 
-// Archive a listing
-router.post(
-	"/:id/archive",
+// Company: take a live listing off the website, mark it sold out, or ask to
+// publish it again (that goes to review before it is live).
+router.post("/:id/unpublish", requireAuth, requireCapability("listings.pause"), asyncHandler(unpublishListingHandler));
+router.post("/:id/sold-out", requireAuth, requireCapability("listings.pause"), asyncHandler(soldOutListingHandler));
+router.post("/:id/republish", requireAuth, requireCapability("listings.pause"), asyncHandler(republishListingHandler));
+
+// Delete a listing (kept as history; see deleteListing)
+router.delete(
+	"/:id",
 	requireAuth,
-	requireCapability("listings.pause_archive"),
-	asyncHandler(archiveListingHandler),
+	requireCapability("listings.delete"),
+	asyncHandler(deleteListingHandler),
 );
 
 // ─── Admin routes ────────────────────────────────────────────
 
-// Platform-wide listing queue (admin only)
-router.get(
-	"/admin",
+// Platform-wide listing table and approval queue (?queue=true), admin only
+router.get("/admin", requireAuth, requirePlatformStaff, asyncHandler(getAdminListingsHandler));
+router.get("/admin/export", requireAuth, requirePlatformStaff, asyncHandler(exportAdminListingsHandler));
+
+router.patch(
+	"/:id/reviewer",
 	requireAuth,
 	requirePlatformStaff,
-	validate({ query: getListingsQuerySchema }),
-	asyncHandler(getAdminListingsHandler),
+	requireCapability("admin.assign_reviewers"),
+	validate({ body: setReviewerSchema }),
+	asyncHandler(setListingReviewerHandler),
+);
+
+router.post(
+	"/:id/notes",
+	requireAuth,
+	requirePlatformStaff,
+	requireAssignedToReviewer("listing"),
+	validate({ body: addReviewNoteSchema }),
+	asyncHandler(addListingNoteHandler),
 );
 
 // Approve / reject / request changes (admin)
@@ -118,8 +151,27 @@ router.patch(
 	"/:id/approval",
 	requireAuth,
 	requirePlatformStaff,
+	requireAssignedToReviewer("listing"),
 	validate({ body: updateApprovalStatusSchema }),
 	asyncHandler(updateApprovalStatusHandler),
+);
+
+// Edits to an approved listing, held for review
+router.post(
+	"/:id/changes/approve",
+	requireAuth,
+	requirePlatformStaff,
+	requireAssignedToReviewer("listing"),
+	requireCapability("admin.approve_listings"),
+	asyncHandler(approvePendingChangesHandler),
+);
+router.post(
+	"/:id/changes/reject",
+	requireAuth,
+	requirePlatformStaff,
+	requireAssignedToReviewer("listing"),
+	requireCapability("admin.approve_listings"),
+	asyncHandler(rejectPendingChangesHandler),
 );
 
 // Legacy compat: kept for existing frontend calls
@@ -127,12 +179,24 @@ router.patch(
 	"/:id/status",
 	requireAuth,
 	requirePlatformStaff,
+	requireAssignedToReviewer("listing"),
 	validate({ body: updateApprovalStatusSchema }),
 	asyncHandler(updateListingStatusHandler),
 );
 
 // ─── Detail (any authenticated user can view a listing) ──────
 
-router.get("/:id", requireAuth, asyncHandler(getListingByIdHandler));
+router.get("/:id/insights", requireAuth, requireAssignedToReviewer("listing"), asyncHandler(getListingInsightsHandler));
+
+// Confirm (or withdraw) availability — keeps the listing fresh in search
+router.post(
+	"/:id/availability",
+	requireAuth,
+	requireCapability("listings.edit"),
+	validate({ body: confirmAvailabilitySchema }),
+	asyncHandler(confirmAvailabilityHandler),
+);
+
+router.get("/:id", requireAuth, requireAssignedToReviewer("listing"), asyncHandler(getListingByIdHandler));
 
 export default router;

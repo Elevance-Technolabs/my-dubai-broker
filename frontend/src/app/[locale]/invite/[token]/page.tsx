@@ -21,6 +21,16 @@ import {
   type InvitationPreview,
 } from "@/services/invitation.service";
 
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Super Admin",
+  platform_reviewer: "Reviewer",
+  company_owner: "Company Owner",
+  company_manager: "Manager",
+  agent: "Agent",
+  listing_coordinator: "Listing Coordinator",
+  viewer: "Viewer",
+};
+
 export default function AcceptInvitationPage() {
   const params = useParams();
   const router = useRouter();
@@ -119,8 +129,10 @@ export default function AcceptInvitationPage() {
             You're all set
           </h1>
           <p className="text-sm text-gray-500 mb-8">
-            Your account has been created for {invitation.companyName}. Sign in to
-            get started.
+            {invitation.isPlatformTeam
+              ? "Your My Dubai Broker team account has been created."
+              : `Your account has been created for ${invitation.companyName}.`}{" "}
+            Sign in to get started.
           </p>
           <Button variant="dark" className="w-full" onClick={() => router.push("/login")}>
             Go to Sign In
@@ -134,14 +146,16 @@ export default function AcceptInvitationPage() {
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="max-w-md w-full border border-gray-100 p-12">
         <p className="text-[10px] uppercase tracking-widest text-luxury-gold mb-3">
-          {invitation.companyName}
+          {invitation.isPlatformTeam ? "My Dubai Broker team" : invitation.companyName}
         </p>
         <h1 className="text-2xl font-serif text-luxury-black mb-2">
-          Join as {invitation.role.replace("_", " ")}
+          Join as {ROLE_LABELS[invitation.role] ?? invitation.role.replace(/_/g, " ")}
         </h1>
         <p className="text-sm text-gray-500 mb-8">
-          You've been invited to join {invitation.companyName} on My Dubai
-          Broker. Set a password to finish creating your account for{" "}
+          {invitation.isPlatformTeam
+            ? "You've been invited to join the My Dubai Broker platform team."
+            : `You've been invited to join ${invitation.companyName} on My Dubai Broker.`}{" "}
+          Set a password to finish creating your account for{" "}
           <span className="font-medium text-luxury-black">{invitation.email}</span>.
         </p>
 

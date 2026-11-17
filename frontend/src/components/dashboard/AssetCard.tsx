@@ -12,6 +12,8 @@ type AssetCardProps = {
   statusLabel: string;
   date: string;
   rejectionReason?: string | null;
+  /** Small extra tag under the status, e.g. "Changes pending". */
+  secondaryLabel?: string | null;
 };
 
 const STATUS_CLASS: Record<string, string> = {
@@ -21,6 +23,11 @@ const STATUS_CLASS: Record<string, string> = {
   CHANGES_REQUIRED: "bg-amber-600",
   APPROVED: "bg-luxury-gold",
   REJECTED: "bg-rose-600",
+  DELETED: "bg-gray-500",
+  LIVE: "bg-luxury-gold",
+  PENDING: "bg-luxury-black",
+  UNPUBLISHED: "bg-gray-500",
+  SOLD_OUT: "bg-luxury-black",
 };
 
 const AssetCard = ({
@@ -33,13 +40,14 @@ const AssetCard = ({
   statusLabel,
   date,
   rejectionReason,
+  secondaryLabel,
 }: AssetCardProps) => {
   return (
     <Link href={`/listings/${id}`} className="block h-full group">
       <div className="bg-white h-full transition-all duration-500 ease-out hover:shadow-[0_20px_40px_rgba(0,0,0,0.03)] border border-gray-100 transform-gpu cursor-pointer">
         <div className="relative aspect-4/3 overflow-hidden">
           <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors z-10 duration-500"></div>
-          <img
+          <img loading="lazy" decoding="async"
             src={image}
             alt={title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -50,6 +58,11 @@ const AssetCard = ({
             >
               {statusLabel}
             </span>
+            {secondaryLabel && (
+              <span className="block mt-1.5 px-3 py-1 text-[9px] font-medium uppercase tracking-widest text-luxury-black bg-white/90 text-right">
+                {secondaryLabel}
+              </span>
+            )}
           </div>
         </div>
         <div className="p-8">
@@ -60,12 +73,12 @@ const AssetCard = ({
             <h3 className="text-xl font-serif text-luxury-black truncate mb-2 group-hover:text-luxury-gold transition-colors duration-500">
               {title}
             </h3>
-            {rejectionReason && approvalStatus === "REJECTED" && (
+            {rejectionReason && (approvalStatus === "REJECTED" || approvalStatus === "CHANGES_REQUIRED") && (
               <p
-                className="text-[10px] text-rose-500 font-medium mt-1 line-clamp-2 leading-tight"
+                className={`text-[10px] font-medium mt-1 line-clamp-2 leading-tight ${approvalStatus === "REJECTED" ? "text-rose-500" : "text-amber-700"}`}
                 title={rejectionReason}
               >
-                <span className="font-bold">Reason:</span> {rejectionReason}
+                <span className="font-bold">{approvalStatus === "REJECTED" ? "Reason:" : "Changes requested:"}</span> {rejectionReason}
               </p>
             )}
           </div>
@@ -74,7 +87,7 @@ const AssetCard = ({
           </p>
           <div className="flex justify-between items-center">
             <span className="text-[9px] uppercase text-gray-300 tracking-widest">
-              Listed {date}
+              {approvalStatus === "DELETED" ? "Deleted" : "Listed"} {date}
             </span>
             <button className="text-[9px] uppercase tracking-widest text-luxury-black hover:text-luxury-gold transition-colors flex items-center">
               View Details <ChevronRight size={10} className="ml-1" />

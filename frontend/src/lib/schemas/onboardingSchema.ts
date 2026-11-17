@@ -24,9 +24,37 @@ export const ONBOARDING_DOCUMENT_LABELS: Record<string, string> = {
   boatDealerCertificate: "Boat dealer certificate",
   aviationDealerLicense: "Aviation dealer license",
   aocDocument: "AOC document",
+  collectiblesTradeLicense: "Collectibles trade license",
+  consignmentAuthority: "Ownership or consignment authority",
   ownerEmiratesId: "Emirates ID",
   ownerPassport: "Passport",
 };
+
+const optionalDate = z
+  .string()
+  .optional()
+  .refine((v) => !v || !Number.isNaN(new Date(v).getTime()), "Enter a valid date");
+
+const documentDetailsSchema = z
+  .record(
+    z.string(),
+    z
+      .object({
+        documentNumber: z.string().trim().max(100, "Document number must be at most 100 characters").optional(),
+        issuingAuthority: z.string().trim().max(150, "Issuing authority must be at most 150 characters").optional(),
+        issueDate: optionalDate,
+        expiryDate: optionalDate,
+      })
+      .refine(
+        (d) => !d.issueDate || !d.expiryDate || new Date(d.expiryDate) > new Date(d.issueDate),
+        { message: "Expiry date must be after the issue date", path: ["expiryDate"] },
+      )
+      .refine((d) => !d.expiryDate || new Date(d.expiryDate) > new Date(), {
+        message: "This document has already expired",
+        path: ["expiryDate"],
+      }),
+  )
+  .optional();
 
 export const onboardingStep2Schema = z
   .object({
@@ -50,9 +78,16 @@ export const onboardingStep2Schema = z
     aviationDealerLicense: z.any().optional(),
     aocDocument: z.any().optional(),
 
+    // Collectibles
+    collectiblesTradeLicense: z.any().optional(),
+    consignmentAuthority: z.any().optional(),
+
     // Common
     ownerEmiratesId: z.any().optional(),
     ownerPassport: z.any().optional(),
+
+    // Optional number / authority / dates for each uploaded document
+    documentDetails: documentDetailsSchema,
   })
   .superRefine((data, ctx) => {
     const cats = data.categories || [];
@@ -79,8 +114,11 @@ export const onboardingStep2Schema = z
     if (cats.includes("Yachts")) {
       requireDocs(["marineTradeLicense", "boatDealerCertificate"]);
     }
-    if (cats.includes("Private Jets / Helicopters")) {
+    if (cats.includes("Private Aviation")) {
       requireDocs(["aviationDealerLicense", "aocDocument"]);
+    }
+    if (cats.includes("Collectibles")) {
+      requireDocs(["collectiblesTradeLicense", "consignmentAuthority"]);
     }
     requireDocs(["ownerEmiratesId", "ownerPassport"]);
 
@@ -113,8 +151,11 @@ export const onboardingStep3Schema = z.object({
   boatDealerCertificate: z.any().optional(),
   aviationDealerLicense: z.any().optional(),
   aocDocument: z.any().optional(),
+  collectiblesTradeLicense: z.any().optional(),
+  consignmentAuthority: z.any().optional(),
   ownerEmiratesId: z.any().optional(),
   ownerPassport: z.any().optional(),
+  documentDetails: documentDetailsSchema,
 
   // Step 3 specific fields
   companyName: z.string().min(1, "Company name is required"),
@@ -169,6 +210,9 @@ export const defaultOnboardingValues = {
   boatDealerCertificate: null,
   aviationDealerLicense: null,
   aocDocument: null,
+  collectiblesTradeLicense: null,
+  consignmentAuthority: null,
+  documentDetails: {},
   ownerEmiratesId: null,
   ownerPassport: null,
   // Step 4

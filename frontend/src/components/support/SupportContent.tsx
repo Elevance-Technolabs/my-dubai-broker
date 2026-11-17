@@ -78,7 +78,7 @@ export default function SupportContent({ t, locale }: SupportContentProps) {
       <PageHero
         title={t.support.hero.title}
         subtitle={t.support.hero.subtitle}
-        backgroundImage="https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2670&auto=format&fit=crop"
+        backgroundImage="https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=1920&auto=format&fit=crop"
         imageAlt="Support Center"
       />
 

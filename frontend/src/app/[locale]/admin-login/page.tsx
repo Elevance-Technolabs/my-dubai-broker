@@ -84,7 +84,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-7/12 relative bg-luxury-black overflow-hidden group">
         {/* Background Image with slow zoom */}
         <div className="absolute inset-0">
-          <img
+          <img loading="lazy" decoding="async"
             src="https://images.unsplash.com/photo-1615747476205-991a14cd2358?q=80&w=765&auto=format&fit=crop"
             alt="Dubai Skyline"
             className="w-full h-full object-cover transition-transform duration-[60s] ease-linear hover:scale-110 opacity-90"

@@ -27,6 +27,7 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { realEstateService } from "@/services/realEstate.service";
 import { toast } from "sonner";
+import { afterListingSaved } from "@/lib/listingSaved";
 import { validateImageFile } from "@/lib/utils/r2Upload";
 import {
   applyServerFieldErrors,
@@ -119,12 +120,7 @@ export default function RealEstateListingForm({
           ? await realEstateService.updateRealEstate(listingId, formattedData)
           : await realEstateService.createRealEstate(formattedData);
       if (response.success) {
-        toast.success(
-          mode === "edit"
-            ? "Property listing updated successfully!"
-            : "Property listing published successfully!",
-        );
-        router.push("/dashboard");
+        afterListingSaved(mode, listingId, response, router, "Property listing published successfully!");
       } else {
         const unmapped = applyServerFieldErrors(
           methods.setError,

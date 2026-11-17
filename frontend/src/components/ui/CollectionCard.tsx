@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils/cn";
+import Image from "next/image";
 import React from "react";
 
 interface CollectionCardProps {
@@ -24,10 +25,13 @@ const CollectionCard = ({
         className,
       )}
     >
-      <img
+      <Image
         src={image}
         alt={title}
-        className="w-full h-full object-cover transition-transform ease-in-out duration-400 group-hover:scale-102"
+        fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+        quality={75}
+        className="object-cover transition-transform ease-in-out duration-400 group-hover:scale-102"
       />
 
       {/* Gradient Overlay */}

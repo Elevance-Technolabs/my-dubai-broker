@@ -63,5 +63,6 @@ export const adaptListing = (raw: any): Listing => {
       adminRejectionReason: raw.adminRejectionReason,
     },
     seller: raw.agent,
+    contact: raw.contact ?? {},
   } as unknown as Listing;
 };

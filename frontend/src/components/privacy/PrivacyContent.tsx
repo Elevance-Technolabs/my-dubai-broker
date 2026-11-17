@@ -131,7 +131,7 @@ export default function PrivacyContent({ t, locale }: PrivacyContentProps) {
       <PageHero
         title={isAr ? "سياسة الخصوصية" : "Privacy Policy"}
         subtitle={isAr ? "آخر تحديث: 2026" : "Last updated: January 12, 2026"}
-        backgroundImage="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2300&auto=format&fit=crop"
+        backgroundImage="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1920&auto=format&fit=crop"
         imageAlt="Privacy Policy"
       />
 

@@ -229,7 +229,7 @@ export default function TermsContent({ t, locale }: TermsContentProps) {
       <PageHero
         title={t.terms.hero.title}
         subtitle={t.terms.hero.subtitle}
-        backgroundImage="https://images.unsplash.com/photo-1544717297-fa154daaf02f?q=80&w=2070&auto=format&fit=crop"
+        backgroundImage="https://images.unsplash.com/photo-1544717297-fa154daaf02f?q=80&w=1920&auto=format&fit=crop"
         imageAlt="Terms of Use"
       />
 

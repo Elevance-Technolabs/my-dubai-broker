@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_ORIGINAL_IMAGE_BYTES } from "@/lib/utils/imageOptimize";
 
 // Shared zod building blocks so every form words its errors the same way.
 // Rules here are never stricter than the backend's, except phone format and
@@ -180,7 +181,15 @@ export const fileField = (
           ? `${label} must be a JPG, PNG, WebP or PDF file`
           : `${label} must be a JPG, PNG or WebP image`,
       });
-    } else if (file.size > 5 * 1024 * 1024) {
-      ctx.addIssue({ code: "custom", message: `${label} must be 5 MB or smaller` });
+    } else {
+      // Images only (logo, cover) are shrunk before upload, so larger
+      // originals are fine; documents are uploaded as they are.
+      const maxBytes = allowPdf ? 5 * 1024 * 1024 : MAX_ORIGINAL_IMAGE_BYTES;
+      if (file.size > maxBytes) {
+        ctx.addIssue({
+          code: "custom",
+          message: `${label} must be ${allowPdf ? 5 : 25} MB or smaller`,
+        });
+      }
     }
   });

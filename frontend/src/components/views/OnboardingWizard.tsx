@@ -28,6 +28,7 @@ import {
   Anchor,
   Plane,
   Car,
+  Gem,
   Lock as LockIcon,
   Mail as MailIcon,
 } from "lucide-react";
@@ -36,6 +37,7 @@ import FileUpload from "../ui/FileUpload";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { UploadService } from "@/services/upload.service";
+import type { ImagePreset } from "@/lib/utils/imageOptimize";
 import { CompanyService } from "@/services/company.service";
 import {
   applyServerFieldErrors,
@@ -67,6 +69,9 @@ const ONBOARDING_FIELD_MAP: Record<string, string> = {
   boatDealerCertificateUploadId: "boatDealerCertificate",
   aviationDealerLicenseUploadId: "aviationDealerLicense",
   aocOperatorDocumentUploadId: "aocDocument",
+  carTradeLicenseUploadId: "carTradeLicense",
+  collectiblesTradeLicenseUploadId: "collectiblesTradeLicense",
+  consignmentAuthorityUploadId: "consignmentAuthority",
   companyLogoUploadId: "companyLogo",
   coverImageUploadId: "coverImage",
   listingLogoUploadId: "listingLogo",
@@ -92,18 +97,50 @@ const STEP_FIELDS: Record<number, string[]> = {
     "boatDealerCertificate",
     "aviationDealerLicense",
     "aocDocument",
+    "collectiblesTradeLicense",
+    "consignmentAuthority",
     "ownerEmiratesId",
     "ownerPassport",
+    "documentDetails",
   ],
 };
 const stepForField = (field: string) =>
   Number(
-    Object.entries(STEP_FIELDS).find(([, names]) => names.includes(field))?.[0] ??
-      3,
+    Object.entries(STEP_FIELDS).find(([, names]) =>
+      names.includes(field.split(".")[0]),
+    )?.[0] ?? 3,
   );
+
+// Wizard file field -> backend document field (the key used for its details).
+const DOCUMENT_BACKEND_FIELD: Record<string, string> = {
+  tradeLicense: "tradeLicense",
+  reraLicense: "reraLicense",
+  carTradeLicense: "carTradeLicense",
+  carDealerLicense: "carDealerLicense",
+  showroomRegistration: "showroomRegistration",
+  marineTradeLicense: "marineTradeLicense",
+  boatDealerCertificate: "boatDealerCertificate",
+  aviationDealerLicense: "aviationDealerLicense",
+  aocDocument: "aocOperatorDocument",
+  collectiblesTradeLicense: "collectiblesTradeLicense",
+  consignmentAuthority: "consignmentAuthority",
+  ownerEmiratesId: "emiratesId",
+  ownerPassport: "passport",
+};
 
 const FIELD_LABELS: Record<string, string> = {
   ...ONBOARDING_DOCUMENT_LABELS,
+  // "documentDetails.tradeLicense.expiryDate" → "Real estate trade license expiry date"
+  ...Object.fromEntries(
+    Object.entries(ONBOARDING_DOCUMENT_LABELS).flatMap(([key, label]) =>
+      [
+        ["documentNumber", "document number"],
+        ["issuingAuthority", "issuing authority"],
+        ["issueDate", "issue date"],
+        ["expiryDate", "expiry date"],
+      ].map(([field, name]) => [`documentDetails.${key}.${field}`, `${label} ${name}`]),
+    ),
+  ),
   companyName: "Company name",
   contactEmails: "Contact email",
   phoneNumbers: "Contact phone",
@@ -127,7 +164,8 @@ const categoryIcons: Record<AssetCategory, any> = {
   "Real Estate": Home,
   Cars: Car,
   Yachts: Anchor,
-  "Private Jets / Helicopters": Plane,
+  "Private Aviation": Plane,
+  Collectibles: Gem,
 };
 
 // Autosave — only JSON-safe, non-sensitive fields. File selections (licenses,
@@ -149,6 +187,7 @@ const PERSISTED_FIELDS = [
   "ownerEmail",
   "languagesSpoken",
   "socialMediaLinks",
+  "documentDetails",
 ] as const;
 
 // Fields checked for the completion-percentage indicator. Keep this in sync
@@ -175,30 +214,31 @@ function loadOnboardingDraft(): Record<string, any> | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(ONBOARDING_DRAFT_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const draft = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(draft?.categories)) {
+      draft.categories = draft.categories.map((c: string) =>
+        c === "Private Jets / Helicopters" ? "Private Aviation" : c,
+      );
+    }
+    return draft;
   } catch {
     return null;
   }
 }
 
 export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
-  const draftRef = useRef<Record<string, any> | null>(null);
-  if (draftRef.current === null) {
-    draftRef.current = loadOnboardingDraft() ?? {};
-  }
-
-  const [currentStep, setCurrentStep] = useState(
-    () => draftRef.current?.__step ?? 1,
-  );
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [restoredDraft] = useState(
-    () => Object.keys(draftRef.current ?? {}).length > 1, // more than just __step
-  );
+  // The draft lives in localStorage, which the server can't read, so it is
+  // restored after the first render — restoring during render made the
+  // server and browser HTML differ (a hydration error).
+  const [restoredDraft, setRestoredDraft] = useState(false);
+  const draftLoaded = useRef(false);
   const { locale } = useParams();
   const router = useRouter();
 
   const methods = useForm({
-    defaultValues: { ...defaultOnboardingValues, ...draftRef.current },
+    defaultValues: defaultOnboardingValues,
     resolver: zodResolver(
       currentStep === 1
         ? onboardingStep1Schema
@@ -224,11 +264,23 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
 
   const watchedValues = watch();
 
+  useEffect(() => {
+    const draft = loadOnboardingDraft();
+    if (draft && Object.keys(draft).length > 1) {
+      const { __step, ...values } = draft;
+      methods.reset({ ...defaultOnboardingValues, ...values });
+      if (__step) setCurrentStep(__step);
+      setRestoredDraft(true);
+    }
+    draftLoaded.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Autosave the JSON-safe subset of form state (+ current step) on every
   // change, debounced so we're not hitting localStorage on every keystroke.
   useEffect(() => {
     const handle = setTimeout(() => {
-      if (typeof window === "undefined") return;
+      if (typeof window === "undefined" || !draftLoaded.current) return;
       const draft: Record<string, any> = { __step: currentStep };
       for (const field of PERSISTED_FIELDS) {
         draft[field] = (watchedValues as any)[field];
@@ -275,8 +327,23 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
     if (isStepValid && currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else if (!isStepValid) {
-      // trigger() above already populated the inline errors; name them in a toast.
-      toast.error(summarizeFieldErrors(methods.formState.errors, FIELD_LABELS));
+      // trigger() above populated the inline errors, but formState still holds
+      // the previous render's errors here — validate the current values again
+      // so the toast names today's problems.
+      const schema = currentStep === 1 ? onboardingStep1Schema : onboardingStep2Schema;
+      const parsed = schema.safeParse(methods.getValues());
+      const current: Record<string, any> = {};
+      if (!parsed.success) {
+        for (const issue of parsed.error.issues) {
+          let node = current;
+          issue.path.forEach((key, i) => {
+            const k = String(key);
+            if (i === issue.path.length - 1) node[k] ??= { message: issue.message };
+            else node = node[k] ??= {};
+          });
+        }
+      }
+      toast.error(summarizeFieldErrors(current, FIELD_LABELS));
     }
   };
 
@@ -293,6 +360,14 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
   const uploadFailure = (field: string, error: any) =>
     `${FIELD_LABELS[field] ?? field} upload failed: ${error?.message ?? "please try again"}`;
 
+  // Logo and cover are shrunk to WebP before upload; licence documents are
+  // uploaded exactly as chosen so reviewers can read them.
+  const IMAGE_FIELD_PRESETS: Record<string, ImagePreset> = {
+    companyLogo: "logo",
+    listingLogo: "logo",
+    coverImage: "photo",
+  };
+
   const uploadFiles = async (data: any) => {
     const fileFields = [
       "tradeLicense",
@@ -304,6 +379,8 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
       "boatDealerCertificate",
       "aviationDealerLicense",
       "aocDocument",
+      "collectiblesTradeLicense",
+      "consignmentAuthority",
       "ownerEmiratesId",
       "ownerPassport",
       "companyLogo",
@@ -319,6 +396,7 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
         try {
           const uploaded = await UploadService.uploadImage(file, {
             isPublic: true,
+            optimize: IMAGE_FIELD_PRESETS[field] ?? false,
           });
           updatedData[`${field}UploadId`] = uploaded.uploadId;
         } catch (error: any) {
@@ -328,6 +406,7 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
         try {
           const uploaded = await UploadService.uploadImage(file[0], {
             isPublic: true,
+            optimize: IMAGE_FIELD_PRESETS[field] ?? false,
           });
           updatedData[`${field}UploadId`] = uploaded.uploadId;
         } catch (error: any) {
@@ -352,11 +431,27 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
           (c: string) => CATEGORY_LABEL_TO_ENUM[c as CategoryLabel],
         ),
 
-        tradeLicenseUploadId:
-          dataWithUrls.tradeLicenseUploadId ||
-          dataWithUrls.carTradeLicenseUploadId ||
-          dataWithUrls.marineTradeLicenseUploadId ||
-          dataWithUrls.aviationTradeLicenseUploadId,
+        // Each category's trade licence is its own document — sending only
+        // the first one dropped e.g. the car licence for Real Estate + Cars.
+        tradeLicenseUploadId: dataWithUrls.tradeLicenseUploadId,
+        carTradeLicenseUploadId: dataWithUrls.carTradeLicenseUploadId,
+        collectiblesTradeLicenseUploadId:
+          dataWithUrls.collectiblesTradeLicenseUploadId,
+        consignmentAuthorityUploadId: dataWithUrls.consignmentAuthorityUploadId,
+        documentDetails: Object.fromEntries(
+          Object.entries(data.documentDetails ?? {})
+            .filter(([field, d]: [string, any]) =>
+              dataWithUrls[`${field}UploadId`] &&
+              d &&
+              Object.values(d).some((v) => typeof v === "string" && v.trim()),
+            )
+            .map(([field, d]: [string, any]) => [
+              DOCUMENT_BACKEND_FIELD[field] ?? field,
+              Object.fromEntries(
+                Object.entries(d).filter(([, v]) => typeof v === "string" && v.trim()),
+              ),
+            ]),
+        ),
         reraLicenseUploadId: dataWithUrls.reraLicenseUploadId,
         brn: data.brn,
         emiratesIdUploadId: dataWithUrls.ownerEmiratesIdUploadId,
@@ -535,18 +630,24 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                     Real Estate Verification
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FileUpload
+                    <div>
+<FileUpload
                       id="tradeLicense"
                       label={dict.steps.step2.fields.tradeLicense}
                       accept=".pdf,.jpg,.jpeg,.png"
                       isMandatory
                     />
-                    <FileUpload
+<DocumentDetailsFields field="tradeLicense" register={register} />
+</div>
+                    <div>
+<FileUpload
                       id="reraLicense"
                       label={dict.steps.step2.fields.reraLicense}
                       accept=".pdf,.jpg,.jpeg,.png"
                       isMandatory
                     />
+<DocumentDetailsFields field="reraLicense" register={register} />
+</div>
                     <div className="md:col-span-2">
                       <Input
                         id="brn"
@@ -569,30 +670,39 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                     Cars Verification
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FileUpload
+                    <div>
+<FileUpload
                       id="carTradeLicense"
                       label={dict.steps.step2.fields.tradeLicense}
                       accept=".pdf,.jpg,.jpeg,.png"
                       isMandatory
                     />
-                    <FileUpload
+<DocumentDetailsFields field="carTradeLicense" register={register} />
+</div>
+                    <div>
+<FileUpload
                       id="carDealerLicense"
                       label={dict.steps.step2.fields.carDealerLicense}
                       accept=".pdf,.jpg,.jpeg,.png"
                       isMandatory
                     />
-                    <FileUpload
+<DocumentDetailsFields field="carDealerLicense" register={register} />
+</div>
+                    <div>
+<FileUpload
                       id="showroomRegistration"
                       label={dict.steps.step2.fields.showroomRegistration}
                       accept=".pdf,.jpg,.jpeg,.png"
                       isMandatory
                     />
+<DocumentDetailsFields field="showroomRegistration" register={register} />
+</div>
                   </div>
                 </div>
               )}
 
               {(selectedCategories.includes("Yachts") ||
-                selectedCategories.includes("Private Jets / Helicopters")) && (
+                selectedCategories.includes("Private Aviation")) && (
                 <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
                   <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
                     <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center mr-3">
@@ -607,38 +717,81 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {selectedCategories.includes("Yachts") && (
                       <>
-                        <FileUpload
+                        <div>
+<FileUpload
                           id="marineTradeLicense"
                           label={dict.steps.step2.fields.marineTradeLicense}
                           accept=".pdf,.jpg,.jpeg,.png"
                           isMandatory
                         />
-                        <FileUpload
+<DocumentDetailsFields field="marineTradeLicense" register={register} />
+</div>
+                        <div>
+<FileUpload
                           id="boatDealerCertificate"
                           label={dict.steps.step2.fields.boatDealerCertificate}
                           accept=".pdf,.jpg,.jpeg,.png"
                           isMandatory
                         />
+<DocumentDetailsFields field="boatDealerCertificate" register={register} />
+</div>
                       </>
                     )}
                     {selectedCategories.includes(
-                      "Private Jets / Helicopters",
+                      "Private Aviation",
                     ) && (
                       <>
-                        <FileUpload
+                        <div>
+<FileUpload
                           id="aviationDealerLicense"
                           label={dict.steps.step2.fields.aviationDealerLicense}
                           accept=".pdf,.jpg,.jpeg,.png"
                           isMandatory
                         />
-                        <FileUpload
+<DocumentDetailsFields field="aviationDealerLicense" register={register} />
+</div>
+                        <div>
+<FileUpload
                           id="aocDocument"
                           label={dict.steps.step2.fields.aocDocument}
                           accept=".pdf,.jpg,.jpeg,.png"
                           isMandatory
                         />
+<DocumentDetailsFields field="aocDocument" register={register} />
+</div>
                       </>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {selectedCategories.includes("Collectibles") && (
+                <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                    <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mr-3">
+                      <Gem size={18} strokeWidth={1.5} />
+                    </span>
+                    Collectibles Verification
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+<FileUpload
+                      id="collectiblesTradeLicense"
+                      label="Trade License / Business Registration"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      isMandatory
+                    />
+<DocumentDetailsFields field="collectiblesTradeLicense" register={register} />
+</div>
+                    <div>
+<FileUpload
+                      id="consignmentAuthority"
+                      label="Ownership or Consignment Authority"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      isMandatory
+                    />
+<DocumentDetailsFields field="consignmentAuthority" register={register} />
+</div>
                   </div>
                 </div>
               )}
@@ -648,18 +801,24 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                   {dict.steps.step2.fields.ownerId}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FileUpload
+                  <div>
+<FileUpload
                     id="ownerEmiratesId"
                     label="Emirates ID (Front & Back)"
                     accept=".pdf,.jpg,.jpeg,.png"
                     isMandatory
                   />
-                  <FileUpload
+<DocumentDetailsFields field="ownerEmiratesId" register={register} />
+</div>
+                  <div>
+<FileUpload
                     id="ownerPassport"
                     label="Passport Copy"
                     accept=".pdf,.jpg,.jpeg,.png"
                     isMandatory
                   />
+<DocumentDetailsFields field="ownerPassport" register={register} />
+</div>
                 </div>
               </div>
             </div>
@@ -680,13 +839,15 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
                 <FileUpload
                   id="companyLogo"
                   label={dict.steps.step3.fields.logo}
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
+                  helperText="JPG, PNG or WebP, up to 25 MB"
                   className="aspect-square"
                 />
                 <FileUpload
                   id="coverImage"
                   label={dict.steps.step3.fields.cover}
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
+                  helperText="JPG, PNG or WebP, up to 25 MB"
                   className="aspect-video"
                 />
               </div>
@@ -990,5 +1151,29 @@ export default function OnboardingWizard({ dict }: OnboardingWizardProps) {
         </div>
       </div>
     </SectionWrapper>
+  );
+}
+
+/** Optional document number, issuing authority and dates under an upload. */
+function DocumentDetailsFields({ field, register }: { field: string; register: any }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-gold"
+      >
+        {open ? "Hide document details" : "+ Add document number and dates (optional)"}
+      </button>
+      {open && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+          <Input id={`documentDetails.${field}.documentNumber`} label="Document number" register={register} />
+          <Input id={`documentDetails.${field}.issuingAuthority`} label="Issuing authority" register={register} />
+          <Input id={`documentDetails.${field}.issueDate`} label="Issue date" type="date" register={register} />
+          <Input id={`documentDetails.${field}.expiryDate`} label="Expiry date" type="date" register={register} />
+        </div>
+      )}
+    </div>
   );
 }

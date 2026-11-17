@@ -7,18 +7,28 @@ import {
 	getOnboardingStatusHandler,
 	updateOnboardingHandler,
 	getMyCompanyHandler,
+	getCompanyDashboardHandler,
 	getCompanyUsersHandler,
 	deactivateUserHandler,
 	reactivateUserHandler,
 	updateUserPermissionsHandler,
+	resubmitRegistrationHandler,
 } from "./companies.controller.js";
-import { onboardingSchema, updateUserPermissionsSchema } from "./companies.validation.js";
+import { onboardingSchema, resubmitRegistrationSchema, updateUserPermissionsSchema } from "./companies.validation.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
 const router: Router = Router();
 
 router.get("/onboarding/status", asyncHandler(getOnboardingStatusHandler));
 router.get("/me", requireAuth, asyncHandler(getMyCompanyHandler));
+router.get("/me/dashboard", requireAuth, asyncHandler(getCompanyDashboardHandler));
+// Owner updates the registration after the platform asked for changes.
+router.put(
+	"/me/registration",
+	requireAuth,
+	validate({ body: resubmitRegistrationSchema }),
+	asyncHandler(resubmitRegistrationHandler),
+);
 
 router.post(
 	"/onboarding",

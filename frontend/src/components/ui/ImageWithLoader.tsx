@@ -28,7 +28,7 @@ const ImageWithLoader = ({
           <Loader2 className="w-6 h-6 animate-spin" />
         </div>
       )}
-      <img
+      <img loading="lazy" decoding="async"
         src={src}
         alt={alt}
         onLoad={() => setLoaded(true)}

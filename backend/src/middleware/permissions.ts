@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { cacheAccess, getCachedAccess } from "../lib/accessCache.js";
 import { UserRole } from "../../generated/prisma/enums.js";
 import { prisma } from "../prisma/client.js";
 
@@ -21,7 +22,8 @@ export type Capability =
 	| "listings.create_draft"
 	| "listings.submit_to_platform"
 	| "listings.edit"
-	| "listings.pause_archive"
+	| "listings.pause"
+	| "listings.delete"
 	| "listings.view_admin_all"
 	// Leads
 	| "leads.view_all_company"
@@ -37,6 +39,7 @@ export type Capability =
 	| "team.deactivate_users"
 	| "team.set_permissions"
 	// Platform Admin
+	| "admin.assign_reviewers"
 	| "admin.approve_companies"
 	| "admin.approve_listings"
 	| "admin.view_all_companies"
@@ -63,7 +66,7 @@ const ROLE_CAPABILITIES: Record<UserRole, Set<Capability>> = {
 		"listings.create_draft",
 		"listings.submit_to_platform",
 		"listings.edit",
-		"listings.pause_archive",
+		"listings.pause",
 		"listings.view_admin_all",
 		"leads.view_all_company",
 		"leads.assign",
@@ -75,6 +78,7 @@ const ROLE_CAPABILITIES: Record<UserRole, Set<Capability>> = {
 		"team.invite_users",
 		"team.deactivate_users",
 		"team.set_permissions",
+		"admin.assign_reviewers",
 		"admin.approve_companies",
 		"admin.approve_listings",
 		"admin.view_all_companies",
@@ -106,7 +110,8 @@ const ROLE_CAPABILITIES: Record<UserRole, Set<Capability>> = {
 		"listings.create_draft",
 		"listings.submit_to_platform",
 		"listings.edit",
-		"listings.pause_archive",
+		"listings.pause",
+		"listings.delete",
 		"leads.view_all_company",
 		"leads.assign",
 		"leads.export",
@@ -125,7 +130,8 @@ const ROLE_CAPABILITIES: Record<UserRole, Set<Capability>> = {
 		"listings.create_draft",
 		"listings.submit_to_platform", // can be toggled off per company
 		"listings.edit",
-		"listings.pause_archive",
+		"listings.pause",
+		"listings.delete",
 		"leads.view_all_company",
 		"leads.assign",
 		"performance.view_company",
@@ -199,11 +205,17 @@ export const requireRole = (...roles: UserRole[]) => {
  * permission change (or deactivation) takes effect on the very next request.
  */
 export const userHasCapability = async (userId: string, role: UserRole, capability: Capability) => {
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		select: { permissions: true, banned: true },
-	});
-	if (!user || user.banned) return false;
+	let user = getCachedAccess(userId);
+	if (!user) {
+		const row = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { permissions: true, banned: true },
+		});
+		if (!row) return false;
+		cacheAccess(userId, row.permissions as Record<string, boolean> | null, !!row.banned);
+		user = getCachedAccess(userId)!;
+	}
+	if (user.banned) return false;
 
 	const override = (user.permissions as Record<string, boolean> | null)?.[capability];
 	if (typeof override === "boolean") return override;
@@ -293,3 +305,32 @@ export const requireCompanyOwnerOrManager = requireRole(
 	UserRole.company_owner,
 	UserRole.company_manager,
 );
+
+/** Platform reviewers work only on what a super admin assigned to them. */
+export const isReviewerOnly = (role?: string | null) => role === UserRole.platform_reviewer;
+
+/**
+ * For platform reviewers, lets the request through only when the company or
+ * listing in the URL is assigned to them; super admins and company users
+ * pass straight through (their own rules apply in the handler).
+ */
+export const requireAssignedToReviewer = (kind: "company" | "listing", param = "id") => {
+	return async (req: Request, res: Response, next: NextFunction) => {
+		if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+		if (!isReviewerOnly(req.user.role)) return next();
+		const id = req.params[param] as string | undefined;
+		if (!id) return next();
+		const row =
+			kind === "company"
+				? await prisma.company.findUnique({ where: { id }, select: { assignedReviewerId: true } })
+				: await prisma.listing.findUnique({ where: { id }, select: { assignedReviewerId: true } });
+		if (!row) return next(); // the handler answers 404
+		if (row.assignedReviewerId !== req.user.id) {
+			return res.status(403).json({
+				error: "Forbidden",
+				message: `This ${kind} is not assigned to you.`,
+			});
+		}
+		return next();
+	};
+};

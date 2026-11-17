@@ -3,6 +3,7 @@ import SectionHeading from "../ui/SectionHeading";
 import CategoryCard from "../ui/CategoryCard";
 import { HomeIcon, Car, Anchor, Plane } from "lucide-react";
 import { Listing } from "@/types/listing";
+import { TrackImpressions } from "@/components/tracking/TrackListing";
 
 type CategoryListingsProps = {
     listings: Listing[];
@@ -28,6 +29,7 @@ const CategoryListings = ({ listings, type }: CategoryListingsProps) => {
 
     return (
         <div className="py-15">
+            <TrackImpressions listingIds={listings.map((l) => l.id)} />
             <div className="container mx-auto px-6">
                 <div className="mb-10">
                     <SectionHeading
@@ -49,9 +51,10 @@ const CategoryListings = ({ listings, type }: CategoryListingsProps) => {
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {listings.map((listing) => (
+                            {listings.map((listing, i) => (
                                 <CategoryCard
                                     key={listing.id}
+                                    priority={i < 4}
                                     images={listing.media.photos.length ? listing.media.photos : ["/images/placeholder.jpg"]}
                                     title={listing.title}
                                     brand={listing.location?.name || listing.company?.name || ""}

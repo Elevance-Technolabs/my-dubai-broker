@@ -83,7 +83,7 @@ export default function StoriesContent({ t, locale }: StoriesContentProps) {
       <PageHero
         title={t.stories.hero.title}
         subtitle={t.stories.hero.subtitle}
-        backgroundImage="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2300&auto=format&fit=crop"
+        backgroundImage="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1920&auto=format&fit=crop"
         imageAlt="Client Stories"
       />
 

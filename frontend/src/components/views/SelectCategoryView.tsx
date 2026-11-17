@@ -97,8 +97,8 @@ export default function SelectCategoryView({ dict }: SelectCategoryViewProps) {
 
                     <div className="lg:sticky lg:top-32">
                         <div className="aspect-[4/5] md:aspect-[4/4] lg:aspect-[4/4] relative rounded-[32px] overflow-hidden shadow-2xl">
-                            <img
-                                src="https://images.unsplash.com/photo-1628592102751-ba83b0314276"
+                            <img loading="lazy" decoding="async"
+                                src="https://images.unsplash.com/photo-1628592102751-ba83b0314276?q=75&w=1600&auto=format&fit=crop"
                                 alt="Luxury Dubai Villa"
                                 className="w-full h-full object-cover"
                             />

@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SectionWrapper from "@/components/layout/SectionWrapper";
 import Newsletter from "@/components/newsletter/Newsletter";
+import { TrackImpressions } from "@/components/tracking/TrackListing";
 import { Locale } from "@/i18n/config";
 import { HomeDict, SearchDict } from "@/types/dictionary";
 import {
@@ -36,7 +37,7 @@ const PropertyCard = ({
     <Link href={`/details/${item.id}`} className="group block cursor-pointer">
       {/* Image Container */}
       <div className="relative aspect-4/3 overflow-hidden mb-6">
-        <img
+        <img loading="lazy" decoding="async"
           src={item.media.photos[0] || "/images/placeholder.jpg"}
           alt={item.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -118,6 +119,7 @@ export default function SearchContent({ t, locale }: SearchContentProps) {
 
   return (
     <main className="bg-white min-h-screen">
+      <TrackImpressions listingIds={filtered.map((item) => item.id)} />
       <Navbar
         t={t.home}
         locale={locale}

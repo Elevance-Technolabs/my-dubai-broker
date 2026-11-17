@@ -58,7 +58,9 @@ export default function EditListingManager({
       setError(null);
 
       // One unified fetch — category-specific fields live under `details`.
-      const res = await listingService.getListingById(listingId);
+      // With pending changes applied: a second edit continues from the first
+      // rather than from the live version.
+      const res = await listingService.getListingById(listingId, { withPending: true });
       if (cancelled) return;
       if (!res.success || !res.data) {
         setError(res.error || "Listing not found");
@@ -117,6 +119,7 @@ export default function EditListingManager({
         setInitialData({
           ...common,
           brand: d.make ?? "",
+          bodyType: listing.assetType ?? "",
           model: d.model ?? "",
           year: d.year,
           variant: d.variant ?? "",
@@ -165,7 +168,7 @@ export default function EditListingManager({
       } else if (type === AssetType.YACHT) {
         setInitialData({
           ...common,
-          yachtType: String(listing.assetType ?? "").replace(/_/g, " "),
+          yachtType: listing.assetType ?? "",
           make: d.builder ?? "",
           year: d.year,
           length: d.lengthFt,

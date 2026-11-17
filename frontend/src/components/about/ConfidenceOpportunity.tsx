@@ -13,8 +13,8 @@ const ConfidenceOpportunity = ({ t }: ConfidenceOpportunityProps) => (
   <section className="py-24 md:py-40 container mx-auto px-6">
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
       <div className="relative aspect-[4/5] overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2301&auto=format&fit=crop"
+        <img loading="lazy" decoding="async"
+          src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1920&auto=format&fit=crop"
           alt="Interior"
           className="w-full h-full object-cover"
         />

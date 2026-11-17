@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "@/components/layout/Sidebar";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { CompanyService } from "@/services/company.service";
 import {
@@ -21,42 +22,72 @@ interface AdminPanelLayoutProps {
   allowedRoles?: string[];
 }
 
+// The company status survives page changes (and the panel remounting), so
+// moving around the dashboard shows the page straight away; it is refreshed
+// quietly in the background on each mount.
+let companyCache: { userId: string; company: any } | null = null;
+
+/** Forget the cached company status (e.g. after the registration is resubmitted). */
+export const invalidateCompanyStatus = () => {
+  companyCache = null;
+};
+
 export default function AdminPanelLayout({
   children,
   allowedRoles = [...PLATFORM_STAFF_ROLES, ...COMPANY_ROLES],
 }: AdminPanelLayoutProps) {
-  const [company, setCompany] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  const userId = session?.user?.id as string | undefined;
+  const role = (session?.user as any)?.role as string | undefined;
+  // Platform staff have no company, so there is nothing to check.
+  const isStaff = !!role && PLATFORM_STAFF_ROLES.includes(role as any);
+  const cached = userId && companyCache?.userId === userId ? companyCache.company : undefined;
 
-  const checkApproval = async () => {
-    setLoading(true);
+  const [company, setCompany] = useState<any>(cached ?? null);
+  const [loading, setLoading] = useState(cached === undefined && !isStaff);
+  const [error, setError] = useState<string | null>(null);
+
+  const checkApproval = async (quiet = false) => {
+    if (!userId) return;
+    if (!quiet) setLoading(true);
     setError(null);
 
     try {
       const response = await CompanyService.getMyCompany();
       if (response.success) {
+        companyCache = { userId, company: response.data };
         setCompany(response.data);
-      } else {
+      } else if (!quiet) {
         setError(response.error || "Failed to load your company status.");
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load your company status.",
-      );
+      if (!quiet) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load your company status.",
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // Keyed on the user id, not the session object: the session is re-fetched
+  // on window focus, which must not reload the whole panel.
   useEffect(() => {
-    if (!session) return;
-    checkApproval();
+    if (!userId || isStaff) {
+      if (isStaff) setLoading(false);
+      return;
+    }
+    const known = companyCache?.userId === userId;
+    if (known) {
+      setCompany(companyCache!.company);
+      setLoading(false);
+    }
+    checkApproval(known);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [userId, isStaff]);
 
   if (loading && session) {
     return (
@@ -67,7 +98,7 @@ export default function AdminPanelLayout({
   }
 
   if (error) {
-    return <CompanyStatusErrorView error={error} onRetry={checkApproval} />;
+    return <CompanyStatusErrorView error={error} onRetry={() => checkApproval()} />;
   }
 
   return (
@@ -142,7 +173,7 @@ const STATUS_SCREENS: Record<
       `Our administrators reviewed your company application for ${name} and need some changes before it can be approved.`,
     reasonLabel: "Changes Requested:",
     nextStep:
-      "Please contact our support team with the requested changes. Your application will be reviewed again once they are received.",
+      "Update your registration with the requested changes and resubmit it. It is reviewed again as soon as you do.",
     tone: "warning",
     Icon: AlertTriangle,
   },
@@ -158,9 +189,9 @@ const STATUS_SCREENS: Record<
 };
 
 const PENDING_SCREEN = {
-  title: "Pending Approval",
+  title: "In Review",
   message: (name: string) =>
-    `Your company application for ${name} is currently under review by our administrators.`,
+    `Your company application for ${name} is with our team for review. We will let you know as soon as there is a decision.`,
   reasonLabel: undefined,
   nextStep:
     "You will regain access to your dashboard once your documents are verified and your account is approved.",
@@ -171,6 +202,9 @@ const PENDING_SCREEN = {
 const CompanyStatusView = ({ company }: { company: any }) => {
   const screen = STATUS_SCREENS[company.status] ?? PENDING_SCREEN;
   const isDanger = screen.tone === "danger";
+  const { data: session } = useSession();
+  const canResubmit =
+    company.status === CompanyStatus.CHANGES_REQUIRED && (session?.user as any)?.role === "company_owner";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
@@ -221,6 +255,14 @@ const CompanyStatusView = ({ company }: { company: any }) => {
               {screen.nextStep}
             </p>
           </div>
+
+          {canResubmit && (
+            <Link href="/registration" className="block">
+              <Button variant="dark" className="w-full">
+                Edit &amp; Resubmit
+              </Button>
+            </Link>
+          )}
 
           <button
             onClick={() => signOut()}

@@ -17,7 +17,7 @@ const EmpoweringSection = ({ t }: EmpoweringSectionProps) => (
         <div className="container mx-auto px-6 max-w-[85%]">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
                 <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
+                    <img loading="lazy" decoding="async"
                         src="https://images.unsplash.com/photo-1560250056-07ba64664864?q=80&w=1151&auto=format&fit=crop"
                         alt="Empowering Professionals & Brands"
                         className="w-full h-full object-cover"

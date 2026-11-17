@@ -75,6 +75,54 @@ export const createInvitation = async (
 	return invitation;
 };
 
+/** Who a platform-team invitation is from, wherever a company name would show. */
+export const PLATFORM_TEAM_NAME = "My Dubai Broker team";
+
+const STAFF_ROLES: UserRole[] = [UserRole.super_admin, UserRole.platform_reviewer];
+
+/**
+ * Invitation to join the platform team (super admin or reviewer). Like a
+ * company invitation, but the new account is not linked to any company.
+ */
+export const createStaffInvitation = async (sentById: string, data: { email: string; role: UserRole }) => {
+	if (!STAFF_ROLES.includes(data.role)) {
+		throw new AppError("Platform team invitations are for super admin or reviewer roles only.", 400);
+	}
+	const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
+	if (existingUser) throw new AppError("A user with this email already exists.", 409);
+
+	const pending = await prisma.invitation.findFirst({
+		where: { companyId: null, email: data.email, acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } },
+	});
+	if (pending) throw new AppError("An invitation is already pending for this email.", 409);
+
+	const token = randomBytes(32).toString("hex");
+	const invitation = await prisma.invitation.create({
+		data: {
+			email: data.email,
+			role: data.role,
+			token,
+			sentById,
+			expiresAt: new Date(Date.now() + INVITATION_TTL_MS),
+		},
+	});
+
+	await prisma.auditLog.create({
+		data: {
+			actorId: sentById,
+			action: "invitation.sent",
+			entityType: "invitation",
+			entityId: invitation.id,
+			newValue: { email: data.email, role: data.role, team: "platform" },
+		},
+	});
+
+	const inviteUrl = `${env.FRONTEND_URL}/invite/${token}`;
+	const { subject, html } = emailTemplates.invitation({ companyName: PLATFORM_TEAM_NAME, role: data.role, inviteUrl, platformTeam: true });
+	await sendEmail({ to: data.email, subject, html });
+	return invitation;
+};
+
 export const listInvitations = async (companyId: string) => {
 	return prisma.invitation.findMany({
 		where: { companyId },
@@ -126,7 +174,8 @@ export const getInvitationByToken = async (token: string) => {
 	return {
 		email: invitation.email,
 		role: invitation.role,
-		companyName: invitation.company.name,
+		companyName: invitation.company?.name ?? PLATFORM_TEAM_NAME,
+		isPlatformTeam: !invitation.companyId,
 		expiresAt: invitation.expiresAt,
 	};
 };
@@ -195,8 +244,8 @@ export const acceptInvitation = async (
 
 		return user;
 	} catch (error) {
-		// Roll back the auth account if linking to the company fails, so we
-		// don't leave an orphaned user with no role/company.
+		// Roll back the auth account if linking to the company (or setting the
+		// staff role) fails, so we don't leave an orphaned user with no role.
 		await prisma.user.delete({ where: { id: userId } });
 		throw error;
 	}

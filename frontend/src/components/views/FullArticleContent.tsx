@@ -74,8 +74,8 @@ export default function FullArticleContent({
       {/* Main Image */}
       <div className="container mx-auto px-10 mb-20 lg:mb-28">
         <div className="aspect-21/9 w-full overflow-hidden relative rounded-sm">
-          <img
-            src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2670&auto=format&fit=crop"
+          <img loading="lazy" decoding="async"
+            src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1920&auto=format&fit=crop"
             alt={article.title}
             className="w-full h-full object-cover"
           />
@@ -209,7 +209,7 @@ export default function FullArticleContent({
                 className={`flex items-center gap-5 ${isAr ? "flex-row-reverse" : ""}`}
               >
                 <div className="w-20 h-20 rounded-full overflow-hidden shrink-0 border-2 border-slate-50">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={article.author.avatar}
                     alt={article.author.name}
                     className="w-full h-full object-cover"

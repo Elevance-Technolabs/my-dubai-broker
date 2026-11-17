@@ -33,7 +33,7 @@ const PopularSearches = ({ category, dict }: PopularSearchesProps) => {
                         <div key={item.id} className="flex items-center space-x-6 group cursor-pointer">
                             {/* Thumbnail */}
                             <div className="w-32 h-20 shrink-0 overflow-hidden rounded-sm">
-                                <img
+                                <img loading="lazy" decoding="async"
                                     src={item.image}
                                     alt={item.title}
                                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"

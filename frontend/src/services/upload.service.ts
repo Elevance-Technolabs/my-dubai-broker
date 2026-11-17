@@ -11,13 +11,57 @@ import {
   putFileToR2,
   validateImageFile,
 } from "@/lib/utils/r2Upload";
+import { optimizeImage, type ImagePreset } from "@/lib/utils/imageOptimize";
 
 interface UploadImageOptions {
   onProgress?: (percent: number) => void;
   signal?: AbortSignal;
   isPublic?: boolean;
   context?: UploadContext;
+  /** Accept PDFs and other documents (not just images) on a signed-in upload. */
+  documents?: boolean;
+  /**
+   * How to shrink the image before upload (WebP, resized). Defaults from the
+   * upload context; documents and uploads without a context are never changed,
+   * so licence scans stay exactly as the partner sent them.
+   */
+  optimize?: ImagePreset | false;
 }
+
+const PRESET_BY_CONTEXT: Partial<Record<UploadContext, ImagePreset>> = {
+  "listing-photo": "photo",
+  "company-cover": "photo",
+  "product-image": "photo",
+  "company-logo": "logo",
+  "company-listing-logo": "logo",
+};
+
+// Only a few images are decoded at once: ten full-size phone photos decoded
+// together can run a phone out of memory. Two at a time where the browser
+// reports enough memory (4 GB+), otherwise one. Uploads still run in parallel.
+const optimizeSlots = (() => {
+  if (typeof navigator === "undefined") return 1;
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  return memory !== undefined && memory >= 4 && (navigator.hardwareConcurrency ?? 1) >= 4 ? 2 : 1;
+})();
+let optimizeRunning = 0;
+const optimizeWaiting: (() => void)[] = [];
+
+const optimizeInTurn = async (file: File, preset: ImagePreset) => {
+  if (optimizeRunning >= optimizeSlots) {
+    await new Promise<void>((resolve) => optimizeWaiting.push(resolve));
+  } else {
+    optimizeRunning++;
+  }
+  try {
+    return await optimizeImage(file, preset);
+  } finally {
+    // Hand the slot straight to the next image, or free it.
+    const next = optimizeWaiting.shift();
+    if (next) next();
+    else optimizeRunning--;
+  }
+};
 
 const presignRequest = (
   endpoint: string,
@@ -49,11 +93,15 @@ export const UploadService = {
 
   async uploadImage(
     file: File,
-    { onProgress, signal, isPublic, context }: UploadImageOptions = {},
+    { onProgress, signal, isPublic, context, documents, optimize }: UploadImageOptions = {},
   ): Promise<UploadResult> {
+    const preset = optimize === undefined ? (context && PRESET_BY_CONTEXT[context]) : optimize;
+    if (preset) file = await optimizeInTurn(file, preset);
+    if (signal?.aborted) throw new Error(`Upload of "${file.name}" was cancelled.`);
+
     const validationError = validateImageFile(
       file,
-      isPublic ? ALLOWED_DOCUMENT_TYPES : ALLOWED_IMAGE_TYPES,
+      isPublic || documents ? ALLOWED_DOCUMENT_TYPES : ALLOWED_IMAGE_TYPES,
     );
     if (validationError) throw new Error(validationError);
 

@@ -115,14 +115,55 @@ body {
     transform: translate3d(0, 40px, 0);
   }
 
+  /* "none", not translate3d(0,0,0): a transform that stays on after the
+     animation would make the element the containing block for every
+     position:fixed descendant, trapping popups inside the page. */
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: none;
   }
 }
 
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Popups: dialogs scale in, side panels slide in from the right. */
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes panelIn {
+  from { transform: translate3d(100%, 0, 0); }
+  to { transform: none; }
+}
+
+.animate-overlay-in {
+  animation: overlayIn 0.2s ease-out;
+}
+
+.animate-dialog-in {
+  animation: dialogIn 0.25s ease-out;
+}
+
+/* Header mega menu: fades and drops in together with the header turning white. */
+@keyframes megaIn {
+  from { opacity: 0; transform: translate3d(0, -6px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-mega-in {
+  animation: megaIn 0.3s ease-out;
+}
+
+.animate-panel-in {
+  animation: panelIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes slowZoom {

@@ -14,7 +14,7 @@ const Footer = ({ t }: FooterProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-20">
           <div className="col-span-1 lg:col-span-2">
             <div className="mb-8">
-              <img
+              <img loading="lazy" decoding="async"
                 src="/images/logo/light-logo.svg"
                 className="w-32"
                 alt="My Dubai Broker"

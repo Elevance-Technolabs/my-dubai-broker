@@ -8,6 +8,7 @@ import MainListingCard from "./MainListingCard";
 import ListingGridView from "./ListingGridView";
 import SectionWrapper from "../layout/SectionWrapper";
 import { Listing } from "@/types/listing";
+import { TrackImpressions } from "@/components/tracking/TrackListing";
 
 interface ListingViewProps {
     category: string;
@@ -29,6 +30,7 @@ const ListingView = ({ category, title, listings }: ListingViewProps) => {
                 />
             </SectionWrapper>
             <SectionWrapper bg="bg-bg-light">
+                <TrackImpressions listingIds={listings.map((l) => l.id)} />
                 <MainListingCard listing={featured} />
                 <ListingGridView listings={rest.length ? rest : listings} />
             </SectionWrapper>

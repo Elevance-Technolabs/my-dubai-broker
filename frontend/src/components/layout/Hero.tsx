@@ -1,5 +1,6 @@
 "use client";
 import { HomeDict } from "@/types/dictionary";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 
@@ -11,12 +12,12 @@ const HERO_SLIDES = [
   {
     id: 2,
     image:
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1920&auto=format&fit=crop",
   },
   {
     id: 3,
     image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1920&auto=format&fit=crop",
   },
 ];
 
@@ -53,10 +54,16 @@ const Hero = ({ t }: HeroProps) => {
           key={slide.id}
           className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}
         >
-          <img
+          {/* Next.js Image: served as WebP at the size of the screen; the
+              first slide is the page's main picture, so it loads first. */}
+          <Image
             src={slide.image}
             alt={t.hero.slides[index]?.title || "Luxury Property"}
-            className="w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            quality={75}
+            priority={index === 0}
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-linear-to-t from-black from-0% via-black/50 via-50% to-transparent to-100%" />
         </div>

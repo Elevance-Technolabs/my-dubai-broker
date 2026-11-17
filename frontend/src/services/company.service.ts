@@ -30,6 +30,11 @@ export const CompanyService = {
     return apiRequest<any>("/companies/me");
   },
 
+  /** Owner sends the registration back for review after changes were requested. */
+  async resubmitRegistration(data: Record<string, any>) {
+    return apiRequest<any>("/companies/me/registration", { method: "PUT", body: JSON.stringify(data) });
+  },
+
   async getCompanyUsers() {
     return apiRequest<CompanyUser[]>("/companies/me/users");
   },
@@ -51,6 +56,15 @@ export const CompanyService = {
     return apiRequest(`/companies/me/users/${userId}/permissions`, {
       method: "PATCH",
       body: JSON.stringify({ permissions }),
+    });
+  },
+
+  /** Owner / manager / agent dashboard numbers and action items. */
+  async getDashboard(params?: { from?: string; to?: string; category?: string }) {
+    return apiRequest<any>("/companies/me/dashboard", {
+      params: params
+        ? Object.fromEntries(Object.entries(params).filter(([, v]) => v))
+        : undefined,
     });
   },
 };

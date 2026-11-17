@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import { clearApiCache } from "@/core/api";
 import { adminClient } from "better-auth/client/plugins";
 import { clearAuthToken, getAuthToken, setAuthToken } from "./auth-token";
 
@@ -45,5 +46,6 @@ export const signOut = async (...args: Parameters<typeof authClient.signOut>) =>
         return await authClient.signOut(...args);
     } finally {
         clearAuthToken();
+        clearApiCache();
     }
 };

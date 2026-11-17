@@ -1,6 +1,7 @@
 import { fromNodeHeaders } from "better-auth/node";
 import type { NextFunction, Request, Response } from "express";
 import { auth } from "../lib/auth.js";
+import { cacheSession, getCachedSession, sessionKeyOf } from "../lib/accessCache.js";
 
 declare global {
 	namespace Express {
@@ -17,6 +18,16 @@ export const requireAuth = async (
 	next: NextFunction,
 ) => {
 	try {
+		// The session lookup costs database round trips on every request; a
+		// result from the last few seconds is reused (see lib/accessCache.ts).
+		const key = sessionKeyOf(req.headers);
+		const cached = getCachedSession(key);
+		if (cached) {
+			req.user = cached.user;
+			req.session = cached.session;
+			return next();
+		}
+
 		const session = await auth.api.getSession({
 			headers: fromNodeHeaders(req.headers),
 		});
@@ -25,6 +36,7 @@ export const requireAuth = async (
 			return res.status(401).json({ error: "Unauthorized: Please log in." });
 		}
 
+		cacheSession(key, session.user, session.session);
 		req.user = session.user;
 		req.session = session.session;
 		next();

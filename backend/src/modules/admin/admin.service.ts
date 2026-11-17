@@ -5,39 +5,87 @@ import {
 	type Prisma,
 } from "../../../generated/prisma/client.js";
 import { prisma } from "../../prisma/client.js";
+import { invalidateUserAccess } from "../../lib/accessCache.js";
 import { AppError } from "../../utils/AppError.js";
 import { sendEmail, emailTemplates } from "../../lib/email.js";
 import { deactivateUser as deactivateCompanyUser, reactivateUser as reactivateCompanyUser } from "../companies/companies.service.js";
+import { createInvitation, createStaffInvitation } from "../invitations/invitations.service.js";
+import { env } from "../../lib/env.js";
 
 // ─── Company Queue ────────────────────────────────────────────
+
+/** A company application waiting longer than this is flagged as overdue. */
+export const COMPANY_REVIEW_OVERDUE_HOURS = 48;
+const COMPANY_AWAITING: CompanyStatus[] = [CompanyStatus.SUBMITTED, CompanyStatus.PENDING_REVIEW];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Document status as of today: an expiry date overrides the stored status. */
+export const effectiveDocumentStatus = (doc: { status: string; expiryDate: Date | null }) => {
+	if (doc.expiryDate) {
+		const left = doc.expiryDate.getTime() - Date.now();
+		if (left < 0) return "EXPIRED";
+		if (left < 30 * DAY_MS) return "EXPIRING";
+	}
+	return doc.status;
+};
 
 export const getCompanyQueue = async (
 	page = 1,
 	limit = 20,
 	filters: {
+		/** Platform reviewer: only companies assigned to them. */
+		assignedTo?: string;
 		status?: CompanyStatus;
 		reviewerId?: string;
 		search?: string;
+		category?: string;
+		dateFrom?: Date;
+		dateTo?: Date;
+		sort?: string;
 	} = {},
 ) => {
 	const skip = (page - 1) * limit;
 
 	const where: Prisma.CompanyWhereInput = {
 		...(filters.status ? { status: filters.status } : {}),
+		...(filters.category ? { categories: { has: filters.category as any } } : {}),
+		...(filters.assignedTo
+			? { assignedReviewerId: filters.assignedTo }
+			: filters.reviewerId === "unassigned"
+				? { assignedReviewerId: null }
+				: filters.reviewerId
+					? { assignedReviewerId: filters.reviewerId }
+					: {}),
+		...(filters.dateFrom || filters.dateTo
+			? {
+					createdAt: {
+						...(filters.dateFrom ? { gte: filters.dateFrom } : {}),
+						...(filters.dateTo ? { lte: filters.dateTo } : {}),
+					},
+				}
+			: {}),
 		...(filters.search
 			? {
 					OR: [
 						{ name: { contains: filters.search, mode: "insensitive" } },
 						{ contactEmail: { contains: filters.search, mode: "insensitive" } },
+						{ users: { some: { email: { contains: filters.search, mode: "insensitive" } } } },
 					],
 				}
 			: {}),
 	};
 
-	const [companies, total] = await Promise.all([
+	const orderBy: Prisma.CompanyOrderByWithRelationInput =
+		filters.sort === "newest"
+			? { createdAt: "desc" }
+			: filters.sort === "name"
+				? { name: "asc" }
+				: { createdAt: "asc" }; // oldest first — overdue at top
+
+	const [companies, total, overdueCount] = await Promise.all([
 		prisma.company.findMany({
 			where,
-			orderBy: { updatedAt: "asc" }, // oldest first — overdue at top
+			orderBy,
 			skip,
 			take: limit,
 			include: {
@@ -48,16 +96,39 @@ export const getCompanyQueue = async (
 				documents: {
 					orderBy: { documentType: "asc" },
 				},
+				assignedReviewer: { select: { id: true, name: true } },
 				_count: {
 					select: { listings: true },
 				},
 			},
 		}),
 		prisma.company.count({ where }),
+		prisma.company.count({
+			where: {
+				AND: [
+					where,
+					{
+						status: { in: COMPANY_AWAITING },
+						createdAt: { lte: new Date(Date.now() - COMPANY_REVIEW_OVERDUE_HOURS * 3600000) },
+					},
+				],
+			},
+		}),
 	]);
 
+	const now = Date.now();
 	return {
-		companies,
+		companies: companies.map((c) => {
+			const waitingSince = c.onboardingCompletedAt ?? c.createdAt;
+			const ageHours = Math.floor((now - waitingSince.getTime()) / 3600000);
+			return {
+				...c,
+				documents: c.documents.map((d) => ({ ...d, storedStatus: d.status, status: effectiveDocumentStatus(d) })),
+				ageHours,
+				overdue: COMPANY_AWAITING.includes(c.status) && ageHours > COMPANY_REVIEW_OVERDUE_HOURS,
+			};
+		}),
+		summary: { overdue: overdueCount },
 		pagination: {
 			total,
 			page,
@@ -85,15 +156,20 @@ export const getCompanyById = async (id: string) => {
 					banned: true,
 				},
 			},
-			documents: true,
+			documents: { orderBy: { documentType: "asc" } },
 			invitations: {
 				where: { acceptedAt: null, revokedAt: null },
 				orderBy: { createdAt: "desc" },
 			},
 			statusHistory: {
 				orderBy: { createdAt: "desc" },
-				take: 20,
+				take: 50,
 			},
+			reviewNotes: {
+				orderBy: { createdAt: "desc" },
+				include: { author: { select: { id: true, name: true } } },
+			},
+			assignedReviewer: { select: { id: true, name: true } },
 			_count: {
 				select: {
 					listings: true,
@@ -103,7 +179,164 @@ export const getCompanyById = async (id: string) => {
 		},
 	});
 	if (!company) return null;
-	return company;
+	const actors = await prisma.user.findMany({
+		where: { id: { in: [...new Set(company.statusHistory.map((h) => h.actorId))] } },
+		select: { id: true, name: true },
+	});
+	const actorName = new Map(actors.map((a) => [a.id, a.name]));
+	return {
+		...company,
+		documents: company.documents.map((d) => ({ ...d, storedStatus: d.status, status: effectiveDocumentStatus(d) })),
+		statusHistory: company.statusHistory.map((h) => ({ ...h, actorName: actorName.get(h.actorId) ?? null })),
+	};
+};
+
+/** Active platform staff who can be assigned as reviewers. */
+export const getReviewers = async () =>
+	prisma.user.findMany({
+		where: { role: { in: [UserRole.super_admin, UserRole.platform_reviewer] }, banned: false },
+		select: { id: true, name: true, email: true, role: true },
+		orderBy: { name: "asc" },
+	});
+
+const assertReviewer = async (reviewerId: string) => {
+	const reviewer = await prisma.user.findUnique({ where: { id: reviewerId }, select: { role: true, banned: true } });
+	if (!reviewer || reviewer.banned || !["super_admin", "platform_reviewer"].includes(reviewer.role)) {
+		throw new AppError("The reviewer must be an active platform staff member", 400);
+	}
+};
+
+export const setCompanyReviewer = async (companyId: string, reviewerId: string | null, actorId: string) => {
+	const company = await prisma.company.findUnique({ where: { id: companyId } });
+	if (!company) throw new AppError("Company not found", 404);
+	if (reviewerId) await assertReviewer(reviewerId);
+	const updated = await prisma.company.update({
+		where: { id: companyId },
+		data: { assignedReviewerId: reviewerId },
+		select: { id: true, assignedReviewer: { select: { id: true, name: true } } },
+	});
+	// Tell the newly assigned reviewer (not when assigning yourself).
+	if (reviewerId && reviewerId !== actorId && reviewerId !== company.assignedReviewerId) {
+		await prisma.notification
+			.create({
+				data: {
+					userId: reviewerId,
+					priority: "ACTION_NEEDED",
+					type: "company_assigned",
+					title: "Company assigned to you",
+					body: `${company.name} was assigned to you for review.`,
+					actionUrl: `/admin/companies?company=${companyId}`,
+				},
+			})
+			.catch((e) => console.error("Assignment notification failed:", e));
+	}
+	await prisma.auditLog.create({
+		data: {
+			actorId,
+			companyId,
+			action: "company.reviewer_assigned",
+			entityType: "company",
+			entityId: companyId,
+			previousValue: { assignedReviewerId: company.assignedReviewerId },
+			newValue: { assignedReviewerId: reviewerId },
+		},
+	});
+	return updated;
+};
+
+export const addCompanyNote = async (companyId: string, body: string, isInternal: boolean, authorId: string) => {
+	const company = await prisma.company.findUnique({ where: { id: companyId }, select: { id: true } });
+	if (!company) throw new AppError("Company not found", 404);
+	const note = await prisma.reviewNote.create({
+		data: { entityType: "company", companyId, authorId, body: body.trim(), isInternal },
+		include: { author: { select: { id: true, name: true } } },
+	});
+	if (!isInternal) {
+		const owner = await prisma.user.findFirst({ where: { companyId, role: "company_owner" }, select: { id: true } });
+		if (owner) {
+			await prisma.notification.create({
+				data: {
+					userId: owner.id,
+					priority: "ACTION_NEEDED",
+					type: "company_review_comment",
+					title: "Reviewer comment",
+					body: body.trim(),
+					// Read-only: the message is the whole notification.
+					actionUrl: null,
+				},
+			});
+		}
+	}
+	return note;
+};
+
+export const updateCompanyDocument = async (
+	companyId: string,
+	documentId: string,
+	data: {
+		documentNumber?: string | null;
+		issuingAuthority?: string | null;
+		issueDate?: string | null;
+		expiryDate?: string | null;
+		status?: string;
+		reviewNote?: string | null;
+	},
+	actorId: string,
+) => {
+	const doc = await prisma.companyDocument.findUnique({ where: { id: documentId } });
+	if (!doc || doc.companyId !== companyId) throw new AppError("Document not found", 404);
+	const toDate = (v?: string | null) => (v === undefined ? undefined : v ? new Date(v) : null);
+	const reviewed = data.status !== undefined && data.status !== doc.status;
+	const updated = await prisma.companyDocument.update({
+		where: { id: documentId },
+		data: {
+			...(data.documentNumber !== undefined ? { documentNumber: data.documentNumber || null } : {}),
+			...(data.issuingAuthority !== undefined ? { issuingAuthority: data.issuingAuthority || null } : {}),
+			...(data.issueDate !== undefined ? { issueDate: toDate(data.issueDate) } : {}),
+			...(data.expiryDate !== undefined ? { expiryDate: toDate(data.expiryDate) } : {}),
+			...(data.status !== undefined ? { status: data.status as any } : {}),
+			...(data.reviewNote !== undefined ? { reviewNote: data.reviewNote || null } : {}),
+			...(reviewed ? { reviewedAt: new Date(), reviewedById: actorId } : {}),
+		},
+	});
+	await prisma.auditLog.create({
+		data: {
+			actorId,
+			companyId,
+			action: "company.document_updated",
+			entityType: "document",
+			entityId: documentId,
+			previousValue: {
+				status: doc.status,
+				documentNumber: doc.documentNumber,
+				issuingAuthority: doc.issuingAuthority,
+				issueDate: doc.issueDate?.toISOString() ?? null,
+				expiryDate: doc.expiryDate?.toISOString() ?? null,
+			},
+			newValue: {
+				status: updated.status,
+				documentNumber: updated.documentNumber,
+				issuingAuthority: updated.issuingAuthority,
+				issueDate: updated.issueDate?.toISOString() ?? null,
+				expiryDate: updated.expiryDate?.toISOString() ?? null,
+			},
+			reason: data.reviewNote ?? undefined,
+		},
+	});
+	if (reviewed) {
+		await prisma.statusHistory.create({
+			data: {
+				entityType: "document",
+				entityId: documentId,
+				companyId,
+				fromStatus: doc.status,
+				toStatus: updated.status,
+				actorId,
+				reason: data.reviewNote ?? `Document: ${doc.documentType.replace(/_/g, " ")}`,
+			},
+		});
+	}
+	return { ...updated, storedStatus: updated.status, status: effectiveDocumentStatus(updated) };
 };
 
 // ─── Company Status Decisions ─────────────────────────────────
@@ -159,9 +392,23 @@ export const updateCompanyStatus = async (
 				fromStatus: previousStatus,
 				toStatus: status,
 				actorId,
-				reason: options.reason ?? options.rejectionReason ?? options.internalNote,
+				// Partner-visible reason only — the internal note is stored separately.
+				reason: options.reason ?? options.rejectionReason,
 			},
 		});
+
+		// Internal note stays with staff; the reason is the partner-visible comment.
+		if (options.internalNote?.trim()) {
+			await tx.reviewNote.create({
+				data: { entityType: "company", companyId: id, authorId: actorId, body: options.internalNote.trim(), isInternal: true },
+			});
+		}
+		const partnerReason = options.rejectionReason ?? options.reason;
+		if (partnerReason?.trim()) {
+			await tx.reviewNote.create({
+				data: { entityType: "company", companyId: id, authorId: actorId, body: partnerReason.trim(), isInternal: false },
+			});
+		}
 
 		await tx.auditLog.create({
 			data: {
@@ -225,7 +472,7 @@ export const updateCompanyStatus = async (
 						type: cfg.type,
 						title: cfg.title,
 						body: cfg.body,
-						actionUrl: "/dashboard/company",
+						actionUrl: null,
 					},
 				});
 			}
@@ -252,6 +499,7 @@ export const getListingApprovalQueue = async (
 	page = 1,
 	limit = 20,
 	filters: {
+		assignedTo?: string;
 		approvalStatus?: ApprovalStatus;
 		category?: string;
 		companyId?: string;
@@ -261,6 +509,7 @@ export const getListingApprovalQueue = async (
 	const skip = (page - 1) * limit;
 
 	const where: Prisma.ListingWhereInput = {
+		...(filters.assignedTo ? { assignedReviewerId: filters.assignedTo } : {}),
 		// Default to submissions awaiting review
 		...(filters.approvalStatus
 			? { approvalStatus: filters.approvalStatus }
@@ -308,7 +557,9 @@ export const getListingApprovalQueue = async (
 
 // ─── Platform Stats (for Admin Overview) ─────────────────────
 
-export const getPlatformStats = async () => {
+/** Platform-wide counts; for a reviewer (assignedTo) only what is assigned to them. */
+export const getPlatformStats = async (assignedTo?: string) => {
+	const mine = assignedTo ? { assignedReviewerId: assignedTo } : {};
 	const [
 		totalCompanies,
 		pendingCompanies,
@@ -318,26 +569,30 @@ export const getPlatformStats = async () => {
 		totalLeads,
 		unresolvedLeads,
 	] = await Promise.all([
-		prisma.company.count(),
+		prisma.company.count({ where: mine }),
 		prisma.company.count({
 			where: {
+				...mine,
 				status: {
 					in: [CompanyStatus.SUBMITTED, CompanyStatus.PENDING_REVIEW],
 				},
 			},
 		}),
-		prisma.listing.count(),
-		prisma.listing.count({ where: { publicationStatus: "LIVE" } }),
+		prisma.listing.count({ where: { ...mine, publicationStatus: { not: "DELETED" } } }),
+		prisma.listing.count({ where: { ...mine, publicationStatus: "LIVE" } }),
 		prisma.listing.count({
 			where: {
+				...mine,
+				publicationStatus: { not: "DELETED" },
 				approvalStatus: {
 					in: [ApprovalStatus.SUBMITTED, ApprovalStatus.PENDING_REVIEW],
 				},
 			},
 		}),
-		prisma.lead.count(),
+		prisma.lead.count({ where: assignedTo ? { listing: mine } : {} }),
 		prisma.lead.count({
 			where: {
+				...(assignedTo ? { listing: mine } : {}),
 				stage: { notIn: ["WON", "LOST"] },
 				firstRespondedAt: null,
 			},
@@ -412,6 +667,15 @@ export const getAuditLog = async (
 
 // ─── Platform-wide User Management ──────────────────────────────
 
+const STAFF_ROLES: UserRole[] = [UserRole.super_admin, UserRole.platform_reviewer];
+const COMPANY_ROLES: UserRole[] = [
+	UserRole.company_owner,
+	UserRole.company_manager,
+	UserRole.agent,
+	UserRole.listing_coordinator,
+	UserRole.viewer,
+];
+
 export const getAllUsers = async (
 	page = 1,
 	limit = 50,
@@ -419,6 +683,10 @@ export const getAllUsers = async (
 		companyId?: string;
 		role?: UserRole;
 		search?: string;
+		/** "staff" = platform staff, "partner" = company users */
+		type?: string;
+		/** "active" | "deactivated" */
+		status?: string;
 	} = {},
 ) => {
 	const skip = (page - 1) * limit;
@@ -426,6 +694,10 @@ export const getAllUsers = async (
 	const where: Prisma.UserWhereInput = {
 		...(filters.companyId ? { companyId: filters.companyId } : {}),
 		...(filters.role ? { role: filters.role } : {}),
+		...(filters.type === "staff" ? { role: { in: STAFF_ROLES } } : {}),
+		...(filters.type === "partner" ? { role: { in: COMPANY_ROLES } } : {}),
+		...(filters.status === "active" ? { banned: false } : {}),
+		...(filters.status === "deactivated" ? { banned: true } : {}),
 		...(filters.search
 			? {
 					OR: [
@@ -458,7 +730,7 @@ export const getAllUsers = async (
 	]);
 
 	return {
-		users,
+		users: users.map((u) => ({ ...u, isPlatformStaff: STAFF_ROLES.includes(u.role) })),
 		pagination: {
 			total,
 			page,
@@ -472,19 +744,42 @@ export const updateUserRole = async (
 	userId: string,
 	newRole: UserRole,
 	actorId: string,
+	reason: string,
 ) => {
 	if (userId === actorId) {
 		throw new AppError("You cannot change your own role.", 400);
 	}
+	if (!reason?.trim()) {
+		throw new AppError("A reason is required to change a role.", 400);
+	}
 
 	const user = await prisma.user.findUnique({ where: { id: userId } });
 	if (!user) throw new AppError("User not found", 404);
+
+	// Platform staff and partner users are separate: a role change can't move
+	// someone between the two.
+	const isStaff = STAFF_ROLES.includes(user.role);
+	if (isStaff && !STAFF_ROLES.includes(newRole)) {
+		throw new AppError("Platform staff can only have a platform role.", 400);
+	}
+	if (!isStaff && !COMPANY_ROLES.includes(newRole)) {
+		throw new AppError("Partner users can only have a company role.", 400);
+	}
+	if (user.role === UserRole.company_owner && newRole !== UserRole.company_owner && user.companyId) {
+		const owners = await prisma.user.count({
+			where: { companyId: user.companyId, role: UserRole.company_owner, banned: false },
+		});
+		if (owners <= 1) {
+			throw new AppError("A company must keep at least one owner. Make someone else owner first.", 400);
+		}
+	}
 
 	const updated = await prisma.user.update({
 		where: { id: userId },
 		data: { role: newRole },
 		select: { id: true, name: true, email: true, role: true, companyId: true },
 	});
+	invalidateUserAccess(userId);
 
 	await prisma.auditLog.create({
 		data: {
@@ -495,10 +790,35 @@ export const updateUserRole = async (
 			entityId: userId,
 			previousValue: { role: user.role },
 			newValue: { role: newRole },
+			reason: reason.trim(),
 		},
 	});
 
 	return updated;
+};
+
+/** Super Admin invites a user into any approved company. */
+export const adminInviteUser = async (
+	actorId: string,
+	data: { companyId?: string; email: string; role: UserRole },
+) => {
+	const email = data.email.trim().toLowerCase();
+	const staff = STAFF_ROLES.includes(data.role);
+	if (!staff && !COMPANY_ROLES.includes(data.role)) {
+		throw new AppError("Please choose a valid role.", 400);
+	}
+	if (!staff && !data.companyId) throw new AppError("Company is required", 400);
+	const invitation = staff
+		? await createStaffInvitation(actorId, { email, role: data.role })
+		: await createInvitation(data.companyId!, actorId, { email, role: data.role });
+	return {
+		id: invitation.id,
+		email: invitation.email,
+		role: invitation.role,
+		companyId: invitation.companyId,
+		expiresAt: invitation.expiresAt,
+		inviteUrl: `${env.FRONTEND_URL}/invite/${invitation.token}`,
+	};
 };
 
 // Platform-wide deactivate/reactivate — delegates to the same

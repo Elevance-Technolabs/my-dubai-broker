@@ -3,6 +3,7 @@ import SectionWrapper from "../layout/SectionWrapper";
 import { HomeDict } from "@/types/dictionary";
 import { Listing } from "@/types/listing";
 import AssetCard from "../ui/CategoryCard";
+import { TrackImpressions } from "@/components/tracking/TrackListing";
 
 type ExclusiveCarouselProps = {
   t: HomeDict;
@@ -14,6 +15,7 @@ const ExclusiveCarousel = ({ t, listings }: ExclusiveCarouselProps) => {
 
   return (
     <SectionWrapper>
+      <TrackImpressions listingIds={listings.map((l) => l.id)} />
       <section className="py-15 bg-white overflow-hidden">
         <div className="container mx-auto px-6 lg:px-10">
           <SectionHeading

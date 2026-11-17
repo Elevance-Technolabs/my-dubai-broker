@@ -34,7 +34,7 @@ export default function ViewContent({ t, locale }: ViewContentProps) {
       <PageHero
         title={t.blog.hero.title}
         subtitle={t.blog.hero.subtitle}
-        backgroundImage="https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=2670&auto=format&fit=crop"
+        backgroundImage="https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=1920&auto=format&fit=crop"
         imageAlt="The View"
       />
 
@@ -106,7 +106,7 @@ function ArticleSmall({ article, locale, idx }: ArticleProps) {
       style={{ animationDelay: `${idx * 150}ms` }}
     >
       <div className="aspect-3/2 overflow-hidden mb-6 w-full bg-slate-100 relative shadow-md">
-        <img
+        <img loading="lazy" decoding="async"
           src={article.image}
           alt={article.title}
           className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
@@ -135,7 +135,7 @@ function ArticleFeatured({ article, locale, idx }: ArticleProps) {
       style={{ animationDelay: `${idx * 150}ms` }}
     >
       <div className="absolute inset-0 bg-slate-100">
-        <img
+        <img loading="lazy" decoding="async"
           src={article.image}
           alt={article.title}
           className="w-full h-full object-cover transition-all duration-1000 ease-out group-hover:scale-110"

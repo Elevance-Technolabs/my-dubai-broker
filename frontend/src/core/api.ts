@@ -18,7 +18,51 @@ function statusMessage(status: number): string {
   return "Something went wrong";
 }
 
+// ─── Short-lived GET cache (browser only) ──────────────────────
+// Going back to a page you just saw shows its data at once instead of
+// waiting on the API again, and identical requests made at the same moment
+// (several components loading together) share one network call. Any change
+// (POST/PUT/PATCH/DELETE) clears it, so your own edits always show.
+const GET_CACHE_MS = 20_000;
+const getCache = new Map<string, { at: number; value: ApiResponse<any> }>();
+const inFlight = new Map<string, Promise<ApiResponse<any>>>();
+
+/** Drop every cached GET (called after any change, and available to callers). */
+export const clearApiCache = () => {
+  getCache.clear();
+  inFlight.clear();
+};
+
 export async function apiRequest<T = any>(
+  endpoint: string,
+  options: ApiOptions = {},
+): Promise<ApiResponse<T>> {
+  const method = (options.method ?? "GET").toUpperCase();
+  const cacheable = typeof window !== "undefined" && method === "GET" && !options.body;
+  if (!cacheable) {
+    const result = await sendRequest<T>(endpoint, options);
+    if (method !== "GET" && typeof window !== "undefined") {
+      clearApiCache();
+      // e.g. approving a listing or answering a lead changes the sidebar counts.
+      if (result.success) window.dispatchEvent(new Event("api:changed"));
+    }
+    return result;
+  }
+  const key = `${getAuthToken() ?? ""} ${endpoint} ${JSON.stringify(options.params ?? {})}`;
+  const hit = getCache.get(key);
+  if (hit && Date.now() - hit.at < GET_CACHE_MS) return hit.value as ApiResponse<T>;
+  const pending = inFlight.get(key);
+  if (pending) return pending as Promise<ApiResponse<T>>;
+  const request = sendRequest<T>(endpoint, options).then((result) => {
+    inFlight.delete(key);
+    if (result.success) getCache.set(key, { at: Date.now(), value: result });
+    return result;
+  });
+  inFlight.set(key, request);
+  return request;
+}
+
+async function sendRequest<T = any>(
   endpoint: string,
   options: ApiOptions = {},
 ): Promise<ApiResponse<T>> {

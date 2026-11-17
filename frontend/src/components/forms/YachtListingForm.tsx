@@ -27,6 +27,7 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { yachtService } from "@/services/yacht.service"; // Corrected import path/name if needed
 import { toast } from "sonner";
+import { afterListingSaved } from "@/lib/listingSaved";
 import { validateImageFile } from "@/lib/utils/r2Upload";
 import {
   applyServerFieldErrors,
@@ -101,12 +102,7 @@ export default function YachtListingForm({
           ? await yachtService.updateYacht(listingId, data)
           : await yachtService.createYacht(data);
       if (response.success) {
-        toast.success(
-          mode === "edit"
-            ? "Yacht listing updated successfully!"
-            : "Yacht listing published successfully!",
-        );
-        router.push("/dashboard");
+        afterListingSaved(mode, listingId, response, router, "Yacht listing published successfully!");
       } else {
         const unmapped = applyServerFieldErrors(
           methods.setError,
@@ -252,11 +248,17 @@ export default function YachtListingForm({
                   register={methods.register}
                   isMandatory
                 />
-                <Input
+                <Select
                   labelClassName="text-[10px] uppercase tracking-widest text-gray-500"
                   id="yachtType"
                   label={t.fields.type}
-                  placeholder={t.placeholders.type}
+                  options={[
+                    { label: "Motor yacht", value: "MOTOR_YACHT" },
+                    { label: "Sailing yacht", value: "SAILING_YACHT" },
+                    { label: "Super yacht", value: "SUPER_YACHT" },
+                    { label: "Speed boat", value: "SPEED_BOAT" },
+                    { label: "Catamaran", value: "CATAMARAN" },
+                  ]}
                   register={methods.register}
                   isMandatory
                 />

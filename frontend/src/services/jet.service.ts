@@ -66,10 +66,10 @@ export const jetService = {
       toListingPayload(data),
     );
   },
-  // Listings are archived, not hard-deleted, under the unified API.
+  // Deleting keeps the listing on record as history (see listing.service).
   deleteJet: async (id: string): Promise<ApiResponse<any>> => {
-    return apiRequest(`/listings/${id}/archive`, {
-      method: "POST",
+    return apiRequest(`/listings/${id}`, {
+      method: "DELETE",
     });
   },
 };

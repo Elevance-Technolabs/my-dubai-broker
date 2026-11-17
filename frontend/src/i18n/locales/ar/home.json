@@ -55,7 +55,7 @@
           "subtitle": "أكثر المجمعات السكنية خصوصية في دبي",
           "linkText": "استكشف المنطقة",
           "description": "لا يتأهل كل عقار. يتم تشكيل هذه المجموعة من خلال الندرة والموقع والهندسة المعمارية والقيمة طويلة الأجل - وليس الحجم.",
-          "image": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750"
+          "image": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=70&w=640&auto=format&fit=crop"
         }
       },
       "cars": {
@@ -93,7 +93,7 @@
         ],
         "featured": {
           "description": "تم اختيارها للندرة والأصالة والحالة التي لا تشوبها شائبة. لا تتأهل كل سيارة خارقة لهذه المجموعة.",
-          "image": "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e"
+          "image": "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=70&w=640&auto=format&fit=crop"
         }
       },
       "yachts": {
@@ -126,7 +126,7 @@
         ],
         "featured": {
           "description": "منسقة لنسب البناء، والهندسة البحرية، وصلاحية الإبحار. بنيت للسفر، لا لترسو.",
-          "image": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a"
+          "image": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=70&w=640&auto=format&fit=crop"
         }
       },
       "jets": {
@@ -158,7 +158,7 @@
         ],
         "featured": {
           "description": "اختيرت للمدى، وتاريخ الصيانة، وسلامة التشغيل. الوقت يهم. الدقة تهم.",
-          "image": "https://images.unsplash.com/photo-1540962351504-03099e0a754b"
+          "image": "https://images.unsplash.com/photo-1540962351504-03099e0a754b?q=70&w=640&auto=format&fit=crop"
         }
       },
       "collectibles": {
@@ -183,7 +183,7 @@
         ],
         "featured": {
           "description": "قطع مختارة لقيمتها الثقافية وندرتها وأهميتها طويلة الأمد. ليست مجرد صيحات، بل إرث.",
-          "image": "https://images.unsplash.com/photo-1523170335258-f5ed11844a49"
+          "image": "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=70&w=640&auto=format&fit=crop"
         }
       }
     }

@@ -41,7 +41,7 @@ const SignatureCollection = ({ category, dict }: SignatureCollectionProps) => {
                         >
                             {/* Image Container */}
                             <div className="relative aspect-square overflow-hidden">
-                                <img
+                                <img loading="lazy" decoding="async"
                                     src={item.image}
                                     alt={item.title}
                                     className="w-full h-full object-cover ease-in-out transition-all duration-400 group-hover:scale-102"

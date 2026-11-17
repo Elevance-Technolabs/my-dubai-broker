@@ -28,11 +28,13 @@ export const globalErrorHandler = (
 		return;
 	}
 
-	// Default generic error
+	// Anything else is unexpected: the details (e.g. a database error with the
+	// full query) stay in the server log, the client gets a plain message.
+	const status = err.statusCode || 500;
 	sendError(
 		res,
-		err.message || "Something went wrong",
-		err.statusCode || 500,
+		status >= 500 ? "Something went wrong. Please try again." : err.message || "Something went wrong",
+		status,
 		err,
 	);
 };

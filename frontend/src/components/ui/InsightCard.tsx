@@ -27,7 +27,7 @@ const InsightCard = ({
   return (
     <Link href={link} className={cn("group flex flex-col h-full", className)}>
       <div className="relative aspect-16/10 overflow-hidden mb-6">
-        <img
+        <img loading="lazy" decoding="async"
           src={image}
           alt="Insight"
           className="w-full h-full object-cover ease-in-out transition-transform duration-400 group-hover:scale-102"

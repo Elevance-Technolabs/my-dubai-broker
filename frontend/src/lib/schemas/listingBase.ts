@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_ORIGINAL_IMAGE_BYTES } from "@/lib/utils/imageOptimize";
 import { Currency } from "@/types/enums";
 import {
   emailField,
@@ -11,7 +12,9 @@ import {
 
 export const MAX_LISTING_PHOTOS = 10;
 const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+// Photos are shrunk to WebP in the browser before upload (see imageOptimize),
+// so large originals straight from a phone or camera are fine.
+const MAX_PHOTO_BYTES = MAX_ORIGINAL_IMAGE_BYTES;
 
 /** Fields every listing category shares (same limits as the backend). */
 export const listingBaseShape = {
@@ -31,7 +34,7 @@ export const listingBaseShape = {
   licenseNumber: requiredText("License number"),
 };
 
-/** Photo rules: at least one, at most 10, allowed type, 5 MB each. */
+/** Photo rules: at least one, at most 10, allowed type, 25 MB each before compression. */
 export const validateListingPhotos = (
   data: { photoFiles: File[]; existingPhotoKeys: string[] },
   ctx: z.RefinementCtx,
@@ -64,7 +67,7 @@ export const validateListingPhotos = (
     if (file.size > MAX_PHOTO_BYTES) {
       ctx.addIssue({
         code: "custom",
-        message: `"${file.name}" must be 5 MB or smaller`,
+        message: `"${file.name}" must be 25 MB or smaller`,
         path: ["photoFiles"],
       });
       return;

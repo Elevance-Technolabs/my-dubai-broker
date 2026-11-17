@@ -42,7 +42,9 @@ const Collections = ({ t }: CollectionsProps) => {
         {COLLECTIONS.map((item, index) => {
           const itemText = t.collections.items[index];
           return (
-            <Link href={`/category/${item.type}`} key={item.id}>
+            // block + w-full: the card's photo (Next.js Image, fill) has no width of
+            // its own, so the link must take the whole grid cell.
+            <Link href={`/category/${item.type}`} key={item.id} className="block w-full">
               <CollectionCard
                 key={item.id}
                 image={item.image}

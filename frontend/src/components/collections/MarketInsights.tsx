@@ -39,7 +39,7 @@ const MarketInsights = ({ type = "realEstate" }: MarketInsightsProps) => {
             <div key={article.id} className="group cursor-pointer">
               {/* Image */}
               <div className="overflow-hidden mb-6 aspect-video">
-                <img
+                <img loading="lazy" decoding="async"
                   src={article.image}
                   alt={article.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"

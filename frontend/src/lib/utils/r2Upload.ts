@@ -7,6 +7,8 @@ export const ALLOWED_DOCUMENT_TYPES = [...ALLOWED_IMAGE_TYPES, "application/pdf"
 export const validateImageFile = (
   file: File,
   allowedTypes: string[] = ALLOWED_IMAGE_TYPES,
+  /** Larger limit for a photo that will be shrunk before it is uploaded. */
+  maxBytes: number = MAX_IMAGE_SIZE,
 ): string | null => {
   if (!allowedTypes.includes(file.type)) {
     return allowedTypes === ALLOWED_IMAGE_TYPES
@@ -16,8 +18,8 @@ export const validateImageFile = (
   if (file.size <= 0) {
     return `"${file.name}" is empty`;
   }
-  if (file.size > MAX_IMAGE_SIZE) {
-    return `"${file.name}" is too large (5 MB maximum)`;
+  if (file.size > maxBytes) {
+    return `"${file.name}" is too large (${Math.round(maxBytes / (1024 * 1024))} MB maximum)`;
   }
   return null;
 };

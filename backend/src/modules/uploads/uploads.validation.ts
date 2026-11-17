@@ -41,10 +41,15 @@ const createPresignSchema = (
 		uploadContext: z.enum(UPLOAD_CONTEXTS).optional(),
 	});
 
+// Signed-in uploads are images, except company documents (a registration
+// resubmitted after changes were requested), which may also be PDFs.
 export const presignUploadSchema = createPresignSchema(
-	ALLOWED_IMAGE_CONTENT_TYPES,
-	"Only JPEG, PNG and WebP images are allowed",
-);
+	ALLOWED_CONTENT_TYPES,
+	"Only JPEG, PNG, WebP images and PDF files are allowed",
+).refine((d) => d.contentType !== "application/pdf" || d.uploadContext === "company-document", {
+	message: "Only JPEG, PNG and WebP images are allowed",
+	path: ["contentType"],
+});
 
 export const presignDocumentUploadSchema = createPresignSchema(
 	ALLOWED_CONTENT_TYPES,

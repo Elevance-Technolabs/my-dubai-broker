@@ -27,6 +27,7 @@ import { useState, useEffect } from "react";
 import { CompanyService } from "@/services/company.service";
 import { helicopterService } from "@/services/helicopter.service";
 import { toast } from "sonner";
+import { afterListingSaved } from "@/lib/listingSaved";
 import { validateImageFile } from "@/lib/utils/r2Upload";
 import {
   applyServerFieldErrors,
@@ -101,12 +102,7 @@ export default function HelicopterListingForm({
           ? await helicopterService.updateHelicopter(listingId, data)
           : await helicopterService.createHelicopter(data);
       if (response.success) {
-        toast.success(
-          mode === "edit"
-            ? "Helicopter listing updated successfully!"
-            : "Helicopter listing published successfully!",
-        );
-        router.push("/dashboard");
+        afterListingSaved(mode, listingId, response, router, "Helicopter listing published successfully!");
       } else {
         const unmapped = applyServerFieldErrors(
           methods.setError,

@@ -21,7 +21,7 @@ const BrandStrip = ({ type, isYachts }: { type: string, isYachts?: boolean }) =>
               key={index}
               className="flex items-center justify-center  cursor-pointer h-12 w-32 md:w-40 relative"
             >
-              <img
+              <img loading="lazy" decoding="async"
                 src={logo}
                 alt={`Brand logo ${index + 1}`}
                 className="w-full h-full object-contain"

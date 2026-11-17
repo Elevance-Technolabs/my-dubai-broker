@@ -74,7 +74,7 @@ export default function BrandVisibilityView({ t, locale }: BrandVisibilityViewPr
             <PageHero
                 title={t.brandVisibility.hero.title}
                 subtitle={t.brandVisibility.hero.subtitle}
-                backgroundImage="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
+                backgroundImage="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1920&auto=format&fit=crop"
                 imageAlt="Brand & Visibility Solutions"
             />
 
@@ -141,8 +141,8 @@ export default function BrandVisibilityView({ t, locale }: BrandVisibilityViewPr
             <div className="bg-white py-24 md:py-40">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 items-stretch">
                     <div className="relative aspect-video lg:aspect-auto overflow-hidden">
-                        <img
-                            src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop"
+                        <img loading="lazy" decoding="async"
+                            src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1920&auto=format&fit=crop"
                             alt="Curated Storytelling"
                             className="w-full h-full object-cover"
                         />

@@ -11,6 +11,7 @@ const toListingPayload = ({
   qualityNarrative,
   brand,
   model,
+  bodyType,
   year,
   variant,
   mileage,
@@ -27,7 +28,7 @@ const toListingPayload = ({
 }: CarFormData) => ({
   ...rest,
   category: "CARS",
-  assetType: "SEDAN", // default — the form doesn't collect a body-type asset type yet
+  assetType: bodyType || "SEDAN",
   offeringType: "SALE",
   salePrice: price,
   currency,
@@ -70,10 +71,10 @@ export const carService = {
       toListingPayload(data),
     );
   },
-  // Listings are archived, not hard-deleted, under the unified API.
+  // Deleting keeps the listing on record as history (see listing.service).
   deleteCar: async (id: string): Promise<ApiResponse<any>> => {
-    return apiRequest(`/listings/${id}/archive`, {
-      method: "POST",
+    return apiRequest(`/listings/${id}`, {
+      method: "DELETE",
     });
   },
 };

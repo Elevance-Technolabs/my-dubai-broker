@@ -46,7 +46,7 @@ const EditorsChoice = ({ category }: EditorsChoiceProps) => {
                     {/* Main Featured Item (Left) */}
                     {largeItem && (
                         <div className="relative group overflow-hidden cursor-pointer h-[400px] lg:h-full rounded-md lg:col-span-2">
-                            <img
+                            <img loading="lazy" decoding="async"
                                 src={largeItem.image}
                                 alt={largeItem.title}
                                 className="absolute inset-0 w-full h-full object-cover ease-in-out transition-all duration-400 group-hover:scale-102"
@@ -81,7 +81,7 @@ const EditorsChoice = ({ category }: EditorsChoiceProps) => {
                     <div className="flex flex-col gap-6 h-auto lg:h-full">
                         {smallItems.map((item) => (
                             <div key={item.id} className="relative group overflow-hidden cursor-pointer h-[250px] lg:h-1/2 rounded-md">
-                                <img
+                                <img loading="lazy" decoding="async"
                                     src={item.image}
                                     alt={item.title}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"

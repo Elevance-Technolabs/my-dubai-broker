@@ -28,8 +28,8 @@ const TrustTechnology = ({ t }: TrustTechnologyProps) => (
           </div>
         </div>
         <div className="relative aspect-[4/3] overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop"
+          <img loading="lazy" decoding="async"
+            src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1920&auto=format&fit=crop"
             alt="Technology"
             className="w-full h-full object-cover"
           />

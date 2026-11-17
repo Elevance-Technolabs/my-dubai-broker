@@ -81,6 +81,32 @@ export const onboardingSchema = z.object({
 	boatDealerCertificateUploadId: z.string().uuid().optional(),
 	aviationDealerLicenseUploadId: z.string().uuid().optional(),
 	aocOperatorDocumentUploadId: z.string().uuid().optional(),
+	carTradeLicenseUploadId: z.string().uuid().optional(),
+	collectiblesTradeLicenseUploadId: z.string().uuid().optional(),
+	consignmentAuthorityUploadId: z.string().uuid().optional(),
+	// Per document (keyed by the upload field name, e.g. "tradeLicense").
+	documentDetails: z
+		.record(
+			z.string(),
+			z
+				.object({
+					documentNumber: z.string().trim().max(100, "Document number must be at most 100 characters").optional(),
+					issuingAuthority: z.string().trim().max(150, "Issuing authority must be at most 150 characters").optional(),
+					issueDate: z
+						.string()
+						.refine((v) => v === "" || !Number.isNaN(new Date(v).getTime()), "Enter a valid issue date")
+						.optional(),
+					expiryDate: z
+						.string()
+						.refine((v) => v === "" || !Number.isNaN(new Date(v).getTime()), "Enter a valid expiry date")
+						.optional(),
+				})
+				.refine(
+					(d) => !d.issueDate || !d.expiryDate || new Date(d.expiryDate) > new Date(d.issueDate),
+					{ message: "Expiry date must be after the issue date", path: ["expiryDate"] },
+				),
+		)
+		.optional(),
 
 	// Step 4: Company Profile
 	name: z.string("Company name is required").min(1, "Company name is required"),
@@ -107,3 +133,10 @@ export const onboardingSchema = z.object({
 	ownerEmail: z.string().email("Owner email must be a valid email address"),
 	password: z.string().min(8, "Password must be at least 8 characters"),
 });
+
+/**
+ * Owner updating the registration after the platform asked for changes:
+ * the same fields as onboarding, without the account details. New uploads
+ * replace the document of the same type.
+ */
+export const resubmitRegistrationSchema = onboardingSchema.omit({ ownerEmail: true, password: true });
